@@ -5,13 +5,6 @@ var assert = chai.assert;
 var tokenize = require('./parse.js').tokenize;
 var parse = require('./parse.js').parse;
 
-//assert.deepEqual(tokenize('(+ (thing 1 2) (other 3 4))'),
-//                      ['(', '+', '(', 'thing', '1', '2', ')', '(', 'other', '3', '4', ')', ')']);
-
-//assert.deepEqual(parse('(+ (thing 1 2) (other 3 "4"))'),
-//                    ['+', ['thing', 1, 2], ['other', 3, '"4"']]);
-//
-//
 describe('parse', function(){
   describe('tokenize', function(){
     it('should tokenize simple literals', function(){
