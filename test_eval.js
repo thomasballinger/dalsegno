@@ -8,7 +8,6 @@ var Runner = require('./objeval').Runner;
 var Environment = require('./objeval').Environment;
 var evalGen = require('./objeval').evalGen;
 var run = require('./objeval').run;
-var Runner = require('./objeval').Runner;
 
 // environment with just an arity-2 sum function for testing
 var justSum = new Environment([{'+': function(a, b){return a + b}}]);
@@ -18,6 +17,10 @@ describe('objeval', function(){
     it('should do lookup through scopes from right to left', function(){
       var env = new Environment([{a:1}, {a:2}, {}], {});
       assert.deepEqual(env.lookup('a'), 2)
+    });
+    it('should use functions if not found in scopes', function(){
+      var env = new Environment([{a:1}, {a:2}, {}], {b:3});
+      assert.deepEqual(env.lookup('b'), 3);
     });
     it('should create new environments with scopes', function(){
       var env = new Environment([{a:1}, {a:2}, {}], {});
@@ -50,6 +53,14 @@ describe('objeval', function(){
     it('should work', function(){
       assert.deepEqual(run('((lambda 1))'), 1);
       assert.deepEqual(run('((lambda a b (+ a b)) 1 2)'), 3);
+    });
+  });
+  describe('NamedFunction', function(){
+    it('should work', function(){
+      var tmpEnv = new Environment([{'+': function(a, b){return a + b}}]);
+      run('(defn foo x y (+ x y))', tmpEnv);
+      assert.isDefined(tmpEnv.funs.foo);
+      assert.deepEqual(run('(foo 1 2)', tmpEnv), 3);
     });
   });
   describe('Runner', function(){

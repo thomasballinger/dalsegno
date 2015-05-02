@@ -3,7 +3,11 @@ if (typeof window === 'undefined') {
     var parse = require('./parse.js').parse
 }
 
-function Function(body, params, env){
+function Function(body, params, env, name){
+  if (name === undefined){
+    name = null; // anonymous function
+  }
+  this.name = name;
   this.body = body;
   this.params = params;
   this.env = env;
@@ -65,8 +69,14 @@ Environment.prototype.lookup = function(key){
       return this.scopes[i][key];
     }
   }
+  if (this.funs.hasOwnProperty(key)){
+    return this.funs[key];
+  }
   throw Error("Key "+key+" not found in environment"+this);
 };
+Environment.prototype.setFunction = function(name, func){
+  this.funs[name] = func;
+}
 Environment.prototype.newWithScope = function(scope){
   return new Environment(this.scopes.concat([scope]), this.funs);
 };
@@ -105,9 +115,12 @@ function evalGen(ast, env){
   if (ast[0] === 'do'){ throw "special form do not implemented yet" }
   if (ast[0] === 'if'){ throw "special form do not implemented yet" }
   if (ast[0] === 'set'){ throw "special form do not implemented yet" }
-  if (ast[0] === 'defn'){ throw "special form do not implemented yet" }
+  if (ast[0] === 'defn'){
+    if (ast.length < 3){ throw Error("Not enough arguments for defn: "+ast) }
+    return new NamedFunction(ast, env);
+  }
   if (ast[0] === 'lambda'){
-    if (ast.length < 2){ throw Error("Not enough argument to lambda: "+ast) }
+    if (ast.length < 2){ throw Error("Not enough arguments for lambda: "+ast) }
     return new LambdaExpression(ast, env)
   }
 
@@ -147,6 +160,14 @@ function LambdaExpression(ast, env){ this.ast = ast; this.env = env; }
 LambdaExpression.prototype = new BaseEval();
 LambdaExpression.prototype.next = function(){
   var f = new Function(this.ast[this.ast.length - 1], this.ast.slice(1, -1), this.env);
+  return {value: f, finished: true};
+}
+
+function NamedFunction(ast, env){ this.ast = ast; this.env=env; }
+NamedFunction.prototype = new BaseEval();
+NamedFunction.prototype.next = function(){
+  var f = new Function(this.ast[this.ast.length - 1], this.ast.slice(2, -1), this.env, this.ast[1]);
+  this.env.setFunction(f.name, f);
   return {value: f, finished: true};
 }
 
