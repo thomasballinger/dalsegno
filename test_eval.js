@@ -7,6 +7,8 @@ var parse = require('./parse.js').parse;
 var Runner = require('./objeval').Runner;
 var Environment = require('./objeval').Environment;
 var evalGen = require('./objeval').evalGen;
+var run = require('./objeval').run;
+var Runner = require('./objeval').Runner;
 
 // environment with just an arity-2 sum function for testing
 var justSum = new Environment([{'+': function(a, b){return a + b}}]);
@@ -44,23 +46,23 @@ describe('objeval', function(){
       assert.deepEqual(e.next(), {value: 3, finished: true});
     });
   });
-	/*
+  describe('Lambda', function(){
+    it('should work', function(){
+      assert.deepEqual(run('((lambda 1))'), 1);
+      assert.deepEqual(run('((lambda a b (+ a b)) 1 2)'), 3);
+    });
+  });
   describe('Runner', function(){
-    it('should iterate to run', function(){
-      var r = Runner('(+ 1 1)');
-      var g = g[Symbol.iterator]();
-      assert.deepEqual(g.next(), {value: null, finished: false});
+    it('should be iterable', function(){
+      var e = new Runner('1');
+      assert.deepEqual(e.next(), {value: 1, finished: true});
+      var e = new Runner('(+ 1 2)');
+      assert.deepEqual(e.next(), {value: null, finished: false});
     });
   });
-  */
-/*
-  describe('eval', function(){
-    it('should passthrough literals', function(){
-      assert.deepEqual(eval(1.2), 1.2);
-      assert.deepEqual(eval('"asdf"'), "asdf");
-      assert.deepEqual(, ['2']);
-      assert.deepEqual(eval('"asdf"'), ['"asdf"']);
-    });
+  describe('run', function(){
+    assert.deepEqual(run('1'), 1);
+    assert.deepEqual(run('"a"'), "a");
+    assert.deepEqual(run('(+ 1 2)'), 3);
   });
-*/
 });

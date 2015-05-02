@@ -1,12 +1,14 @@
+'use strict';
 if (typeof window === 'undefined') {
     var parse = require('./parse.js').parse
 }
 
-function Function(body, params){
+function Function(body, params, env){
   this.body = body;
   this.params = params;
+  this.env = env;
 }
-Function.buildScope = function(args){
+Function.prototype.buildScope = function(args){
   if (this.params.length != args.length){
     throw Error("Calling function "+this+" with wrong arity! Expected " +
            this.params.length + " params but got " + args.length);
@@ -20,16 +22,30 @@ Function.buildScope = function(args){
 
 function Runner(s, env){
   if (env === undefined){
-    env = [builtins, {}];
+    env = new Environment([builtins, {}]);
   }
 
   this.ast = parse(s);
   this.env = env;
-  this.state = Eval(this.ast, this.env);
+  this.delegate = evalGen(this.ast, this.env);
+  this.counter = 0;
+  this.values = [];
+}
+Runner.prototype = new BaseEval();
+Runner.prototype.next = function(){
+  if (this.isFinished(this.delegate)) {
+    return {value: this.values[0], finished:true};
+  }
+  return {value: null, finished: false};
 }
 
-Runner.prototype[Symbol.iterator] = function(){
-  return this;
+function run(s, env){
+  var runner = new Runner(s, env);
+  var value = runner.next();
+  while (!value.finished){
+    value = runner.next();
+  }
+  return value.value
 }
 
 function Environment(scopes, funs){
@@ -71,8 +87,8 @@ function evalGen(ast, env){
   }
 
   if (typeof ast === 'string'){
-      start = ast.slice(0, 1);
-      end = ast.slice(-1);
+      var start = ast.slice(0, 1);
+      var end = ast.slice(-1);
       if (start === end && (start === '"' || start === "'")){
           return new StringLiteral(ast.slice(1, -1))
       } else {
@@ -89,8 +105,11 @@ function evalGen(ast, env){
   if (ast[0] === 'do'){ throw "special form do not implemented yet" }
   if (ast[0] === 'if'){ throw "special form do not implemented yet" }
   if (ast[0] === 'set'){ throw "special form do not implemented yet" }
-  if (ast[0] === 'lambda'){ throw "special form do not implemented yet" }
   if (ast[0] === 'defn'){ throw "special form do not implemented yet" }
+  if (ast[0] === 'lambda'){
+    if (ast.length < 2){ throw Error("Not enough argument to lambda: "+ast) }
+    return new LambdaExpression(ast, env)
+  }
 
   return new Invocation(ast, env);
 }
@@ -124,6 +143,13 @@ function NumberLiteral(ast){ this.ast = ast; }
 NumberLiteral.prototype = new BaseEval();
 NumberLiteral.prototype.next = function(){ return {value: this.ast, finished: true} }
 
+function LambdaExpression(ast, env){ this.ast = ast; this.env = env; }
+LambdaExpression.prototype = new BaseEval();
+LambdaExpression.prototype.next = function(){
+  var f = new Function(this.ast[this.ast.length - 1], this.ast.slice(1, -1), this.env);
+  return {value: f, finished: true};
+}
+
 function Lookup(ast, env){ this.ast = ast; this.env = env;}
 Lookup.prototype = new BaseEval();
 Lookup.prototype.next = function(){
@@ -153,8 +179,8 @@ Invocation.prototype.next = function(){
           return {value: value, finished: true}
         } else if (this.values[0].constructor === Function) {
           var callScope = this.values[0].buildScope(this.values.slice(1));
-          var callEnv = this.env.newWithScope(callScope);
-          var value = evalGen(this.values[0].ast, callEnv);
+          var callEnv = this.values[0].env.newWithScope(callScope);
+          var value = evalGen(this.values[0].body, callEnv);
           return {value: value, finished: true}
         } else {
           throw Error("don't know how to call non-function "+this.values[0])
@@ -166,7 +192,7 @@ Invocation.prototype.next = function(){
   }
 }
 
-builtins = {
+var builtins = {
   '+': function(){
     return Array.prototype.slice.call(arguments).reduce(function(a, b){
       return a + b}, 0)
@@ -178,4 +204,5 @@ if (typeof window === 'undefined') {
     exports.Environment = Environment;
     exports.evalGen = evalGen;
     exports.builtins = builtins;
+    exports.run = run;
 }
