@@ -52,15 +52,23 @@ function run(s, env){
   return value.value
 }
 
-function runAtInterval(s, env, timeout, numIterations){
+function runAtInterval(s, env, timeout, numIterations, callback){
+  // If callback returns false, will stop running
   if (timeout === undefined){
     timeout = 0.001;
   }
   if (numIterations === undefined){
     numIterations = 1;
   }
+  if (callback === undefined){
+    callback = function(){return true;}
+  }
   var runner = new Runner(s, env);
   var runABit = function(){
+    var result = callback();
+    if (result === false){
+      return;
+    }
     var value = runner.next();
     for (var i=0; i<numIterations-1; i++){
       if (value.finished){
@@ -376,6 +384,9 @@ var builtins = {
   'display': function(){
     return console.log.apply(console, Array.prototype.slice.call(arguments));
   },
+  '>': function(a, b){ return (a > b); },
+  '<': function(a, b){ return (a < b); },
+  '=': function(a, b){ return (a === b); },
 }
 
 if (typeof window === 'undefined') {

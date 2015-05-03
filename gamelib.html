@@ -6,7 +6,7 @@
     (define y 100)
     (display "hi!")
     (defn render (do
-      (drawRect x y 100 100)
+      (clearDrawRect x y 100 100)
       (set! x (+ x 1))
       (render)))
     (render))
@@ -20,10 +20,43 @@
   var lib = new Gamelib('canvas');
   var gameMethods = lib.getFunctions();
   gameMethods.drawRect(100, 100, 40, 50);
-  env = new Environment([gameMethods, builtins, {}]);
 
   var textArea = document.getElementById('code');
-  runAtInterval(textArea.value, env);
+
+  env = new Environment([gameMethods, builtins, {}]);
+  var shouldReload = false;
+  var running = true;
+
+  textArea.addEventListener('keyup', function(){
+    shouldReload = true;
+    if (!running){
+      runAtInterval(textArea.value, env, 0.001, 1, runCallback);
+    }
+  })
+
+  var runCallback = function(){
+    if (shouldReload){
+      shouldReload = false;
+      var program = textArea.value;
+      try {
+        parse(program);
+      } catch (e) {
+        console.log(e)
+        running = false;
+        return false;
+      }
+      running = true;
+      env = new Environment([gameMethods, builtins, {}]);
+      runAtInterval(program, env, 0.001, 1, runCallback)
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  runAtInterval(textArea.value, env, 0.001, 1, runCallback);
+
+
 </script>
 </body>
 </html>

@@ -22,9 +22,14 @@ describe('parse', function(){
     })
   });
   describe('parse', function(){
-    it('parse nested forms', function(){
+    it('should parse nested forms', function(){
       assert.deepEqual(parse('(+ (thing 1 2) (other 3 "4"))'),
                        ['+', ['thing', 1, 2], ['other', 3, '"4"']])
+    });
+    it('should return throw an error when parse fails', function(){
+      assert.deepEqual(parse('(+ 1 2)'), ['+', 1, 2])
+      assert.throw(function(){parse('(+ 1 2');}, Error)
+      assert.throw(function(){parse('+ 1 2)');}, Error)
     });
   });
 });

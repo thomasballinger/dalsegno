@@ -9,15 +9,25 @@ function tokenize(s){
 }
 
 function parse(s){
-    if (typeof s === 'string'){
-        s = tokenize(s)
-    }
+  if (typeof s === 'string'){
+      s = tokenize(s)
+  }
+  var result = innerParse(s);
+  if (s.length !== 0){
+    throw Error("Didn't finish parse of "+s);
+  }
+  return result;
+}
 
-    var cur = s.shift();
+function innerParse(tokens){
+    var cur = tokens.shift();
+    if (cur === undefined){
+      throw Error("forgot to close something?");
+    }
     if (cur === '(') {
         var form = [];
         while (true){
-            var f = parse(s);
+            var f = innerParse(tokens);
             if (f === ')'){
                 return form;
             }

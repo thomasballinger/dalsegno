@@ -35,3 +35,10 @@ Gamelib.prototype.height = function(){
 Gamelib.prototype.drawRect = function(x, y, width, height){
   this.ctx.fillRect(x, y, width, height);
 }
+Gamelib.prototype.clear = function(){
+  this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+}
+Gamelib.prototype.clearDrawRect = function(x, y, width, height){
+  this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  this.ctx.fillRect(x, y, width, height);
+}
