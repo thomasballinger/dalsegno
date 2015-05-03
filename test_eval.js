@@ -75,6 +75,13 @@ describe('objeval', function(){
       assert.deepEqual(run('(if 1 2 a)'), 2);
     });
   });
+  describe('Begin', function(){
+    it('should run stuff in order', function(){
+      var tmpEnv = new Environment([{a: 2}]);
+      run('(begin (set! a 3) (set! a 4))', tmpEnv)
+      assert.deepEqual(tmpEnv.scopes, [{a: 4}]);
+    });
+  });
   describe('Runner', function(){
     it('should be iterable', function(){
       var e = new Runner('1');

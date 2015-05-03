@@ -123,7 +123,9 @@ function evalGen(ast, env){
 
   // special forms go here once we have those
 
-  if (ast[0] === 'do'){ throw "special form do not implemented yet" }
+  if (ast[0] === 'begin'){
+    return new Begin(ast, env);
+  }
   if (ast[0] === 'if'){ 
     if (ast.length > 4 || ast.length < 3){
       throw Error("wrong number of argumentsi for if: "+ast);
@@ -238,6 +240,39 @@ If.prototype.next = function(){
     }
   }
 }
+
+function Begin(ast, env){
+  this.ast = ast;
+  this.env = env;
+  this.delegate = null;
+  this.values = [];
+}
+Begin.prototype = new BaseEval();
+Begin.prototype.next = function(){
+  if (this.delegate === null){
+    if (this.ast.length == 1){
+      return {value: null, finished: true};
+    } else if (this.ast.length == 2){
+      var g = evalGen(this.ast[1], this.env);
+      return {value: g, finished: true};
+    } else {
+      this.delegate = evalGen(this.ast[1], this.env);
+      return {value: null, finished: false};
+    }
+  } else {
+    if (this.isFinished(this.delegate)) {
+      var g = evalGen(this.ast[this.values.length + 1], this.env)
+      if (this.values < this.ast.length - 2){
+        this.delegate = g;
+        return {value: null, finished: false};
+      } else {
+        return {value: g, finished: true}
+      }
+    } else {
+      return {value: null, finished: false};
+    }
+  }
+};
 
 
 function Invocation(ast, env){
