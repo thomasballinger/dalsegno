@@ -52,6 +52,33 @@ function run(s, env){
   return value.value
 }
 
+function runAtInterval(s, env, timeout, numIterations){
+  if (timeout === undefined){
+    timeout = 0.001;
+  }
+  if (numIterations === undefined){
+    numIterations = 1;
+  }
+  var runner = new Runner(s, env);
+  var runABit = function(){
+    var value = runner.next();
+    for (var i=0; i<numIterations-1; i++){
+      if (value.finished){
+        console.log('finished!', value.value);
+        return;
+      } else {
+        value = runner.next();
+      }
+    }
+    if (value.finished){
+      console.log('finished!', value.value);
+    } else {
+      setTimeout(runABit, timeout);
+    }
+  }
+  runABit();
+}
+
 function Environment(scopes, funs){
   if (scopes === undefined){
     scopes = [{}];
@@ -100,6 +127,9 @@ Environment.prototype.toString = function(){
     s = s + JSON.stringify(this.scopes[i]);
     s = s + "\n";
   }
+  s += 'with funs';
+  //s += JSON.stringify(this.funs);
+  s = s + "\n";
   s = s + '>';
   return s;
 }

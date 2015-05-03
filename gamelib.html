@@ -1,11 +1,29 @@
 <html>
 <body>
-<canvas id="canvas" width="600" height="600"></canvas>
+<textarea id="code" rows="20" cols="40">
+  (do 
+    (define x 100)
+    (define y 100)
+    (display "hi!")
+    (defn render (do
+      (drawRect x y 100 100)
+      (set! x (+ x 1))
+      (render)))
+    (render))
+</textarea>
+<canvas id="canvas" width="300" height="300"></canvas>
+    
 <script src="gamelib.js"></script>
+<script src="objeval.js"></script>
+<script src="parse.js"></script>
 <script>
   var lib = new Gamelib('canvas');
-  var methods = lib.getFunctions();
-  methods.drawRect(100, 100, 40, 50);
+  var gameMethods = lib.getFunctions();
+  gameMethods.drawRect(100, 100, 40, 50);
+  env = new Environment([gameMethods, builtins, {}]);
+
+  var textArea = document.getElementById('code');
+  runAtInterval(textArea.value, env);
 </script>
 </body>
 </html>

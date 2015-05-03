@@ -81,6 +81,16 @@ describe('objeval', function(){
       run('(begin (set! a 3) (set! a 4))', tmpEnv)
       assert.deepEqual(tmpEnv.scopes, [{a: 4}]);
     });
+    it('should run all statements', function(){
+      var tmpEnv = new Environment([{a: 2}]);
+      run('(begin (define b 3) (define c 4) (define d 5))', tmpEnv)
+      assert.deepEqual(tmpEnv.scopes, [{a: 2, b: 3, c: 4, d: 5}]);
+    });
+    it('should run each statement once', function(){
+      var tmpEnv = new Environment([{a: 1, b: 1, c: 1}], {'+': function(a, b){return a + b;}});
+      run('(begin (set! a (+ a 1)) (set! b (+ b 1)) (set! c (+ c 1)))', tmpEnv)
+      assert.deepEqual(tmpEnv.scopes, [{a: 2, b: 2, c: 2}]);
+    });
   });
   describe('define', function(){
     it('should create new variables in the local scope', function(){
