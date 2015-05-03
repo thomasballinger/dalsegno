@@ -35,17 +35,25 @@
     }
   })
 
+  var safelyParses = function(program){
+    try {
+      parse(program);
+      return true;
+    } catch (e) {
+      console.log(e)
+      return false;
+    }
+  }
+
+
   var runCallback = function(){
     if (shouldReload){
       shouldReload = false;
       var program = textArea.value;
 
-      try {
-        parse(program);
-      } catch (e) {
-        console.log(e)
+      if (!safelyParses(program)){
         running = false;
-        return false;
+        return false
       }
 
       if (running && JSON.stringify(parse(program)) === JSON.stringify(lastProgram)){

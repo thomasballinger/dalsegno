@@ -64,6 +64,9 @@ function runAtInterval(s, env, timeout, numIterations, callback, errback){
   if (callback === undefined){
     callback = function(){return true;}
   }
+  if (!callback()){
+    return false;
+  }
   var runner = new Runner(s, env);
 
   var runABit = function(){
