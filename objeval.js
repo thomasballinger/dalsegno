@@ -52,8 +52,9 @@ function run(s, env){
   return value.value
 }
 
-function runAtInterval(s, env, timeout, numIterations, callback){
+function runAtInterval(s, env, timeout, numIterations, callback, errback){
   // If callback returns false, will stop running
+  // errback called when a runtime error occurs with the error
   if (timeout === undefined){
     timeout = 0.001;
   }
@@ -64,12 +65,19 @@ function runAtInterval(s, env, timeout, numIterations, callback){
     callback = function(){return true;}
   }
   var runner = new Runner(s, env);
+
   var runABit = function(){
     var result = callback();
     if (result === false){
       return;
     }
-    var value = runner.next();
+
+    try {
+      var value = runner.next();
+    } catch (ex) {
+      errback(ex);
+      return;
+    }
     for (var i=0; i<numIterations-1; i++){
       if (value.finished){
         console.log('finished!', value.value);
@@ -84,6 +92,7 @@ function runAtInterval(s, env, timeout, numIterations, callback){
       setTimeout(runABit, timeout);
     }
   }
+
   runABit();
 }
 

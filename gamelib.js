@@ -6,10 +6,6 @@ Builtin.prototype.getFunctions = function(){
   var bind = (function(methodName){
     return (function(){
       var args = Array.prototype.slice.call(arguments);
-      console.log('calling function')
-      console.log(self[methodName]);
-      console.log('with')
-      console.log(args);
       return self[methodName].apply(self, args);
     })
   });

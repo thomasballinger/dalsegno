@@ -31,7 +31,7 @@
   textArea.addEventListener('keyup', function(){
     shouldReload = true;
     if (!running){
-      runAtInterval(textArea.value, env, 0.001, 1, runCallback);
+      runAtInterval(textArea.value, env, 0.001, 1, runCallback, errback);
     }
   })
 
@@ -54,14 +54,19 @@
       lastProgram = parse(program);
       running = true;
       env = new Environment([gameMethods, builtins, {}]);
-      runAtInterval(program, env, 0.001, 1, runCallback)
+      runAtInterval(program, env, 0.001, 1, runCallback, errback)
       return false;
     } else {
       return true;
     }
   }
 
-  runAtInterval(textArea.value, env, 0.001, 1, runCallback);
+  var errback = function(e){
+    console.log(e);
+    running = false;
+  }
+
+  runAtInterval(textArea.value, env, 0.001, 1, runCallback, errback);
 
 
 </script>
