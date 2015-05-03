@@ -26,6 +26,7 @@
   (defn render (do
     (clearDrawRect x y 100 100)
     (set! x (+ x 1))
+    (set! y (/ (* x x) 200))
     (if (> x 200) (set! x 100))
     (render)))
   (render))</div>
@@ -44,6 +45,7 @@
 <script src="gamelib.js"></script>
 <script src="objeval.js"></script>
 <script src="parse.js"></script>
+<script src="builtins.js"></script>
 <script>
   editor.getSession().on('change', function(e) {
     shouldReload = true;

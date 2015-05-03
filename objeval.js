@@ -1,6 +1,7 @@
 'use strict';
 if (typeof window === 'undefined') {
     var parse = require('./parse.js').parse
+    var builtins = require('./builtins.js').builtins
 }
 
 function Function(body, params, env, name){
@@ -392,23 +393,9 @@ Invocation.prototype.next = function(){
   }
 }
 
-var builtins = {
-  '+': function(){
-    return Array.prototype.slice.call(arguments).reduce(function(a, b){
-      return a + b}, 0)
-  },
-  'display': function(){
-    return console.log.apply(console, Array.prototype.slice.call(arguments));
-  },
-  '>': function(a, b){ return (a > b); },
-  '<': function(a, b){ return (a < b); },
-  '=': function(a, b){ return (a === b); },
-}
-
 if (typeof window === 'undefined') {
     exports.Runner = Runner;
     exports.Environment = Environment;
     exports.evalGen = evalGen;
-    exports.builtins = builtins;
     exports.run = run;
 }
