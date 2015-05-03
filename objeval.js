@@ -167,7 +167,7 @@ BaseEval.prototype.isFinished = function(g){
   }
   if (!r.finished){
     return false;
-  } else if (r.value.isEvalGen) {
+  } else if (r.value && r.value.isEvalGen) {
     this.delegate = r.value;
     return false;
   } else {
@@ -289,7 +289,7 @@ Begin.prototype.next = function(){
   } else {
     if (this.isFinished(this.delegate)) {
       var g = evalGen(this.ast[this.values.length + 1], this.env)
-      if (this.values < this.ast.length - 2){
+      if (this.values.length < this.ast.length - 2){
         this.delegate = g;
         return {value: null, finished: false};
       } else {
@@ -342,6 +342,9 @@ var builtins = {
   '+': function(){
     return Array.prototype.slice.call(arguments).reduce(function(a, b){
       return a + b}, 0)
+  },
+  'display': function(){
+    return console.log.apply(console, Array.prototype.slice.call(arguments));
   },
 }
 
