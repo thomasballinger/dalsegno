@@ -72,7 +72,7 @@ Environment.prototype.lookup = function(key){
   if (this.funs.hasOwnProperty(key)){
     return this.funs[key];
   }
-  throw Error("Name "+key+" not found in environment"+this);
+  throw Error("Name '"+key+"' not found in environment"+this);
 };
 Environment.prototype.set = function(key, value){
   for (var i = this.scopes.length - 1; i >= 0; i--){
@@ -81,10 +81,13 @@ Environment.prototype.set = function(key, value){
     }
   }
   if (this.funs.hasOwnProperty(key)){
-    throw Error("Name "+key+" is in global functions, so can't change it");
+    throw Error("Name '"+key+"' is in global functions, so can't change it");
   }
-  throw Error("Name "+key+" not found in environment"+this);
+  throw Error("Name '"+key+"' not found in environment"+this);
 };
+Environment.prototype.define = function(name, value){
+  this.scopes[this.scopes.length - 1][name] = value;
+}
 Environment.prototype.setFunction = function(name, func){
   this.funs[name] = func;
 }
@@ -123,7 +126,7 @@ function evalGen(ast, env){
 
   // special forms go here once we have those
 
-  if (ast[0] === 'begin'){
+  if (ast[0] === 'begin' || ast[0] === 'do'){
     return new Begin(ast, env);
   }
   if (ast[0] === 'if'){ 
@@ -135,6 +138,9 @@ function evalGen(ast, env){
   if (ast[0] === 'set!'){
     if (ast.length != 3){ throw Error("wrong number of arguments for set: "+ast) }
       return new SetBang(ast, env);
+  }
+  if (ast[0] === 'define'){
+    return new Define(ast, env);
   }
   if (ast[0] === 'defn'){
     if (ast.length < 3){ throw Error("Not enough arguments for defn: "+ast) }
@@ -213,6 +219,27 @@ SetBang.prototype.next = function(){
   } else {
     if (this.isFinished(this.delegate)) {
       this.env.set(this.ast[1], this.values[0])
+      return {value: this.values[0], finished: true};
+    } else {
+      return {value: null, finished: false};
+    }
+  }
+}
+
+function Define(ast, env){
+  this.ast = ast;
+  this.env = env;
+  this.delegate = null;
+  this.values = [];
+}
+Define.prototype = new BaseEval();
+Define.prototype.next = function(){
+  if (this.delegate === null){
+    this.delegate = evalGen(this.ast[2], this.env);
+    return {value: null, finished: false}
+  } else {
+    if (this.isFinished(this.delegate)) {
+      this.env.define(this.ast[1], this.values[0])
       return {value: this.values[0], finished: true};
     } else {
       return {value: null, finished: false};

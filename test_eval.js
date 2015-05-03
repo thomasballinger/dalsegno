@@ -82,6 +82,13 @@ describe('objeval', function(){
       assert.deepEqual(tmpEnv.scopes, [{a: 4}]);
     });
   });
+  describe('define', function(){
+    it('should create new variables in the local scope', function(){
+      var tmpEnv = new Environment([{a: 2}, {a: 3}]);
+      run('(define b 10)', tmpEnv)
+      assert.deepEqual(tmpEnv.scopes, [{a: 2}, {a: 3, b: 10}]);
+    });
+  });
   describe('Runner', function(){
     it('should be iterable', function(){
       var e = new Runner('1');
