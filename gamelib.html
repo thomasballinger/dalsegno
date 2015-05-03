@@ -37,7 +37,11 @@
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
     editor.getSession().setMode("ace/mode/scheme");
-    editor.setKeyboardHandler("ace/keyboard/vim");
+    var options = window.location.hash.substr(1);
+    console.log(options);
+    if (options.indexOf('vim') != -1){
+      editor.setKeyboardHandler("ace/keyboard/vim");
+    }
 </script>
 
 <canvas id="canvas" width="300" height="300"></canvas>
