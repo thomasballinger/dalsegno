@@ -307,8 +307,12 @@ If.prototype.next = function(){
     return {value: null, finished: false}
   } else {
     if (this.isFinished(this.delegate)) {
-      var g = evalGen(this.ast[this.values[0] ? 2 : 3], this.env);
-      return {value: g, finished: true}
+      if (this.ast.length === 3 && !this.values[0]){
+        return {value: null, finished: true}
+      } else {
+        var g = evalGen(this.ast[this.values[0] ? 2 : 3], this.env);
+        return {value: g, finished: true}
+      }
     } else {
       return {value: null, finished: false}
     }
