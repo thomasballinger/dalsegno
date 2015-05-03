@@ -63,6 +63,18 @@ describe('objeval', function(){
       assert.deepEqual(run('(foo 1 2)', tmpEnv), 3);
     });
   });
+  describe('Set', function(){
+    it('should change the rightmost occurence', function(){
+      var tmpEnv = new Environment([{a: 1}, {a: 2}]);
+      run('(set! a 3)', tmpEnv)
+      assert.deepEqual(tmpEnv.scopes, [{a: 1}, {a: 3}]);
+    });
+  });
+  describe('If', function(){
+    it('should not evaluate the wrong case', function(){
+      assert.deepEqual(run('(if 1 2 a)'), 2);
+    });
+  });
   describe('Runner', function(){
     it('should be iterable', function(){
       var e = new Runner('1');

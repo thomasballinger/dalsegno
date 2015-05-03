@@ -72,7 +72,18 @@ Environment.prototype.lookup = function(key){
   if (this.funs.hasOwnProperty(key)){
     return this.funs[key];
   }
-  throw Error("Key "+key+" not found in environment"+this);
+  throw Error("Name "+key+" not found in environment"+this);
+};
+Environment.prototype.set = function(key, value){
+  for (var i = this.scopes.length - 1; i >= 0; i--){
+    if (this.scopes[i].hasOwnProperty(key)){
+      return this.scopes[i][key] = value;
+    }
+  }
+  if (this.funs.hasOwnProperty(key)){
+    throw Error("Name "+key+" is in global functions, so can't change it");
+  }
+  throw Error("Name "+key+" not found in environment"+this);
 };
 Environment.prototype.setFunction = function(name, func){
   this.funs[name] = func;
@@ -113,8 +124,16 @@ function evalGen(ast, env){
   // special forms go here once we have those
 
   if (ast[0] === 'do'){ throw "special form do not implemented yet" }
-  if (ast[0] === 'if'){ throw "special form do not implemented yet" }
-  if (ast[0] === 'set'){ throw "special form do not implemented yet" }
+  if (ast[0] === 'if'){ 
+    if (ast.length > 4 || ast.length < 3){
+      throw Error("wrong number of argumentsi for if: "+ast);
+    }
+    return new If(ast, env);
+  }
+  if (ast[0] === 'set!'){
+    if (ast.length != 3){ throw Error("wrong number of arguments for set: "+ast) }
+      return new SetBang(ast, env);
+  }
   if (ast[0] === 'defn'){
     if (ast.length < 3){ throw Error("Not enough arguments for defn: "+ast) }
     return new NamedFunction(ast, env);
@@ -127,9 +146,7 @@ function evalGen(ast, env){
   return new Invocation(ast, env);
 }
 
-function BaseEval(){
-  this.values = [];
-};
+function BaseEval(){};
 BaseEval.prototype.tostring = function(){return this.constructor.toString() }
 BaseEval.prototype[Symbol.iterator] = function(){return this;};
 BaseEval.prototype.isEvalGen = true;
@@ -137,6 +154,9 @@ BaseEval.prototype.isFinished = function(g){
   // Calls next on a generator, adds result to this.values if finished
   // Returns true if complete, else false
   var r = g.next();
+  if (!r.hasOwnProperty('finished')){
+    throw "Result isn't a iterator-like result: "+r
+  }
   if (!r.finished){
     return false;
   } else if (r.value.isEvalGen) {
@@ -177,11 +197,54 @@ Lookup.prototype.next = function(){
   return {value: this.env.lookup(this.ast), finished: true}
 }
 
+function SetBang(ast, env){
+  this.ast = ast;
+  this.env = env;
+  this.delegate = null;
+  this.values = [];
+}
+SetBang.prototype = new BaseEval();
+SetBang.prototype.next = function(){
+  if (this.delegate === null){
+    this.delegate = evalGen(this.ast[2], this.env);
+    return {value: null, finished: false}
+  } else {
+    if (this.isFinished(this.delegate)) {
+      this.env.set(this.ast[1], this.values[0])
+      return {value: this.values[0], finished: true};
+    } else {
+      return {value: null, finished: false};
+    }
+  }
+}
+
+function If(ast, env){
+  this.ast = ast;
+  this.env = env;
+  this.delegate = null;
+  this.values = [];
+}
+If.prototype = new BaseEval();
+If.prototype.next = function(){
+  if (this.delegate === null){
+    this.delegate = evalGen(this.ast[1], this.env);
+    return {value: null, finished: false}
+  } else {
+    if (this.isFinished(this.delegate)) {
+      var g = evalGen(this.ast[this.values[0] ? 2 : 3], this.env);
+      return {value: g, finished: true}
+    } else {
+      return {value: null, finished: false}
+    }
+  }
+}
+
+
 function Invocation(ast, env){
   this.ast = ast;
   this.env = env;
-  this.values = [];
   this.delegate = null;
+  this.values = [];
 }
 Invocation.prototype = new BaseEval();
 Invocation.prototype.next = function(){
