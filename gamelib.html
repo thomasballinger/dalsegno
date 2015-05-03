@@ -24,8 +24,9 @@
   var textArea = document.getElementById('code');
 
   env = new Environment([gameMethods, builtins, {}]);
-  var shouldReload = false;
+  var shouldReload = true;
   var running = true;
+  var lastProgram = [];
 
   textArea.addEventListener('keyup', function(){
     shouldReload = true;
@@ -38,6 +39,7 @@
     if (shouldReload){
       shouldReload = false;
       var program = textArea.value;
+
       try {
         parse(program);
       } catch (e) {
@@ -45,6 +47,11 @@
         running = false;
         return false;
       }
+
+      if (running && JSON.stringify(parse(program)) === JSON.stringify(lastProgram)){
+        return true;
+      }
+      lastProgram = parse(program);
       running = true;
       env = new Environment([gameMethods, builtins, {}]);
       runAtInterval(program, env, 0.001, 1, runCallback)
