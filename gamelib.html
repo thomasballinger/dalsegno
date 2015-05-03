@@ -8,6 +8,7 @@
     (defn render (do
       (clearDrawRect x y 100 100)
       (set! x (+ x 1))
+      (if (> x 200) (set! x 100))
       (render)))
     (render))
 </textarea>
