@@ -1,40 +1,66 @@
 <html>
+<head>
+<title>live code reloading eventually</title>
+<style type="text/css" media="screen">
+    #editor { 
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+    #canvas {
+      z-index: 2;
+    }
+    .ace-monokai {
+      opacity: .9;
+    }
+</style>
+</head>
 <body>
-<textarea id="code" rows="20" cols="40">
-  (do 
-    (define x 100)
-    (define y 100)
-    (display "hi!")
-    (defn render (do
-      (clearDrawRect x y 100 100)
-      (set! x (+ x 1))
-      (if (> x 200) (set! x 100))
-      (render)))
-    (render))
-</textarea>
+
+<div id="editor">(do 
+  (define x 100)
+  (define y 100)
+  (display "hi!")
+  (defn render (do
+    (clearDrawRect x y 100 100)
+    (set! x (+ x 1))
+    (if (> x 200) (set! x 100))
+    (render)))
+  (render))</div>
+<div>
+    
+<script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.getSession().setMode("ace/mode/scheme");
+    editor.setKeyboardHandler("ace/keyboard/vim");
+</script>
+
 <canvas id="canvas" width="300" height="300"></canvas>
     
 <script src="gamelib.js"></script>
 <script src="objeval.js"></script>
 <script src="parse.js"></script>
 <script>
+  editor.getSession().on('change', function(e) {
+    shouldReload = true;
+    if (!running){
+      runAtInterval(editor.getValue(), env, 0.001, 1, runCallback, errback);
+    }
+  });
+
   var lib = new Gamelib('canvas');
   var gameMethods = lib.getFunctions();
   gameMethods.drawRect(100, 100, 40, 50);
-
-  var textArea = document.getElementById('code');
 
   env = new Environment([gameMethods, builtins, {}]);
   var shouldReload = true;
   var running = true;
   var lastProgram = [];
 
-  textArea.addEventListener('keyup', function(){
-    shouldReload = true;
-    if (!running){
-      runAtInterval(textArea.value, env, 0.001, 1, runCallback, errback);
-    }
-  })
 
   var safelyParses = function(program){
     try {
@@ -50,7 +76,7 @@
   var runCallback = function(){
     if (shouldReload){
       shouldReload = false;
-      var program = textArea.value;
+      var program = editor.getValue() 
 
       if (!safelyParses(program)){
         running = false;
@@ -75,7 +101,7 @@
     running = false;
   }
 
-  runAtInterval(textArea.value, env, 0.001, 1, runCallback, errback);
+  runAtInterval(editor.getValue(), env, 0.001, 1, runCallback, errback);
 
 
 </script>
