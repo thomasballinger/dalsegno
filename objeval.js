@@ -1,7 +1,6 @@
 'use strict';
 if (typeof window === 'undefined') {
     var parse = require('./parse.js').parse
-    var builtins = require('./builtins.js').builtins
 }
 
 function Function(body, params, env, name){
@@ -27,7 +26,7 @@ Function.prototype.buildScope = function(args){
 
 function Runner(s, env){
   if (env === undefined){
-    env = new Environment([builtins, {}]);
+    env = new Environment([{}]);
   }
 
   this.ast = parse(s);

@@ -23,6 +23,18 @@
   (define x 100)
   (define y 100)
   (display "hi!")
+  (defn world (list
+    (list 50 200 100 10)
+    (list 50 0 100 10)))
+  (defn Rect x y width height
+    (list (list x y)
+          (list x (+ y height))
+          (list (+ x width) (+ y height))
+          (list (+ x width) y)))
+  (defn is-close p1 p2 w)
+  (defn walls-nearby x y
+    (filter 
+      (lambda x 
   (defn render (do
     (clearDrawRect x y 100 100)
     (set! x (+ x 1))
@@ -50,6 +62,7 @@
 <script src="objeval.js"></script>
 <script src="parse.js"></script>
 <script src="builtins.js"></script>
+<script src="stdlib.js"></script>
 <script>
   editor.getSession().on('change', function(e) {
     shouldReload = true;
@@ -62,7 +75,7 @@
   var gameMethods = lib.getFunctions();
   gameMethods.drawRect(100, 100, 40, 50);
 
-  env = new Environment([gameMethods, builtins, {}]);
+  env = new Environment([gameMethods, builtins, stdlib, {}]);
   var shouldReload = true;
   var running = true;
   var lastProgram = [];
