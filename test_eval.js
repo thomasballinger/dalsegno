@@ -52,7 +52,7 @@ describe('objeval', function(){
   describe('Lambda', function(){
     it('should work', function(){
       assert.deepEqual(run('((lambda 1))'), 1);
-      assert.deepEqual(run('((lambda a b (+ a b)) 1 2)'), 3);
+      assert.deepEqual(run('((lambda a b (+ a b)) 1 2)', justSum), 3);
     });
   });
   describe('NamedFunction', function(){
@@ -110,6 +110,6 @@ describe('objeval', function(){
   describe('run', function(){
     assert.deepEqual(run('1'), 1);
     assert.deepEqual(run('"a"'), "a");
-    assert.deepEqual(run('(+ 1 2)'), 3);
+    assert.deepEqual(run('(+ 1 2)', justSum), 3);
   });
 });
