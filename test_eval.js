@@ -4,15 +4,15 @@ var assert = chai.assert;
 
 var tokenize = require('./parse.js').tokenize;
 var parse = require('./parse.js').parse;
-var Runner = require('./objeval').Runner;
-var Environment = require('./objeval').Environment;
-var evalGen = require('./objeval').evalGen;
-var run = require('./objeval').run;
+var run = require('./run')
+var Environment = run.Environment;
+var evalGen = run.evalGen;
+var Runner = run.Runner;
 
 // environment with just an arity-2 sum function for testing
 var justSum = new Environment([{'+': function(a, b){return a + b}}]);
 
-describe('objeval', function(){
+describe('run.js', function(){
   describe('Environment', function(){
     it('should do lookup through scopes from right to left', function(){
       var env = new Environment([{a:1}, {a:2}, {}], {});

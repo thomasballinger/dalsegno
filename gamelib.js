@@ -40,13 +40,13 @@
     this.ctx.fillRect(x, y, width, height);
   }
 
-  Gamelib.Gamelib = Gamelib
+  Gamelib.Gamelib = Gamelib;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
       exports = module.exports = Gamelib;
     }
   } else {
-    this.Gamelib = Gamelib;
+    window.Gamelib = Gamelib;
   }
 })();

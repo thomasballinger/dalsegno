@@ -1,8 +1,11 @@
 ;(function() {
+  'use strict';
+
   var builtins = {
     '+': function(){
       return Array.prototype.slice.call(arguments).reduce(function(a, b){
-        return a + b}, 0)
+        return a + b;
+      }, 0);
     },
     'display': function(){
       return console.log.apply(console, Array.prototype.slice.call(arguments));
@@ -51,7 +54,7 @@
     },
     'dist': function(p1, p2, x2, y2){
       // works with 2 or 4 arguments
-      if (x2 === undefined && y2 == undefined) {
+      if (x2 === undefined && y2 === undefined) {
         var x1 = p1[0];
         var y1 = p1[1];
         var x2 = p2[0];
@@ -77,6 +80,6 @@
       exports = module.exports = builtins;
     }
   } else {
-    this.builtins = builtins;
+    window.builtins = builtins;
   }
 })();

@@ -1,8 +1,15 @@
 ;(function() {
   'use strict';
+
   if (typeof window === 'undefined') {
-      var parse = require('./parse.js').parse
+    var require = module.require
+  } else {
+    var require = function(name){ 
+      var realname = name.match(/(\w+)[.]?j?s?$/)[1];
+      return window[realname];
+    }
   }
+  var parse = require('./parse.js')
 
   function Function(body, params, env, name){
     if (name === undefined){
@@ -397,12 +404,13 @@
   run.Runner = Runner;
   run.Environment = Environment;
   run.evalGen = evalGen;
+  run.runAtInterval = runAtInterval;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
       exports = module.exports = run;
     }
   } else {
-    this.run = run;
+    window.run = run;
   }
 })();

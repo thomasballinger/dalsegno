@@ -4,6 +4,8 @@
 //
 
 ;(function() {
+  'use strict';
+
   function tokenize(s) {
     var token = /[()]|[^\s()]+/g;
     return s.match(token);
@@ -51,6 +53,6 @@
       exports = module.exports = parse;
     }
   } else {
-    this.parse = exports;
+    window.parse = parse;
   }
 })();

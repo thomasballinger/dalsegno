@@ -22,7 +22,7 @@
 <div id="editor">(do 
   (define x 100)
   (define y 100)
-  (display "hi!")
+  (display "we_are_running")
   (defn world (list
     (list 50 200 100 10)
     (list 50 0 100 10)))
@@ -31,10 +31,6 @@
           (list x (+ y height))
           (list (+ x width) (+ y height))
           (list (+ x width) y)))
-  (defn is-close p1 p2 w)
-  (defn walls-nearby x y
-    (filter 
-      (lambda x 
   (defn render (do
     (clearDrawRect x y 100 100)
     (set! x (+ x 1))
@@ -58,16 +54,16 @@
 
 <canvas id="canvas" width="300" height="300"></canvas>
     
-<script src="gamelib.js"></script>
-<script src="objeval.js"></script>
 <script src="parse.js"></script>
+<script src="run.js"></script>
 <script src="builtins.js"></script>
+<script src="gamelib.js"></script>
 <script src="stdlib.js"></script>
 <script>
   editor.getSession().on('change', function(e) {
     shouldReload = true;
     if (!running){
-      runAtInterval(editor.getValue(), env, 0.001, 1, runCallback, errback);
+      run.runAtInterval(editor.getValue(), env, 0.001, 1, runCallback, errback);
     }
   });
 
@@ -75,7 +71,7 @@
   var gameMethods = lib.getFunctions();
   gameMethods.drawRect(100, 100, 40, 50);
 
-  env = new Environment([gameMethods, builtins, stdlib, {}]);
+  env = new run.Environment([gameMethods, builtins, stdlib, {}]);
   var shouldReload = true;
   var running = true;
   var lastProgram = [];
@@ -107,8 +103,8 @@
       }
       lastProgram = parse(program);
       running = true;
-      env = new Environment([gameMethods, builtins, {}]);
-      runAtInterval(program, env, 0.001, 1, runCallback, errback)
+      env = new run.Environment([gameMethods, builtins, {}]);
+      run.runAtInterval(program, env, 0.001, 1, runCallback, errback)
       return false;
     } else {
       return true;
@@ -120,7 +116,7 @@
     running = false;
   }
 
-  runAtInterval(editor.getValue(), env, 0.001, 1, runCallback, errback);
+  run.runAtInterval(editor.getValue(), env, 0.001, 1, runCallback, errback);
 
 
 </script>
