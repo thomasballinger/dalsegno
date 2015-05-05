@@ -11,27 +11,6 @@
   }
   var parse = require('./parse.js')
 
-  function Function(body, params, env, name){
-    if (name === undefined){
-      name = null; // anonymous function
-    }
-    this.name = name;
-    this.body = body;
-    this.params = params;
-    this.env = env;
-  }
-  Function.prototype.buildScope = function(args){
-    if (this.params.length != args.length){
-      throw Error("Calling function "+this+" with wrong arity! Expected " +
-             this.params.length + " params but got " + args.length);
-    }
-    var scope = {};
-    for (var i = 0; i < args.length; i++){
-      scope[this.params[i]] = args[i];
-    }
-    return scope;
-  }
-
   function Runner(s, env){
     if (env === undefined){
       env = new Environment([{}]);
@@ -398,6 +377,27 @@
         return {value: null, finished: false};
       }
     }
+  }
+
+  function Function(body, params, env, name){
+    if (name === undefined){
+      name = null; // anonymous function
+    }
+    this.name = name;
+    this.body = body;
+    this.params = params;
+    this.env = env;
+  }
+  Function.prototype.buildScope = function(args){
+    if (this.params.length != args.length){
+      throw Error("Calling function "+this+" with wrong arity! Expected " +
+             this.params.length + " params but got " + args.length);
+    }
+    var scope = {};
+    for (var i = 0; i < args.length; i++){
+      scope[this.params[i]] = args[i];
+    }
+    return scope;
   }
 
   run.run = run;
