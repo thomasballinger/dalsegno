@@ -54,14 +54,15 @@
     },
     'dist': function(p1, p2, x2, y2){
       // works with 2 or 4 arguments
+      var x1, y1;
       if (x2 === undefined && y2 === undefined) {
-        var x1 = p1[0];
-        var y1 = p1[1];
-        var x2 = p2[0];
-        var y2 = p2[1];
+        x1 = p1[0];
+        y1 = p1[1];
+        x2 = p2[0];
+        y2 = p2[1];
       } else {
-        var x1 = p1;
-        var y1 = p2;
+        x1 = p1;
+        y1 = p2;
       }
       return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
     },
@@ -71,7 +72,7 @@
       }
       return arr.length;
     }
-  }
+  };
 
   builtins.builtins = builtins;
 

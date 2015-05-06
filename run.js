@@ -7,9 +7,9 @@
     var require = function(name){ 
       var realname = name.match(/(\w+)[.]?j?s?$/)[1];
       return window[realname];
-    }
+    };
   }
-  var parse = require('./parse.js')
+  var parse = require('./parse.js');
 
   function Runner(s, env){
     if (env === undefined){
@@ -28,7 +28,7 @@
       return {value: this.values[0], finished:true};
     }
     return {value: null, finished: false};
-  }
+  };
 
   function run(s, env){
     var runner = new Runner(s, env);
@@ -36,7 +36,7 @@
     while (!value.finished){
       value = runner.next();
     }
-    return value.value
+    return value.value;
   }
 
   function runAtInterval(s, env, timeout, numIterations, callback, errback){
@@ -49,7 +49,7 @@
       numIterations = 1;
     }
     if (callback === undefined){
-      callback = function(){return true;}
+      callback = function(){return true;};
     }
     if (!callback()){
       return false;
@@ -81,7 +81,7 @@
       } else {
         setTimeout(runABit, timeout);
       }
-    }
+    };
 
     runABit();
   }
@@ -111,7 +111,8 @@
   Environment.prototype.set = function(key, value){
     for (var i = this.scopes.length - 1; i >= 0; i--){
       if (this.scopes[i].hasOwnProperty(key)){
-        return this.scopes[i][key] = value;
+        this.scopes[i][key] = value;
+        return value;
       }
     }
     if (this.funs.hasOwnProperty(key)){
@@ -121,10 +122,10 @@
   };
   Environment.prototype.define = function(name, value){
     this.scopes[this.scopes.length - 1][name] = value;
-  }
+  };
   Environment.prototype.setFunction = function(name, func){
     this.funs[name] = func;
-  }
+  };
   Environment.prototype.newWithScope = function(scope){
     return new Environment(this.scopes.concat([scope]), this.funs);
   };
@@ -139,7 +140,7 @@
     s = s + "\n";
     s = s + '>';
     return s;
-  }
+  };
 
   function evalGen(ast, env){
     // Returns an iterable which will evaluate this ast
@@ -151,14 +152,14 @@
         var start = ast.slice(0, 1);
         var end = ast.slice(-1);
         if (start === end && (start === '"' || start === "'")){
-            return new StringLiteral(ast.slice(1, -1))
+            return new StringLiteral(ast.slice(1, -1));
         } else {
             return new Lookup(ast, env);
         }
     }
 
     if (!Array.isArray(ast)){
-        throw Error('What even is this: '+ast)
+        throw Error('What even is this: '+ast);
     }
 
     // special forms go here once we have those
@@ -173,26 +174,27 @@
       return new If(ast, env);
     }
     if (ast[0] === 'set!'){
-      if (ast.length != 3){ throw Error("wrong number of arguments for set: "+ast) }
+      if (ast.length != 3){ throw Error("wrong number of arguments for set: "+ast); }
         return new SetBang(ast, env);
     }
     if (ast[0] === 'define'){
       return new Define(ast, env);
     }
     if (ast[0] === 'defn'){
-      if (ast.length < 3){ throw Error("Not enough arguments for defn: "+ast) }
+      if (ast.length < 3){ throw Error("Not enough arguments for defn: "+ast); }
       return new NamedFunction(ast, env);
     }
     if (ast[0] === 'lambda'){
-      if (ast.length < 2){ throw Error("Not enough arguments for lambda: "+ast) }
-      return new LambdaExpression(ast, env)
+      if (ast.length < 2){ throw Error("Not enough arguments for lambda: "+ast); }
+      return new LambdaExpression(ast, env);
     }
 
     return new Invocation(ast, env);
   }
 
-  function BaseEval(){};
-  BaseEval.prototype.tostring = function(){return this.constructor.toString() }
+  function BaseEval(){}
+  // you better have a values property if you inherit from this
+  BaseEval.prototype.tostring = function(){return this.constructor.toString(); };
   BaseEval.prototype[Symbol.iterator] = function(){return this;};
   BaseEval.prototype.isEvalGen = true;
   BaseEval.prototype.isFinished = function(g){
@@ -200,7 +202,7 @@
     // Returns true if complete, else false
     var r = g.next();
     if (!r.hasOwnProperty('finished')){
-      throw "Result isn't a iterator-like result: "+r
+      throw "Result isn't a iterator-like result: "+r;
     }
     if (!r.finished){
       return false;
@@ -211,22 +213,22 @@
       this.values.push(r.value);
       return true;
     }
-  }
+  };
 
   function StringLiteral(ast){ this.ast = ast; }
   StringLiteral.prototype = new BaseEval();
-  StringLiteral.prototype.next = function(){ return {value: this.ast, finished: true} }
+  StringLiteral.prototype.next = function(){ return {value: this.ast, finished: true}; };
 
   function NumberLiteral(ast){ this.ast = ast; }
   NumberLiteral.prototype = new BaseEval();
-  NumberLiteral.prototype.next = function(){ return {value: this.ast, finished: true} }
+  NumberLiteral.prototype.next = function(){ return {value: this.ast, finished: true}; };
 
   function LambdaExpression(ast, env){ this.ast = ast; this.env = env; }
   LambdaExpression.prototype = new BaseEval();
   LambdaExpression.prototype.next = function(){
     var f = new Function(this.ast[this.ast.length - 1], this.ast.slice(1, -1), this.env);
     return {value: f, finished: true};
-  }
+  };
 
   function NamedFunction(ast, env){ this.ast = ast; this.env=env; }
   NamedFunction.prototype = new BaseEval();
@@ -234,13 +236,13 @@
     var f = new Function(this.ast[this.ast.length - 1], this.ast.slice(2, -1), this.env, this.ast[1]);
     this.env.setFunction(f.name, f);
     return {value: f, finished: true};
-  }
+  };
 
   function Lookup(ast, env){ this.ast = ast; this.env = env;}
   Lookup.prototype = new BaseEval();
   Lookup.prototype.next = function(){
     return {value: this.env.lookup(this.ast), finished: true}
-  }
+  };
 
   function SetBang(ast, env){
     this.ast = ast;
@@ -255,7 +257,7 @@
       return {value: null, finished: false}
     } else {
       if (this.isFinished(this.delegate)) {
-        this.env.set(this.ast[1], this.values[0])
+        this.env.set(this.ast[1], this.values[0]);
         return {value: this.values[0], finished: true};
       } else {
         return {value: null, finished: false};
@@ -329,7 +331,7 @@
       }
     } else {
       if (this.isFinished(this.delegate)) {
-        var g = evalGen(this.ast[this.values.length + 1], this.env)
+        var g = evalGen(this.ast[this.values.length + 1], this.env);
         if (this.values.length < this.ast.length - 2){
           this.delegate = g;
           return {value: null, finished: false};
