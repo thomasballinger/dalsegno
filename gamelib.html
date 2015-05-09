@@ -50,7 +50,7 @@
     (define y 300)
     (define vx 1)
     (define vy 1)
-    (display "game_started")
+    (display "game" "started")
     (define world (init-world))
     (defn nearby obj
       (do
@@ -72,7 +72,6 @@
       (set! world (map wrap-obj world))
       (if (clicked)
           (do
-            (display "click!")
             (set! vx (+ vx (* (x_comp (towards x y (mousex) (mousey))) .5)))
             (set! vy (+ vy (* (y_comp (towards x y (mousex) (mousey))) .5)))))
       (set! x (+ x vx))
