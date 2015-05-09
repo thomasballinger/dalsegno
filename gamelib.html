@@ -5,12 +5,16 @@
     #editor { 
         position: absolute;
         top: 0;
-        right: 0;
         bottom: 0;
         left: 0;
+        width: 630px;
     }
     #canvas {
-      z-index: 2;
+      position: absolute;
+      top: 0;
+      left: 630px;
+      bottom: 0;
+      right: 0;
     }
     .ace-monokai {
       opacity: .8;
@@ -19,48 +23,84 @@
 </head>
 <body>
 
-<div id="editor">(do 
-  (display (randint -5 6))
-  (define x 100)
-  (define y 100)
-  (display "we_are_running")
-  (defn init-world 
-    (map (lambda i 
+<div id="editor">(do
+  (defn init-world
+    (map (lambda i
            (list
              (list (randint 200) (randint 200))
              (list (randint -5 6) (randint -5 6))))
          (range 10)))
-  (define world (init-world))
-  (defn step-obj obj 
+  (defn wrap-obj obj
+    (list
+      (list (% (first (first obj)) (width))
+            (% (last (first obj)) (height)))
+      (last obj)))
+  (defn step-obj obj
     (list
       (list (+ (first (first obj)) (first (last obj)))
             (+ (last (first obj)) (last (last obj))))
       (last obj)))
-  (defn nearby obj
-    (do
-      (< (dist x y (nth 0 (first obj)) (nth 1 (first obj))) 200)))
-  (defn to-render (filter nearby world))
   (defn render-obj obj (do
     (define radius 20)
     (drawCircle (first (first obj))
               (nth 1 (first obj))
               radius)))
-  (defn main (do
-    (color 30 100 200)
-    (drawRect x y 100 100)
-    (color 230 100 200)
-    (map render-obj (to-render))
-    (set! world (map step-obj world))
-    (display (first world))
-    (set! x (+ x 1))
-    (set! y (/ (* x x) 200))
-    (if (> x 200) (set! x 100))
-    (display (to-render))
-    (render)
-    (main)))
-  (main))</div>
-<div>
-    
+  (defn game (do
+    (define x 300)
+    (define y 300)
+    (define vx 1)
+    (define vy 1)
+    (display "game_started")
+    (define world (init-world))
+    (defn nearby obj
+      (do
+        (< (dist x y (nth 0 (first obj)) (nth 1 (first obj))) 300)))
+    (defn collide obj
+        (< (dist x y (nth 0 (first obj)) (nth 1 (first obj))) (- (+ 20 50) 5)))
+    (defn any-collide (reduce or (map collide world) 0))
+    (defn to-render (filter nearby world))
+    (define counter 0)
+    (defn main (do
+      (set! counter (+ counter 1))
+      (color 250 250 220)
+      (drawCircle x y 300)
+      (color 30 100 200)
+      (drawCircle x y 50)
+      (color 230 100 200)
+      (map render-obj (to-render))
+      (set! world (map step-obj world))
+      (set! world (map wrap-obj world))
+      (if (clicked)
+          (do
+            (display "click!")
+            (set! vx (+ vx (* (x_comp (towards x y (mousex) (mousey))) .5)))
+            (set! vy (+ vy (* (y_comp (towards x y (mousex) (mousey))) .5)))))
+      (set! x (+ x vx))
+      (set! y (+ y vy))
+      (if (> x (width)) (set! x 0))
+      (if (> y (height)) (set! y 0))
+      (if (< x 0) (set! x (width)))
+      (if (< y 0) (set! y (height)))
+      (render)
+      (if (not (any-collide))
+          (main)
+          (do
+            (drawText 100 100 "your" "score:" counter)
+            (render)))))
+      (main)))
+  (defn wait-for-unclick
+    (if (clicked)
+        (wait-for-unclick)))
+  (defn wait-for-click
+    (if (not (clicked))
+        (wait-for-click)))
+  (defn play-forever (do
+    (game)
+    (wait-for-unclick)
+    (wait-for-click)
+    (play-forever)))
+  (play-forever))</div>
+
 <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
     var editor = ace.edit("editor");
@@ -75,7 +115,7 @@
 <canvas id="canvas" width="1" height="1"></canvas>
 <script>
   var canvas = document.getElementById('canvas');
-  canvas.width = window.innerWidth;
+  canvas.width = window.innerWidth - 630;
   canvas.height = window.innerHeight;
 </script>
     
@@ -85,7 +125,7 @@
 <script src="gamelib.js"></script>
 <script src="stdlib.js"></script>
 <script>
-  var speed = 100;
+  var speed = 500;
   editor.getSession().on('change', function(e) {
     shouldReload = true;
     if (!running){

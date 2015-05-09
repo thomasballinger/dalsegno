@@ -70,7 +70,7 @@
       }
       for (var i=0; i<numIterations-1; i++){
         if (value.finished){
-          console.log('finished!', value.value);
+          console.log(value.value);
           return;
         } else {
           value = runner.next();

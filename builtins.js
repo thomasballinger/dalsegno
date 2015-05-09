@@ -16,6 +16,20 @@
     '=': function(a, b){ return (a === b); },
     '*': function(a, b){ return a * b; },
     '/': function(a, b){ return a / b; },
+    '%': function(a, b){
+      if (!Number.isInteger(a)){
+        throw Error('first modulus argument not an integer: '+b);
+      }
+      if (!Number.isInteger(b)){
+        throw Error('second modulus argument not an integer: '+b);
+      }
+      while (a < 0){
+        a += b;
+      }
+      return a % b;
+    },
+    'or': function(a, b){ return a || b; },
+    'not': function(x){return !x;},
     'list': function(){ return Array.prototype.slice.call(arguments); },
     'nth': function(i, arr){
       if(!Array.isArray(arr)){
@@ -110,6 +124,28 @@
         arr.push(i);
       }
       return arr;
+    },
+    'towards': function(p1, p2, x2, y2){
+      // works with 2 or 4 arguments
+      var x1, y1;
+      if (x2 === undefined && y2 === undefined) {
+        x1 = p1[0];
+        y1 = p1[1];
+        x2 = p2[0];
+        y2 = p2[1];
+      } else {
+        x1 = p1;
+        y1 = p2;
+      }
+      var dx = x2 - x1;
+      var dy = y2 - y1;
+      return ((Math.atan2(dx, -dy) * 180 / Math.PI) + 270 + 360) % 360;
+    },
+    'x_comp': function(h){
+        return Math.cos(h * Math.PI / 180);
+    },
+    'y_comp': function(h){
+        return Math.sin(h * Math.PI / 180);
     },
   };
 
