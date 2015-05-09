@@ -199,7 +199,9 @@
 
   function BaseEval(){}
   // you better have a values property if you inherit from this
-  BaseEval.prototype.tostring = function(){return this.constructor.toString(); };
+  BaseEval.prototype.tostring = function(){
+    return this.constructor.toString();
+  };
   BaseEval.prototype[Symbol.iterator] = function(){return this;};
   BaseEval.prototype.isEvalGen = true;
   BaseEval.prototype.isFinished = function(g){

@@ -81,6 +81,9 @@
     this.ctx.fillStyle = oldFill;
   };
   Gamelib.prototype.color = function(r, g, b){
+    if (r === undefined || g === undefined || b === undefined){
+      throw new Error("not enough arguments to color");
+    }
     function numToHex(n){
       var s = n.toString(16);
       if (s.length == 1){
@@ -100,12 +103,15 @@
     this.ctx.fillStyle = '#000';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = oldFill;
-    for (var i = 0; i < this.toRender.length; i++){
-      var func = this.toRender[i][0];
-      var args = this.toRender[i].slice(1);
-      func.apply(this, args);
+    try {
+      for (var i = 0; i < this.toRender.length; i++){
+        var func = this.toRender[i][0];
+        var args = this.toRender[i].slice(1);
+        func.apply(this, args);
+      }
+    } finally {
+      this.toRender = [];
     }
-    this.toRender = [];
   };
 
   Gamelib.Gamelib = Gamelib;
