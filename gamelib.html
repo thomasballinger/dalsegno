@@ -24,18 +24,27 @@
   (define y 100)
   (display "we_are_running")
   (defn world (list
-    (list 50 200 100 10)
-    (list 50 0 100 10)))
-  (defn Rect x y width height
-    (list (list x y)
-          (list x (+ y height))
-          (list (+ x width) (+ y height))
-          (list (+ x width) y)))
+    (list 50 200)
+    (list 50 0)))
+  (defn nearby obj
+    (do
+      (< (dist x y (nth 0 obj) (nth 1 obj)) 120)))
+  (defn to-render (filter nearby (world)))
+  (defn render-obj obj (do
+    (display "renderingobj" (first obj) (nth 1 obj))
+    (define radius 50)
+    (drawRect (- (first obj) radius)
+              (- (nth 1 obj) radius)
+              (* 2 radius)
+              (* 2 radius))))
   (defn render (do
-    (clearDrawRect x y 100 100)
+    (clear)
+    (drawRect x y 100 100)
+    (map render-obj (to-render))
     (set! x (+ x 1))
     (set! y (/ (* x x) 200))
     (if (> x 200) (set! x 100))
+    (display (to-render))
     (render)))
   (render))</div>
 <div>
@@ -70,7 +79,10 @@
   var gameMethods = lib.getFunctions();
   gameMethods.drawRect(100, 100, 40, 50);
 
-  env = new run.Environment([gameMethods, builtins, stdlib, {}]);
+  var buildEnv = function(){
+    return new run.Environment([gameMethods, builtins, stdlib, {}]);
+  };
+  var env = buildEnv();
   var shouldReload = true;
   var running = true;
   var lastProgram = [];
@@ -102,8 +114,8 @@
       }
       lastProgram = parse(program);
       running = true;
-      env = new run.Environment([gameMethods, builtins, {}]);
-      run.runAtInterval(program, env, 0.001, 1, runCallback, errback)
+      env = buildEnv();
+      run.runAtInterval(program, env, 0, 3, runCallback, errback)
       return false;
     } else {
       return true;

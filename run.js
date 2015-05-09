@@ -132,11 +132,11 @@
   Environment.prototype.toString = function(){
     var s = '<Environment: ';
     for (var i = this.scopes.length - 1; i>=0; i--){
-      s = s + JSON.stringify(this.scopes[i]);
+      s = s + JSON.stringify(Object.keys(this.scopes[i]));
       s = s + "\n";
     }
     s += 'with funs';
-    //s += JSON.stringify(this.funs);
+    s += JSON.stringify(Object.keys(this.funs));
     s = s + "\n";
     s = s + '>';
     return s;
@@ -379,7 +379,7 @@
         return {value: null, finished: false};
       }
     }
-  }
+  };
 
   function Function(body, params, env, name){
     if (name === undefined){
@@ -392,7 +392,7 @@
   }
   Function.prototype.buildScope = function(args){
     if (this.params.length != args.length){
-      throw Error("Calling function "+this+" with wrong arity! Expected " +
+      throw Error("Calling function "+this.name+" with wrong arity! Expected " +
              this.params.length + " params but got " + args.length);
     }
     var scope = {};
@@ -400,7 +400,7 @@
       scope[this.params[i]] = args[i];
     }
     return scope;
-  }
+  };
 
   run.run = run;
   run.Runner = Runner;

@@ -21,10 +21,24 @@
 
   // Use lambdas so snapshots aren't tracked of them
 
-  run("(define reduce (lambda func arr\n"+
-      "  (if (= (length arr) 1)\n"+
-      "      (first arr)\n"+
-      "      (func (reduce func (rest arr)) (first arr)))))",
+  run("(define reduce (lambda func arr initial\n"+
+      "  (if (= (length arr) 0)\n"+
+      "      initial\n"+
+      "      (func (reduce func (rest arr) initial) (first arr)))))",
+      env);
+
+  run("(define filter (lambda func arr\n"+
+      "  (reduce \n"+
+      "    (lambda acc item (if (func item)\n"+
+      "                     (prepend item acc)\n"+
+      "                     acc))\n"+
+      "    arr (list))))",
+      env);
+
+  run("(define map (lambda func arr\n"+
+      "  (if (= (length arr) 0)\n"+
+      "      (list)\n"+
+      "      (prepend (func (first arr)) (map func (rest arr))))))",
       env);
 
   stdlib.stdlib = stdlib;

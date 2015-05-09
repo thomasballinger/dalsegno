@@ -7,6 +7,7 @@
         return a + b;
       }, 0);
     },
+    '-': function(a, b){ return (a - b); },
     'display': function(){
       return console.log.apply(console, Array.prototype.slice.call(arguments));
     },
@@ -16,7 +17,10 @@
     '*': function(a, b){ return a * b; },
     '/': function(a, b){ return a / b; },
     'list': function(){ return Array.prototype.slice.call(arguments); },
-    'nth': function(arr, i){
+    'nth': function(i, arr){
+      if(!Array.isArray(arr)){
+        throw Error("second argument to nth is not an array: "+array);
+      }
       if(i>=arr.length){
         throw Error("Index error: "+i+" "+array);
       }
@@ -48,9 +52,15 @@
     },
     'append': function(arr, item){
       if (!Array.isArray(arr)){
-        throw Error("append first arg is not an array: "+arr);
+        throw Error("append first arg is not an array: "+JSON.stringify(arr));
       }
       return arr.concat([item]);
+    },
+    'prepend': function(item, arr){
+      if (!Array.isArray(arr)){
+        throw Error("prepend second arg is not an array: "+JSON.stringify(arr));
+      }
+      return [item].concat(arr);
     },
     'dist': function(p1, p2, x2, y2){
       // works with 2 or 4 arguments
@@ -68,7 +78,7 @@
     },
     'length': function(arr){
       if (!Array.isArray(arr)){
-        throw Error("append first arg is not an array: "+arr);
+        throw Error("length arg is not an array: "+arr);
       }
       return arr.length;
     }
