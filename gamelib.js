@@ -74,11 +74,11 @@
   Gamelib.prototype.drawText = function(x, y){
     var args = Array.prototype.slice.call(arguments, 2);
     var text = args.join(" ");
-    var doIt = function(x, y, text){
-      this.ctx.font="30px Verdana";
-      this.ctx.fillText(text, x, y);
-    };
-    this.toRender.push([doIt, x, y, text]);
+    var oldFill = this.ctx.fillStyle;
+    this.ctx.fillStyle = '#808080';
+    this.ctx.font="30px Verdana";
+    this.ctx.fillText(text, x, y);
+    this.ctx.fillStyle = oldFill;
   };
   Gamelib.prototype.color = function(r, g, b){
     function numToHex(n){

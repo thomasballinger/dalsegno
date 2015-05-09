@@ -73,7 +73,12 @@
           console.log(value.value);
           return;
         } else {
-          value = runner.next();
+          try {
+            value = runner.next();
+          } catch (ex) {
+            errback(ex);
+            return;
+          }
         }
       }
       if (value.finished){
