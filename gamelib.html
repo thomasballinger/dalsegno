@@ -13,34 +13,44 @@
       z-index: 2;
     }
     .ace-monokai {
-      opacity: .9;
+      opacity: .8;
     }
 </style>
 </head>
 <body>
 
 <div id="editor">(do 
+  (display (randint -5 6))
   (define x 100)
   (define y 100)
   (display "we_are_running")
-  (defn world (list
-    (list 50 200)
-    (list 50 0)))
+  (defn init-world 
+    (map (lambda i 
+           (list
+             (list (randint 200) (randint 200))
+             (list (randint -5 6) (randint -5 6))))
+         (range 10)))
+  (define world (init-world))
+  (defn step-obj obj 
+    (list
+      (list (+ (first (first obj)) (first (last obj)))
+            (+ (last (first obj)) (last (last obj))))
+      (last obj)))
   (defn nearby obj
     (do
-      (< (dist x y (nth 0 obj) (nth 1 obj)) 120)))
-  (defn to-render (filter nearby (world)))
+      (< (dist x y (nth 0 (first obj)) (nth 1 (first obj))) 500)))
+  (defn to-render (filter nearby world))
   (defn render-obj obj (do
-    (display "renderingobj" (first obj) (nth 1 obj))
-    (define radius 50)
-    (drawRect (- (first obj) radius)
-              (- (nth 1 obj) radius)
-              (* 2 radius)
-              (* 2 radius))))
+    (define radius 20)
+    (drawCircle (first (first obj))
+              (nth 1 (first obj))
+              radius)))
   (defn render (do
     (clear)
     (drawRect x y 100 100)
     (map render-obj (to-render))
+    (set! world (map step-obj world))
+    (display (first world))
     (set! x (+ x 1))
     (set! y (/ (* x x) 200))
     (if (> x 200) (set! x 100))
@@ -60,7 +70,12 @@
     }
 </script>
 
-<canvas id="canvas" width="300" height="300"></canvas>
+<canvas id="canvas" width="1" height="1"></canvas>
+<script>
+  var canvas = document.getElementById('canvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+</script>
     
 <script src="parse.js"></script>
 <script src="run.js"></script>
@@ -68,10 +83,11 @@
 <script src="gamelib.js"></script>
 <script src="stdlib.js"></script>
 <script>
+  var speed = 100;
   editor.getSession().on('change', function(e) {
     shouldReload = true;
     if (!running){
-      run.runAtInterval(editor.getValue(), env, 0.001, 1, runCallback, errback);
+      run.runAtInterval(editor.getValue(), env, 0, speed, runCallback, errback);
     }
   });
 
@@ -115,7 +131,7 @@
       lastProgram = parse(program);
       running = true;
       env = buildEnv();
-      run.runAtInterval(program, env, 0, 3, runCallback, errback)
+      run.runAtInterval(program, env, 0, speed, runCallback, errback)
       return false;
     } else {
       return true;
@@ -127,7 +143,7 @@
     running = false;
   }
 
-  run.runAtInterval(editor.getValue(), env, 0.001, 1, runCallback, errback);
+  run.runAtInterval(editor.getValue(), env, 0, speed, runCallback, errback);
 
 
 </script>

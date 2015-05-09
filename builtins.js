@@ -35,6 +35,15 @@
       }
       return arr[0];
     },
+    'last': function(arr){
+      if(!Array.isArray(arr)){
+        throw Error("argument to last is not an array: "+array);
+      }
+      if(arr.length < 1){
+        throw Error("called last on empty list: "+array);
+      }
+      return arr[arr.length - 1];
+    },
     'rest': function(arr){
       if(!Array.isArray(arr)){
         throw Error("Index error: "+i+" "+array);
@@ -81,7 +90,27 @@
         throw Error("length arg is not an array: "+arr);
       }
       return arr.length;
-    }
+    },
+    'randint': function(lower, upper){
+      if (lower === undefined){
+        throw Error("randint called with no arguments");
+      }
+      if (upper === undefined){
+        upper = lower;
+        lower = 0;
+      }
+      return lower + Math.floor(Math.random() * (upper - lower));
+    },
+    'range': function(n){
+      if (n === undefined){
+        throw Error("range called with no arguments");
+      }
+      var arr = [];
+      for (var i = 0; i < n; i++){
+        arr.push(i);
+      }
+      return arr;
+    },
   };
 
   builtins.builtins = builtins;

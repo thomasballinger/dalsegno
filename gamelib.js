@@ -32,6 +32,12 @@
   Gamelib.prototype.drawRect = function(x, y, width, height){
     this.ctx.fillRect(x, y, width, height);
   };
+  Gamelib.prototype.drawCircle = function(x, y, r){
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, r, 0, Math.PI*2, true); 
+    this.ctx.closePath();
+    this.ctx.fill();
+  };
   Gamelib.prototype.clear = function(){
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   };
