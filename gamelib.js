@@ -21,6 +21,7 @@
   function Gamelib(canvasId){
     this.canvas = document.getElementById(canvasId);
     this.ctx = canvas.getContext('2d');
+    this.toRender = [];
   }
   Gamelib.prototype = new Builtin();
   Gamelib.prototype.width = function(){
@@ -30,20 +31,43 @@
     return this.canvas.height;
   };
   Gamelib.prototype.drawRect = function(x, y, width, height){
-    this.ctx.fillRect(x, y, width, height);
+    var doIt = function(x, y, width, height){
+      this.ctx.fillRect(x, y, width, height);
+    };
+    this.toRender.push([doIt, x, y, width, height]);
   };
   Gamelib.prototype.drawCircle = function(x, y, r){
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, r, 0, Math.PI*2, true); 
-    this.ctx.closePath();
-    this.ctx.fill();
+    var doIt = function(x, y, r){
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, r, 0, Math.PI*2, true); 
+      this.ctx.closePath();
+      this.ctx.fill();
+    };
+    this.toRender.push([doIt, x, y, r]);
   };
-  Gamelib.prototype.clear = function(){
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  Gamelib.prototype.color = function(r, g, b){
+    function numToHex(n){
+      var s = n.toString(16);
+      if (s.length == 1){
+        s = '0' + s;
+      }
+      return s;
+    }
+    var doIt = function(r, g, b){
+      var color = "#" + numToHex(r) + numToHex(g) + numToHex(b);
+      this.ctx.fillStyle = color;
+      this.ctx.strokeStyle = color;
+    };
+    this.toRender.push([doIt, r, g, b]);
   };
-  Gamelib.prototype.clearDrawRect = function(x, y, width, height){
+  Gamelib.prototype.render = function(){
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.fillRect(x, y, width, height);
+    for (var i = 0; i < this.toRender.length; i++){
+      var func = this.toRender[i][0];
+      var args = this.toRender[i].slice(1);
+      func.apply(this, args);
+    }
+    this.toRender = [];
   };
 
   Gamelib.Gamelib = Gamelib;

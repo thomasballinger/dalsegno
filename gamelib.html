@@ -38,16 +38,17 @@
       (last obj)))
   (defn nearby obj
     (do
-      (< (dist x y (nth 0 (first obj)) (nth 1 (first obj))) 500)))
+      (< (dist x y (nth 0 (first obj)) (nth 1 (first obj))) 200)))
   (defn to-render (filter nearby world))
   (defn render-obj obj (do
     (define radius 20)
     (drawCircle (first (first obj))
               (nth 1 (first obj))
               radius)))
-  (defn render (do
-    (clear)
+  (defn main (do
+    (color 30 100 200)
     (drawRect x y 100 100)
+    (color 230 100 200)
     (map render-obj (to-render))
     (set! world (map step-obj world))
     (display (first world))
@@ -55,8 +56,9 @@
     (set! y (/ (* x x) 200))
     (if (> x 200) (set! x 100))
     (display (to-render))
-    (render)))
-  (render))</div>
+    (render)
+    (main)))
+  (main))</div>
 <div>
     
 <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
