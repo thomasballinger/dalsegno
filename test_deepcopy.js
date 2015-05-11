@@ -56,21 +56,21 @@ describe('copyable execution trees', function(){
   });
   describe('runner makes copies', function(){
     it('should use different scopes for copies', function(){
-      var tmpEnv = new run.Environment([{a: 1, b: 1, c: 1}], {'+': function(a, b){return a + b;}});
+      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}], {});
       var runner = new run.Runner('(begin (set! a (+ a 1)) a)', tmpEnv);
       runner.next();
       runner.next();
       runner.next();
       runner.next();
       runner.next();
-      assert.deepEqual(tmpEnv.scopes, [{a: 1, b: 1, c: 1}]);
+      assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 1, c: 1});
       var old = runner.delegate;
       var toUnpack = runner.copy();
       var g = toUnpack[1];
       runner.delegate = toUnpack[1];
       runner.next();
       assert.deepEqual(runner.next(), { value: 2, finished: true });
-      assert.deepEqual(tmpEnv.scopes, [{a: 1, b: 1, c: 1}]);
+      assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 1, c: 1});
     });
   });
 });

@@ -17,9 +17,10 @@
   var run = require('./run');
 
   var stdlib = {};
-  var env = new run.Environment([builtins, stdlib]);
+  var env = new run.Environment([builtins, stdlib], null);
 
   // Use lambdas so snapshots aren't tracked of them
+  // Don't create any funs here! They won't work.
 
   run("(define reduce (lambda func arr initial\n"+
       "  (if (= (length arr) 0)\n"+

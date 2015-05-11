@@ -67,6 +67,17 @@
         }
       }
     },
+    'NamedFunctionPlaceholder': {
+      canCopy: function(obj){
+        return obj.constructor.name === 'NamedFunctionPlaceholder';
+      },
+      create: function(obj){
+        console.log(obj);
+        console.log(obj.constructor);
+        return new obj.constructor(obj.name);
+      },
+      populate: function(obj, copy, memo){}
+    },
     'EvalObject': {
       canCopy: function(obj){
         return obj.isEvalGen === true;
@@ -158,7 +169,7 @@
     if (copied){
       return copy;
     }
-    throw Error("Can't deep copy object "+x);
+    throw Error("Can't deep copy"+typeof x + " " + x.constructor + " "+x);
   }
 
   function deepCopy(x){

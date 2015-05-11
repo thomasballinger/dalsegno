@@ -113,7 +113,7 @@
       }
     }
     if (this.funs.hasOwnProperty(key)){
-      return this.funs[key];
+      return new NamedFunctionPlaceholder(key);
     }
     throw Error("Name '"+key+"' not found in environment"+this);
   };
@@ -135,8 +135,17 @@
   Environment.prototype.setFunction = function(name, func){
     this.funs[name] = func;
   };
-  Environment.prototype.newWithScope = function(scope){
-    return new Environment(this.scopes.concat([scope]), this.funs);
+  Environment.prototype.lookupFunction = function(name){
+    if (this.funs[name] === undefined){
+      throw Error("Named function "+name+" not found in " + Object.keys(this.funs));
+    }
+    return this.funs[name];
+  };
+  Environment.prototype.newWithScopeAndFuns = function(scope, funs){
+    if (scope === undefined || funs === undefined){
+      throw Error('Supply both scope and funs please!'+scope+' '+funs);
+    }
+    return new Environment(this.scopes.concat([scope]), funs);
   };
   Environment.prototype.toString = function(){
     var s = '<Environment: ';
@@ -252,7 +261,7 @@
   NamedFunction.prototype.next = function(){
     var f = new Function(this.ast[this.ast.length - 1], this.ast.slice(2, -1), this.env, this.ast[1]);
     this.env.setFunction(f.name, f);
-    return {value: f, finished: true};
+    return {value: new NamedFunctionPlaceholder(f.name), finished: true};
   };
 
   function Lookup(ast, env){ this.ast = ast; this.env = env;}
@@ -377,25 +386,31 @@
   Invocation.prototype.constructor = Invocation;
   Invocation.prototype.next = function(){
     if (this.delegate === null){
-      if (this.ast.length === 0){ throw Error("can't evaluate empty form") }
+      if (this.ast.length === 0){ throw Error("can't evaluate empty form"); }
       this.delegate = evalGen(this.ast[0], this.env);
       return {value: null, finished: false};
     } else {
       if (this.isFinished(this.delegate)) {
         if (this.values.length < this.ast.length){
           this.delegate = evalGen(this.ast[this.values.length], this.env);
+          if (this.values.length === this.ast.length && this.values[0].constructor === NamedFunctionPlaceholder) {
+            //console.log('should make a copy now because on next iteration will run named function '+this.values[0].name);
+          }
           return {value: null, finished: false};
         } else {
           if (typeof this.values[0] === 'function'){
             var value = this.values[0].apply(null, this.values.slice(1));
-            return {value: value, finished: true}
-          } else if (this.values[0].constructor === Function) {
+            return {value: value, finished: true};
+          } else if (this.values[0].constructor === NamedFunctionPlaceholder || this.values[0].constructor === Function) {
+            if (this.values[0].constructor === NamedFunctionPlaceholder){
+              this.values[0] = this.env.lookupFunction(this.values[0].name);
+            }
             var callScope = this.values[0].buildScope(this.values.slice(1));
-            var callEnv = this.values[0].env.newWithScope(callScope);
+            var callEnv = this.values[0].env.newWithScopeAndFuns(callScope, this.env.funs);
             var value = evalGen(this.values[0].body, callEnv);
-            return {value: value, finished: true}
+            return {value: value, finished: true};
           } else {
-            throw Error("don't know how to call non-function "+this.values[0])
+            throw Error("don't know how to call non-function "+this.values[0]+' with constructor '+this.values[0].constructor);
           }
         }
       } else {
@@ -425,11 +440,16 @@
     return scope;
   };
 
+  function NamedFunctionPlaceholder(name){this.name = name;}
+
   run.run = run;
   run.Runner = Runner;
   run.Environment = Environment;
   run.evalGen = evalGen;
   run.runAtInterval = runAtInterval;
+
+  run.NamedFunctionPlaceholder = NamedFunctionPlaceholder;
+  run.Function = NamedFunctionPlaceholder;
 
   run.evalGen.StringLiteral = StringLiteral;
   run.evalGen.NumberLiteral = NumberLiteral;

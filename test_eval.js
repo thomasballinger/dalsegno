@@ -16,15 +16,15 @@ describe('run.js', function(){
   describe('Environment', function(){
     it('should do lookup through scopes from right to left', function(){
       var env = new Environment([{a:1}, {a:2}, {}], {});
-      assert.deepEqual(env.lookup('a'), 2)
+      assert.deepEqual(env.lookup('a'), 2);
     });
     it('should use functions if not found in scopes', function(){
       var env = new Environment([{a:1}, {a:2}, {}], {b:3});
-      assert.deepEqual(env.lookup('b'), 3);
+      assert.deepEqual(env.lookup('b'), new run.NamedFunctionPlaceholder('b'));
     });
     it('should create new environments with scopes', function(){
       var env = new Environment([{a:1}, {a:2}, {}], {});
-      var newEnv = env.newWithScope({a:3})
+      var newEnv = env.newWithScopeAndFuns({a:3}, {});
       assert.deepEqual(newEnv.lookup('a'), 3);
       assert.deepEqual(env.lookup('a'), 2);
     });
@@ -33,10 +33,10 @@ describe('run.js', function(){
     it('should return an evaluation object', function(){
       var e = evalGen(1);
       assert(e.isEvalGen);
-      assert.equal(e.ast, 1)
+      assert.equal(e.ast, 1);
       var e = evalGen(parse('(+ 1 2)'), justSum);
       assert(e.isEvalGen);
-      assert.deepEqual(e.ast, ['+', 1, 2])
+      assert.deepEqual(e.ast, ['+', 1, 2]);
     });
   });
   describe('Invocation', function(){
@@ -78,18 +78,18 @@ describe('run.js', function(){
   describe('Begin', function(){
     it('should run stuff in order', function(){
       var tmpEnv = new Environment([{a: 2}]);
-      run('(begin (set! a 3) (set! a 4))', tmpEnv)
+      run('(begin (set! a 3) (set! a 4))', tmpEnv);
       assert.deepEqual(tmpEnv.scopes, [{a: 4}]);
     });
     it('should run all statements', function(){
       var tmpEnv = new Environment([{a: 2}]);
-      run('(begin (define b 3) (define c 4) (define d 5))', tmpEnv)
+      run('(begin (define b 3) (define c 4) (define d 5))', tmpEnv);
       assert.deepEqual(tmpEnv.scopes, [{a: 2, b: 3, c: 4, d: 5}]);
     });
     it('should run each statement once', function(){
-      var tmpEnv = new Environment([{a: 1, b: 1, c: 1}], {'+': function(a, b){return a + b;}});
-      run('(begin (set! a (+ a 1)) (set! b (+ b 1)) (set! c (+ c 1)))', tmpEnv)
-      assert.deepEqual(tmpEnv.scopes, [{a: 2, b: 2, c: 2}]);
+      var tmpEnv = new Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
+      run('(begin (set! a (+ a 1)) (set! b (+ b 1)) (set! c (+ c 1)))', tmpEnv);
+      assert.deepEqual(tmpEnv.scopes[1], {a: 2, b: 2, c: 2});
     });
   });
   describe('define', function(){
