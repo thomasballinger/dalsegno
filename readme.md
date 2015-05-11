@@ -1,7 +1,7 @@
 todo:
 
 * evaluation
-  - [ ] implement copy method on all evalGen objects
+  - [x] implement copy method on all evalGen objects
   - [ ] keep track of function invocations
   - [ ] parse code for function asts
   - [ ] restore 
