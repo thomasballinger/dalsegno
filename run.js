@@ -10,11 +10,20 @@
     };
   }
   var parse = require('./parse.js');
-  var deepcopy = require('./deepcopy.js');
+  var deepCopy = require('./deepCopy.js');
 
   function Runner(s, env){
     if (env === undefined){
       env = new Environment([{}]);
+    }
+
+    if (env.funs !== null){ // null while defining builtins
+      var self = this;
+      var saved_states = {};
+      env.funs.__save_state = function(name){
+        //console.log('saving state for function '+name);
+        saved_states[name] = self.copy();
+      };
     }
 
     this.ast = parse(s);
@@ -31,7 +40,7 @@
     return {value: null, finished: false};
   };
   Runner.prototype.copy = function(){
-    return [this.counter, deepcopy(this.delegate)];
+    return [this.counter, deepCopy(this.delegate)];
   };
 
   function run(s, env){
@@ -139,6 +148,7 @@
     if (this.funs[name] === undefined){
       throw Error("Named function "+name+" not found in " + Object.keys(this.funs));
     }
+    var g = this.funs.__save_state(name);
     return this.funs[name];
   };
   Environment.prototype.newWithScopeAndFuns = function(scope, funs){
@@ -393,9 +403,6 @@
       if (this.isFinished(this.delegate)) {
         if (this.values.length < this.ast.length){
           this.delegate = evalGen(this.ast[this.values.length], this.env);
-          if (this.values.length === this.ast.length && this.values[0].constructor === NamedFunctionPlaceholder) {
-            //console.log('should make a copy now because on next iteration will run named function '+this.values[0].name);
-          }
           return {value: null, finished: false};
         } else {
           if (typeof this.values[0] === 'function'){

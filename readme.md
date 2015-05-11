@@ -2,7 +2,7 @@ todo:
 
 * evaluation
   - [x] implement copy method on all evalGen objects
-  - [ ] keep track of function invocations
+  - [x] keep track of function invocations
   - [ ] parse code for function asts
   - [ ] restore 
   - [ ] more parse-time errors (arity, valid literals)

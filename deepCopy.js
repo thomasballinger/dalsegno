@@ -72,18 +72,46 @@
         return obj.constructor.name === 'NamedFunctionPlaceholder';
       },
       create: function(obj){
-        console.log(obj);
-        console.log(obj.constructor);
         return new obj.constructor(obj.name);
       },
       populate: function(obj, copy, memo){}
+    },
+    'Function': {
+      canCopy: function(obj){
+        return obj.constructor.name === 'Function';
+      },
+      create: function(obj){
+        return new obj.constructor(Symbol.for('deepCopy.dummy'),
+                                   Symbol.for('deepCopy.dummy'),
+                                   Symbol.for('deepCopy.dummy'),
+                                   Symbol.for('deepCopy.dummy'));
+      },
+      populate: function(obj, copy, memo){
+        for (var property in obj){
+          if (obj.hasOwnProperty(property)){
+            if (property === 'name'){
+              copy.name = obj.name;
+            } else if (property === 'body'){
+              copy.body = obj.body; // shallow copy should be ok bc
+            } else if (property === 'params'){
+              copy.params = obj.params; // should be fine
+            } else if (property === 'env'){
+              copy.env = innerDeepCopy(obj.env, memo);
+            } else if (property ===  '__obj_id'){
+              // nop
+            } else {
+              throw Error("deepCopying unknown property "+property+" on "+obj);
+            }
+          }
+        }
+      }
     },
     'EvalObject': {
       canCopy: function(obj){
         return obj.isEvalGen === true;
       },
       create: function(obj){
-        return new obj.constructor(Symbol.for('deepcopy.dummy'), Symbol.for('deepcopy.dummy'));
+        return new obj.constructor(Symbol.for('deepCopy.dummy'), Symbol.for('deepCopy.dummy'));
       },
       populate: function(obj, copy, memo){
         for (var property in obj){
@@ -99,7 +127,7 @@
             } else if (property ===  '__obj_id'){
               // nop
             } else {
-              throw Error("deepCoping unknown property "+property+" on "+obj);
+              throw Error("deepCopying unknown property "+property+" on "+obj);
             }
           }
         }
@@ -110,7 +138,7 @@
         return obj.constructor.name === 'Environment';
       },
       create: function(obj){
-        return new obj.constructor(Symbol.for('deepcopy.dummy'), Symbol.for('deepcopy.dummy'));
+        return new obj.constructor(Symbol.for('deepCopy.dummy'), Symbol.for('deepCopy.dummy'));
       },
       populate: function(obj, copy, memo){
         for (var property in obj){
@@ -127,12 +155,15 @@
                 copy.scopes.push(scope);
               }
             } else if (property === 'funs'){
+              copy.funs = obj.funs; //globally shared object
+              /*
               copy.funs = [];
               for (var name in obj.funs){
                 // functions aren't copied
                 // so a shallow copy should be ok!
-                copy.funs[name] = innerDeepCopy(obj.funs[name], memo);
+                copy.funs[name] = obj.funs[name]; //innerDeepCopy(obj.funs[name], memo);
               }
+              */
             } else if (property ===  '__obj_id'){
               // nop
             } else {
@@ -146,7 +177,7 @@
 
   function innerDeepCopy(x, memo){
     if (memo === undefined){
-      throw Error("Need to pass second argument to deepcopy");
+      throw Error("Need to pass second argument to deepCopy");
     }
     if (passthroughCopier.canCopy(x)){ return x; }
 
@@ -169,13 +200,13 @@
     if (copied){
       return copy;
     }
-    throw Error("Can't deep copy"+typeof x + " " + x.constructor + " "+x);
+    throw Error("Can't deep copy "+typeof x + " " + x.constructor + " "+x);
   }
 
   function deepCopy(x){
     var memo = {};
     var copy = innerDeepCopy(x, memo);
-    objectId.deleteIds();
+    //objectId.deleteIds();
     return copy;
   }
 

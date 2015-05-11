@@ -117,13 +117,14 @@
   canvas.height = window.innerHeight;
 </script>
     
+<script src="deepcopy.js"></script>
 <script src="parse.js"></script>
 <script src="run.js"></script>
 <script src="builtins.js"></script>
 <script src="gamelib.js"></script>
 <script src="stdlib.js"></script>
 <script>
-  var speed = 500;
+  var speed = 2000;
   editor.getSession().on('change', function(e) {
     shouldReload = true;
     if (!running){
