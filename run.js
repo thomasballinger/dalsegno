@@ -2,7 +2,7 @@
   'use strict';
 
   if (typeof window === 'undefined') {
-    var require = module.require
+    var require = module.require;
   } else {
     var require = function(name){ 
       var realname = name.match(/(\w+)[.]?j?s?$/)[1];
@@ -10,6 +10,7 @@
     };
   }
   var parse = require('./parse.js');
+  var deepcopy = require('./deepcopy.js');
 
   function Runner(s, env){
     if (env === undefined){
@@ -17,17 +18,20 @@
     }
 
     this.ast = parse(s);
-    this.env = env;
-    this.delegate = evalGen(this.ast, this.env);
+    this.delegate = evalGen(this.ast, env);
     this.counter = 0;
     this.values = [];
   }
   Runner.prototype = new BaseEval();
+  Runner.prototype.constructor = Runner;
   Runner.prototype.next = function(){
     if (this.isFinished(this.delegate)) {
       return {value: this.values[0], finished:true};
     }
     return {value: null, finished: false};
+  };
+  Runner.prototype.copy = function(){
+    return [this.counter, deepcopy(this.delegate)];
   };
 
   function run(s, env){
@@ -199,6 +203,8 @@
 
   function BaseEval(){}
   // you better have a values property if you inherit from this
+  // all child classes should be constructable with
+  // new Thing(ast, env)
   BaseEval.prototype.tostring = function(){
     return this.constructor.toString();
   };
@@ -224,14 +230,17 @@
 
   function StringLiteral(ast){ this.ast = ast; }
   StringLiteral.prototype = new BaseEval();
+  StringLiteral.prototype.constructor = StringLiteral;
   StringLiteral.prototype.next = function(){ return {value: this.ast, finished: true}; };
 
   function NumberLiteral(ast){ this.ast = ast; }
   NumberLiteral.prototype = new BaseEval();
+  NumberLiteral.prototype.constructor = NumberLiteral;
   NumberLiteral.prototype.next = function(){ return {value: this.ast, finished: true}; };
 
   function LambdaExpression(ast, env){ this.ast = ast; this.env = env; }
   LambdaExpression.prototype = new BaseEval();
+  LambdaExpression.prototype.constructor = LambdaExpression;
   LambdaExpression.prototype.next = function(){
     var f = new Function(this.ast[this.ast.length - 1], this.ast.slice(1, -1), this.env);
     return {value: f, finished: true};
@@ -239,6 +248,7 @@
 
   function NamedFunction(ast, env){ this.ast = ast; this.env=env; }
   NamedFunction.prototype = new BaseEval();
+  NamedFunction.prototype.constructor = NamedFunction;
   NamedFunction.prototype.next = function(){
     var f = new Function(this.ast[this.ast.length - 1], this.ast.slice(2, -1), this.env, this.ast[1]);
     this.env.setFunction(f.name, f);
@@ -247,6 +257,7 @@
 
   function Lookup(ast, env){ this.ast = ast; this.env = env;}
   Lookup.prototype = new BaseEval();
+  Lookup.prototype.constructor = Lookup;
   Lookup.prototype.next = function(){
     return {value: this.env.lookup(this.ast), finished: true}
   };
@@ -258,6 +269,7 @@
     this.values = [];
   }
   SetBang.prototype = new BaseEval();
+  SetBang.prototype.constructor = SetBang;
   SetBang.prototype.next = function(){
     if (this.delegate === null){
       this.delegate = evalGen(this.ast[2], this.env);
@@ -270,7 +282,7 @@
         return {value: null, finished: false};
       }
     }
-  }
+  };
 
   function Define(ast, env){
     this.ast = ast;
@@ -279,19 +291,20 @@
     this.values = [];
   }
   Define.prototype = new BaseEval();
+  Define.prototype.constructor = Define;
   Define.prototype.next = function(){
     if (this.delegate === null){
       this.delegate = evalGen(this.ast[2], this.env);
-      return {value: null, finished: false}
+      return {value: null, finished: false};
     } else {
       if (this.isFinished(this.delegate)) {
-        this.env.define(this.ast[1], this.values[0])
+        this.env.define(this.ast[1], this.values[0]);
         return {value: this.values[0], finished: true};
       } else {
         return {value: null, finished: false};
       }
     }
-  }
+  };
 
   function If(ast, env){
     this.ast = ast;
@@ -300,6 +313,7 @@
     this.values = [];
   }
   If.prototype = new BaseEval();
+  If.prototype.constructor = If;
   If.prototype.next = function(){
     if (this.delegate === null){
       this.delegate = evalGen(this.ast[1], this.env);
@@ -325,6 +339,7 @@
     this.values = [];
   }
   Begin.prototype = new BaseEval();
+  Begin.prototype.constructor = Begin;
   Begin.prototype.next = function(){
     if (this.delegate === null){
       if (this.ast.length == 1){
@@ -359,6 +374,7 @@
     this.values = [];
   }
   Invocation.prototype = new BaseEval();
+  Invocation.prototype.constructor = Invocation;
   Invocation.prototype.next = function(){
     if (this.delegate === null){
       if (this.ast.length === 0){ throw Error("can't evaluate empty form") }
@@ -414,6 +430,16 @@
   run.Environment = Environment;
   run.evalGen = evalGen;
   run.runAtInterval = runAtInterval;
+
+  run.evalGen.StringLiteral = StringLiteral;
+  run.evalGen.NumberLiteral = NumberLiteral;
+  run.evalGen.Begin = Begin;
+  run.evalGen.If = If;
+  run.evalGen.SetBang = SetBang;
+  run.evalGen.Define = Define;
+  run.evalGen.NamedFunction = NamedFunction;
+  run.evalGen.LambdaExpression = LambdaExpression;
+  run.evalGen.Invocation = Invocation;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

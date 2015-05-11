@@ -4,7 +4,7 @@ var assert = chai.assert;
 
 var tokenize = require('./parse.js').tokenize;
 var parse = require('./parse.js').parse;
-var run = require('./run')
+var run = require('./run');
 var Environment = run.Environment;
 var evalGen = run.evalGen;
 var Runner = run.Runner;
