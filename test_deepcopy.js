@@ -5,6 +5,17 @@ var assert = chai.assert;
 var deepCopy = require('./deepcopy.js');
 var run = require('./run');
 
+function removeIds(obj){
+  if (obj === undefined){return;}
+  if (obj.__obj_id !== undefined){
+    delete obj.__obj_id;
+    for (var prop in obj){
+      removeIds(obj[prop]);
+    }
+  }
+  return obj;
+}
+
 describe('copyable execution trees', function(){
   describe('deepcopy stuff', function(){
     it("works with Oran's example", function(){
@@ -23,13 +34,13 @@ describe('copyable execution trees', function(){
       var john2 = deepCopy(john);
       var bob2 = john2.friends[0];
 
-      assert.deepEqual(john2.hobbies, john.hobbies);
+      assert.deepEqual(john2.hobbies, removeIds(john.hobbies));
       assert.deepEqual(john2.name, john.name);
-      assert.deepEqual(john2, john);
-      assert.notStrictEqual(john2, john); 
-      assert.notStrictEqual(bob2, bob); 
-      assert.strictEqual(bob2, bob2.friends[0].friends[0]);
-      assert.deepEqual(bob2, bob);
+      assert.deepEqual(john2, removeIds(john));
+      assert.notStrictEqual(john2, removeIds(john)); 
+      assert.notStrictEqual(bob2, removeIds(bob)); 
+      assert.strictEqual(bob2, removeIds(bob2.friends[0].friends[0]));
+      assert.deepEqual(bob2, removeIds(bob));
       assert.strictEqual(bob2.friends[0], john2);
     });
   });
@@ -37,12 +48,12 @@ describe('copyable execution trees', function(){
     it('should retain their prototypes when copied', function(){
       var g = new run.evalGen.StringLiteral('hi');
       var copy = deepCopy(g);
-      assert.deepEqual(g.delegate, copy.delegate);
+      assert.deepEqual(removeIds(g.delegate), copy.delegate);
       assert.deepEqual(g.ast, copy.ast);
-      assert.deepEqual(g.values, copy.values);
-      assert.deepEqual(g.env, copy.env);
+      assert.deepEqual(removeIds(g.values), copy.values);
+      assert.deepEqual(removeIds(g.env), copy.env);
       assert.equal(g.__proto__, copy.__proto__);
-      assert.deepEqual(g, copy);
+      assert.deepEqual(removeIds(g), copy);
     });
   });
   describe('copiers', function(){

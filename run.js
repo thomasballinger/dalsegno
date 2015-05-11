@@ -42,6 +42,14 @@
   Runner.prototype.copy = function(){
     return [this.counter, deepCopy(this.delegate)];
   };
+  Runner.prototype.update = function(ast){
+    // parse out the named functions. If nothing changed, nop.
+    // TODO: make the top level a special case of a named function,
+    //       or in the meantime just change the code.
+    // If a named function has changed arity, fine - we'll get an error, whatevs
+    // Roll back to the earliest of all changed function snapshots
+    // set delegate to that thing and reset the counter
+  };
 
   function run(s, env){
     var runner = new Runner(s, env);
@@ -261,7 +269,7 @@
   LambdaExpression.prototype = new BaseEval();
   LambdaExpression.prototype.constructor = LambdaExpression;
   LambdaExpression.prototype.next = function(){
-    var f = new Function(this.ast[this.ast.length - 1], this.ast.slice(1, -1), this.env);
+    var f = new parse.Function(this.ast[this.ast.length - 1], this.ast.slice(1, -1), this.env);
     return {value: f, finished: true};
   };
 
@@ -269,7 +277,7 @@
   NamedFunction.prototype = new BaseEval();
   NamedFunction.prototype.constructor = NamedFunction;
   NamedFunction.prototype.next = function(){
-    var f = new Function(this.ast[this.ast.length - 1], this.ast.slice(2, -1), this.env, this.ast[1]);
+    var f = new parse.Function(this.ast[this.ast.length - 1], this.ast.slice(2, -1), this.env, this.ast[1]);
     this.env.setFunction(f.name, f);
     return {value: new NamedFunctionPlaceholder(f.name), finished: true};
   };
@@ -408,7 +416,7 @@
           if (typeof this.values[0] === 'function'){
             var value = this.values[0].apply(null, this.values.slice(1));
             return {value: value, finished: true};
-          } else if (this.values[0].constructor === NamedFunctionPlaceholder || this.values[0].constructor === Function) {
+          } else if (this.values[0].constructor === NamedFunctionPlaceholder || this.values[0].constructor === parse.Function) {
             if (this.values[0].constructor === NamedFunctionPlaceholder){
               this.values[0] = this.env.lookupFunction(this.values[0].name);
             }
@@ -426,27 +434,6 @@
     }
   };
 
-  function Function(body, params, env, name){
-    if (name === undefined){
-      name = null; // anonymous function
-    }
-    this.name = name;
-    this.body = body;
-    this.params = params;
-    this.env = env;
-  }
-  Function.prototype.buildScope = function(args){
-    if (this.params.length != args.length){
-      throw Error("Calling function "+this.name+" with wrong arity! Expected " +
-             this.params.length + " params but got " + args.length);
-    }
-    var scope = {};
-    for (var i = 0; i < args.length; i++){
-      scope[this.params[i]] = args[i];
-    }
-    return scope;
-  };
-
   function NamedFunctionPlaceholder(name){this.name = name;}
 
   run.run = run;
@@ -456,7 +443,6 @@
   run.runAtInterval = runAtInterval;
 
   run.NamedFunctionPlaceholder = NamedFunctionPlaceholder;
-  run.Function = NamedFunctionPlaceholder;
 
   run.evalGen.StringLiteral = StringLiteral;
   run.evalGen.NumberLiteral = NumberLiteral;

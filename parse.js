@@ -6,6 +6,27 @@
 ;(function() {
   'use strict';
 
+  function Function(body, params, env, name){
+    if (name === undefined){
+      name = null; // anonymous function
+    }
+    this.name = name;
+    this.body = body;
+    this.params = params;
+    this.env = env;
+  }
+  Function.prototype.buildScope = function(args){
+    if (this.params.length != args.length){
+      throw Error("Calling function "+this.name+" with wrong arity! Expected " +
+             this.params.length + " params but got " + args.length);
+    }
+    var scope = {};
+    for (var i = 0; i < args.length; i++){
+      scope[this.params[i]] = args[i];
+    }
+    return scope;
+  };
+
   function tokenize(s) {
     var token = /[()]|[^\s()]+/g;
     return s.match(token);
@@ -45,8 +66,15 @@
     }
   }
 
+  function findFunctions(ast){
+    // Returns a map of names to {name, ast, params}
+    //
+    // Return new Function objects that we'll swap out
+  }
+
   parse.parse = parse;
   parse.tokenize = tokenize;
+  parse.Function = Function
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
