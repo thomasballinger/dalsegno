@@ -3,7 +3,7 @@ todo:
 * evaluation
   - [x] implement copy method on all evalGen objects
   - [x] keep track of function invocations
-  - [ ] parse code for function asts
+  - [x] parse code for function asts
   - [ ] restore 
   - [ ] more parse-time errors (arity, valid literals)
   - [ ] vary speed in runner to achieve constant fps

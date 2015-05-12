@@ -29,9 +29,13 @@
         var i = saved_states[name][0];
         self.counter = i;
         self.delegate = g;
+        console.log(self.delegate);
       };
       env.funs.__get_state = function(name){
-        return saved_states[name];
+        if (name in saved_states){
+          return saved_states[name];
+        }
+        return [-2, null];
       };
     }
 
@@ -45,6 +49,7 @@
   Runner.prototype = new BaseEval();
   Runner.prototype.constructor = Runner;
   Runner.prototype.next = function(){
+    this.counter++;
     if (this.isFinished(this.delegate)) {
       return {value: this.values[0], finished:true};
     }
@@ -62,11 +67,14 @@
       return;
     }
     var earliestTime = -1;
-    var earliestGen;
     for (var funcName in diff){
+      console.log('change detected in function '+funcName);
+      console.log('last run at tick '+this.env.funs.__get_state(funcName)[0]);
       this.env.funs[funcName].body = diff[funcName].body;
       this.env.funs[funcName].params = diff[funcName].params;
       if (this.env.funs.__get_state(funcName)[0] >= earliestTime){
+        console.log('restoring state from last call of '+funcName);
+        earliestTime = this.env.funs.__get_state(funcName)[0];
         this.env.funs.__restore_state(funcName);
       }
     // TODO: make the top level a special case of a named function,

@@ -29,7 +29,7 @@
            (list
              (list (randint 200) (randint 200))
              (list (randint -5 6) (randint -5 6))))
-         (range 10)))
+         (range 0)))
   (defn wrap-obj obj
     (list
       (list (% (first (first obj)) (width))
@@ -60,6 +60,9 @@
     (defn any-collide (reduce or (map collide world) 0))
     (defn to-render (filter nearby world))
     (define counter 0)
+    (defn on-click (do
+      (set! vx (+ vx (* (x_comp (towards x y (mousex) (mousey))) .5)))
+      (set! vy (+ vy (* (y_comp (towards x y (mousex) (mousey))) .5)))))
     (defn main (do
       (set! counter (+ counter 1))
       (color 250 250 220)
@@ -71,9 +74,7 @@
       (set! world (map step-obj world))
       (set! world (map wrap-obj world))
       (if (clicked)
-          (do
-            (set! vx (+ vx (* (x_comp (towards x y (mousex) (mousey))) .5)))
-            (set! vy (+ vy (* (y_comp (towards x y (mousex) (mousey))) .5)))))
+          (on-click))
       (set! x (+ x vx))
       (set! y (+ y vy))
       (if (> x (width)) (set! x 0))
@@ -144,7 +145,7 @@
         return;
       }
     }
-    var currentlyRunning = runner.runABit(1000, errback);
+    var currentlyRunning = runner.runABit(10, errback);
     if (currentlyRunning){
       setTimeout(runABit, .001);
     }
