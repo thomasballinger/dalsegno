@@ -26,4 +26,11 @@ describe('integration', function(){
         "  (main))",
     buildEnv());
   });
+  describe('browser bug?', function(){
+    run(
+      "(do"+
+      "(defn game (do"+
+        '(display "game" "started")))'+
+      "(game))", buildEnv());
+  });
 });

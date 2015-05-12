@@ -124,66 +124,48 @@
 <script src="gamelib.js"></script>
 <script src="stdlib.js"></script>
 <script>
-  var speed = 600;
-  editor.getSession().on('change', function(e) {
+  var shouldReload = true; // on next tick, reload the program
+  var currentlyRunning = true; // if not, change event needs to kick off runner
+  var lib = new Gamelib('canvas');
+  var gameMethods = lib.getFunctions();
+  var env = new run.Environment([gameMethods, builtins, stdlib, {}], {});
+  var runner = new run.Runner(editor.getValue(), env)
+  var lastProgram = JSON.stringify(parse(editor.getValue()))
+
+  var errback = function(e){ console.log(e); }
+
+  var runABit = function(){
+    if (shouldReload){
+      if (parse.safelyParses(editor.getValue())){
+        shouldReload = false;
+        runner.update(editor.getValue());
+      } else {
+        currentlyRunning = false;
+        return;
+      }
+    }
+    var currentlyRunning = runner.runABit(1000, errback);
+    if (currentlyRunning){
+      setTimeout(runABit, .001);
+    }
+  }
+
+  editor.getSession().on('change', function(e){
+    if (parse.safelyParses(editor.getValue())){
+      var newProgram = JSON.stringify(parse(editor.getValue()));
+      if (newProgram === lastProgram){
+        return;
+      } else {
+        lastProgram = newProgram;
+      }
+    }
     shouldReload = true;
-    if (!running){
-      run.runAtInterval(editor.getValue(), env, 0, speed, runCallback, errback);
+    if (!currentlyRunning){
+      runABit();
     }
   });
 
-  var lib = new Gamelib('canvas');
-  var gameMethods = lib.getFunctions();
-  gameMethods.drawRect(100, 100, 40, 50);
-
-  var buildEnv = function(){
-    return new run.Environment([gameMethods, builtins, stdlib, {}], {});
-  };
-  var env = buildEnv();
-  var shouldReload = true;
-  var running = true;
-  var lastProgram = [];
-
-  var safelyParses = function(program){
-    try {
-      parse(program);
-      return true;
-    } catch (e) {
-      console.log(e);
-      return false;
-    }
-  }
-
-  var runCallback = function(){
-    if (shouldReload){
-      shouldReload = false;
-      var program = editor.getValue() 
-
-      if (!safelyParses(program)){
-        running = false;
-        return false
-      }
-
-      if (running && JSON.stringify(parse(program)) === JSON.stringify(lastProgram)){
-        return true;
-      }
-      lastProgram = parse(program);
-      running = true;
-      run.runAtInterval(program, env, 0, speed, runCallback, errback)
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  var errback = function(e){
-    console.log(e);
-    running = false;
-  }
-
-  run.runAtInterval(editor.getValue(), env, 0, speed, runCallback, errback);
-
-
+  runABit();
 </script>
 </body>
 </html>

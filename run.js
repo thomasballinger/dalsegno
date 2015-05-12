@@ -32,7 +32,7 @@
       };
       env.funs.__get_state = function(name){
         return saved_states[name];
-      }
+      };
     }
 
     this.ast = parse(s);
@@ -54,10 +54,11 @@
     return [this.counter, deepCopy(this.delegate)];
   };
   Runner.prototype.update = function(s){
-    var ast = parse(s);
-    var functions = parse.findFunctions(ast);
-    var diff = diffFunctions(this.oldFunctions);
-    if (Object.getOwnPropertyNames(obj).length === 0){
+    this.ast = parse(s);
+    var functions = parse.findFunctions(this.ast);
+    var diff = parse.diffFunctions(this.oldFunctions, functions);
+    this.oldFunctions = functions;
+    if (Object.getOwnPropertyNames(diff).length === 0){
       return;
     }
     var earliestTime = -1;
@@ -65,12 +66,51 @@
     for (var funcName in diff){
       this.env.funs[funcName].body = diff[funcName].body;
       this.env.funs[funcName].params = diff[funcName].params;
-      if (this.envs.funcs.__get_state[funcName][0] >= earliestTime){
-        this.envs.funcs.__restore_state(funcName);
+      if (this.env.funs.__get_state(funcName)[0] >= earliestTime){
+        this.env.funs.__restore_state(funcName);
       }
     // TODO: make the top level a special case of a named function,
     //       or in the meantime just change the code.
     }
+    this.values = [];
+  };
+  Runner.prototype.runABit = function(numIterations, errback){
+    // Returns whether it is still running
+    
+    if (numIterations === undefined){
+      numIterations = 1;
+    }
+    //try {
+      var value = this.next();
+    //} catch (ex) {
+    //  errback(ex);
+    //  return false;
+    //}
+    for (var i=0; i<numIterations-1; i++){
+      if (value.finished){
+        break;
+      } else {
+      //  try {
+          value = this.next();
+      //  } catch (ex) {
+      //    errback(ex);
+      //    return false;
+      //  }
+      }
+    }
+    if (value.finished){
+      console.log('finished!', value.value);
+      return true;
+    } else {
+      return true;
+    }
+  };
+  Runner.prototype.value = function(){
+    var value = this.next();
+    while (!value.finished){
+      value = this.next();
+    }
+    return value.value;
   };
 
   function run(s, env){
@@ -105,23 +145,23 @@
         return;
       }
 
-      try {
+      //try {
         var value = runner.next();
-      } catch (ex) {
-        errback(ex);
-        return;
-      }
+      //} catch (ex) {
+      //  errback(ex);
+      //  return;
+      //}
       for (var i=0; i<numIterations-1; i++){
         if (value.finished){
           console.log(value.value);
           return;
         } else {
-          try {
+          //try {
             value = runner.next();
-          } catch (ex) {
-            errback(ex);
-            return;
-          }
+          //} catch (ex) {
+          //  errback(ex);
+          //  return;
+          //}
         }
       }
       if (value.finished){
@@ -430,7 +470,7 @@
       this.delegate = evalGen(this.ast[0], this.env);
       return {value: null, finished: false};
     } else {
-      if (this.isFinished(this.delegate)) {
+      if (this.values.length === this.ast.length || this.isFinished(this.delegate)) {
         if (this.values.length < this.ast.length){
           this.delegate = evalGen(this.ast[this.values.length], this.env);
           return {value: null, finished: false};

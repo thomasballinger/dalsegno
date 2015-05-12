@@ -29,7 +29,7 @@
   Function.prototype.diff = function(other){
     return  (JSON.stringify(this.body) !== JSON.stringify(other.body) ||
              JSON.stringify(this.params) !== JSON.stringify(other.params));
-  }
+  };
 
   function tokenize(s) {
     var token = /[()]|[^\s()]+/g;
@@ -111,11 +111,23 @@
     return different;
   }
 
+  var safelyParses = function(program){
+    try {
+      parse(program);
+      return true;
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
+  };
+
+
   parse.parse = parse;
   parse.tokenize = tokenize;
   parse.Function = Function;
   parse.findFunctions = findFunctions;
   parse.diffFunctions = diffFunctions;
+  parse.safelyParses = safelyParses;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

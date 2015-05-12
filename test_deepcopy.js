@@ -83,5 +83,17 @@ describe('copyable execution trees', function(){
       assert.deepEqual(runner.next(), { value: 2, finished: true });
       assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 1, c: 1});
     });
+    it('can be resumed after being cloned', function(){
+      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}], {});
+      var runner = new run.Runner('(begin (defn foo 1) (foo))', tmpEnv);
+      assert.equal(true, runner.runABit(100));
+      assert.deepEqual(runner.env.funs.__get_state('foo')[1].ast, ['foo']);
+      runner.update('(begin (defn foo 2) (foo))');
+      assert.deepEqual(runner.env.funs.__get_state('foo')[1].env.funs.foo.body, 2);
+      assert.deepEqual(runner.env.funs['foo'].body, 2);
+      assert.equal(2, runner.value());
+
+      //var g = new run.evalGen.StringLiteral('hi');
+    });
   });
 });
