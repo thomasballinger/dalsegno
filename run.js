@@ -24,9 +24,20 @@
         //console.log('saving state for function '+name);
         saved_states[name] = self.copy();
       };
+      env.funs.__restore_state = function(name){
+        var g = saved_states[name][1];
+        var i = saved_states[name][0];
+        self.counter = i;
+        self.delegate = g;
+      };
+      env.funs.__get_state = function(name){
+        return saved_states[name];
+      }
     }
 
     this.ast = parse(s);
+    this.oldFunctions = parse.findFunctions(this.ast);
+    this.env = env;
     this.delegate = evalGen(this.ast, env);
     this.counter = 0;
     this.values = [];
@@ -42,13 +53,24 @@
   Runner.prototype.copy = function(){
     return [this.counter, deepCopy(this.delegate)];
   };
-  Runner.prototype.update = function(ast){
-    // parse out the named functions. If nothing changed, nop.
+  Runner.prototype.update = function(s){
+    var ast = parse(s);
+    var functions = parse.findFunctions(ast);
+    var diff = diffFunctions(this.oldFunctions);
+    if (Object.getOwnPropertyNames(obj).length === 0){
+      return;
+    }
+    var earliestTime = -1;
+    var earliestGen;
+    for (var funcName in diff){
+      this.env.funs[funcName].body = diff[funcName].body;
+      this.env.funs[funcName].params = diff[funcName].params;
+      if (this.envs.funcs.__get_state[funcName][0] >= earliestTime){
+        this.envs.funcs.__restore_state(funcName);
+      }
     // TODO: make the top level a special case of a named function,
     //       or in the meantime just change the code.
-    // If a named function has changed arity, fine - we'll get an error, whatevs
-    // Roll back to the earliest of all changed function snapshots
-    // set delegate to that thing and reset the counter
+    }
   };
 
   function run(s, env){

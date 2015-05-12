@@ -26,6 +26,10 @@
     }
     return scope;
   };
+  Function.prototype.diff = function(other){
+    return  (JSON.stringify(this.body) !== JSON.stringify(other.body) ||
+             JSON.stringify(this.params) !== JSON.stringify(other.params));
+  }
 
   function tokenize(s) {
     var token = /[()]|[^\s()]+/g;
@@ -67,14 +71,51 @@
   }
 
   function findFunctions(ast){
-    // Returns a map of names to {name, ast, params}
-    //
     // Return new Function objects that we'll swap out
+    // Function objects will have environments of null
+    // If the only thing about a defn ast that has changed is
+    //
+    var funcs = {};
+    if (!Array.isArray(ast)){
+      return {};
+    }
+    if (ast[0] === 'defn'){
+      var func = new Function(ast[ast.length-1], ast.slice(2, -1), null, ast[1]);
+      funcs[func.name] = func;
+    }
+    for (var i = 0; i < ast.length; i++){
+      var form = ast[i];
+      var innerFuncs = findFunctions(form);
+      for (var prop in innerFuncs) {
+        if (innerFuncs[prop] in funcs){
+          throw Error('trying to add function '+prop+' twice!');
+        }
+        funcs[prop] = innerFuncs[prop];
+      }
+    }
+    return funcs;
+  }
+
+  function diffFunctions(oldFuncs, newFuncs){
+    // returns an array of functions that have changed
+    // doesn't include new functions, because that would have changed the ast of an ourside function.
+    // does include deleted functions, which need to be removed
+    var different = {};
+    for (var name in oldFuncs){
+      if (!(name in newFuncs)){
+        different[name] = null;
+      } else if (oldFuncs[name].diff(newFuncs[name])){
+        different[name] = newFuncs[name];
+      }
+    }
+    return different;
   }
 
   parse.parse = parse;
   parse.tokenize = tokenize;
-  parse.Function = Function
+  parse.Function = Function;
+  parse.findFunctions = findFunctions;
+  parse.diffFunctions = diffFunctions;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

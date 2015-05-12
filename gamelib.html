@@ -144,17 +144,15 @@
   var running = true;
   var lastProgram = [];
 
-
   var safelyParses = function(program){
     try {
       parse(program);
       return true;
     } catch (e) {
-      console.log(e)
+      console.log(e);
       return false;
     }
   }
-
 
   var runCallback = function(){
     if (shouldReload){
@@ -171,7 +169,6 @@
       }
       lastProgram = parse(program);
       running = true;
-      env = buildEnv();
       run.runAtInterval(program, env, 0, speed, runCallback, errback)
       return false;
     } else {
