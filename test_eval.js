@@ -12,23 +12,7 @@ var Runner = run.Runner;
 // environment with just an arity-2 sum function for testing
 var justSum = new Environment([{'+': function(a, b){return a + b}}]);
 
-describe('run.js', function(){
-  describe('Environment', function(){
-    it('should do lookup through scopes from right to left', function(){
-      var env = new Environment([{a:1}, {a:2}, {}], {});
-      assert.deepEqual(env.lookup('a'), 2);
-    });
-    it('should use functions if not found in scopes', function(){
-      var env = new Environment([{a:1}, {a:2}, {}], {b:3});
-      assert.deepEqual(env.lookup('b'), new run.NamedFunctionPlaceholder('b'));
-    });
-    it('should create new environments with scopes', function(){
-      var env = new Environment([{a:1}, {a:2}, {}], {});
-      var newEnv = env.newWithScopeAndFuns({a:3}, {});
-      assert.deepEqual(newEnv.lookup('a'), 3);
-      assert.deepEqual(env.lookup('a'), 2);
-    });
-  });
+describe('Evaluation Iterators', function(){
   describe('evalGen', function(){
     it('should return an evaluation object', function(){
       var e = evalGen(1);
@@ -56,11 +40,11 @@ describe('run.js', function(){
     });
   });
   describe('NamedFunction', function(){
-    it('should work', function(){
-      var tmpEnv = new Environment([{'+': function(a, b){return a + b}}]);
-      run('(defn foo x y (+ x y))', tmpEnv);
-      assert.isDefined(tmpEnv.funs.foo);
-      assert.deepEqual(run('(foo 1 2)', tmpEnv), 3);
+    it('should work with Runner', function(){
+      var tmpEnv = new Environment( [{'+': function(a, b){return a + b;}}]);
+      run.runWithDefn('(defn foo x y (+ x y))', tmpEnv);
+      assert.isDefined(tmpEnv.runner.funs.foo);
+      assert.deepEqual(run.runWithDefn('(do (defn foo x y (+ x y)) (foo 1 2))', tmpEnv), 3);
     });
   });
   describe('Set', function(){
@@ -99,17 +83,89 @@ describe('run.js', function(){
       assert.deepEqual(tmpEnv.scopes, [{a: 2}, {a: 3, b: 10}]);
     });
   });
-  describe('Runner', function(){
-    it('should be iterable', function(){
-      var e = new Runner('1');
-      assert.deepEqual(e.next(), {value: 1, finished: true});
-      var e = new Runner('(+ 1 2)');
-      assert.deepEqual(e.next(), {value: null, finished: false});
+});
+
+describe("Running code", function(){
+  describe('run', function(){
+    it("should run code that doesn't contain defns", function(){
+      assert.deepEqual(run('1'), 1);
+      assert.deepEqual(run('"a"'), "a");
+      assert.deepEqual(run('(+ 1 2)', justSum), 3);
     });
   });
-  describe('run', function(){
-    assert.deepEqual(run('1'), 1);
-    assert.deepEqual(run('"a"'), "a");
-    assert.deepEqual(run('(+ 1 2)', justSum), 3);
+  describe('runWithDefn', function(){
+    it("should run code that contains defns", function(){
+      assert.deepEqual(run.runWithDefn('(do (defn foo 1) (foo))'), 1);
+    });
+  });
+});
+
+describe("Environments", function(){
+  describe("without runners", function(){
+    it('should do lookup through scopes from right to left', function(){
+      var env = new Environment([{a:1}, {a:2}, {}]);
+      assert.deepEqual(env.lookup('a'), 2);
+    });
+    it('should create new environments with scopes', function(){
+      var env = new Environment([{a:1}, {a:2}, {}]);
+      var newEnv = env.newWithScope({a:3});
+      assert.deepEqual(newEnv.lookup('a'), 3);
+      assert.deepEqual(env.lookup('a'), 2);
+    });
+    it('should fail to look up functions if no runner is bound', function(){
+      var env = new Environment([{a:1}, {a:2}, {}]);
+      assert.throws(function(){ env.lookupFunction('b'); });
+    });
+  });
+  describe("with runners", function(){
+    it('should lookup functions and non-functions', function(){
+      var runner = new Runner({'b': 'something'});
+      var env = new Environment([{a:1}, {a:2}, {}], runner);
+      assert.deepEqual(env.lookup('a'), 2);
+      assert.deepEqual(env.lookup('b'), new run.NamedFunctionPlaceholder('b', runner));
+      assert.throws(function(){ env.lookup('c'); }, /not found in environment/);
+      assert.deepEqual(env.retrieveFunction('b'), 'something');
+    });
+    it('should retrieve actual functions', function(){
+      var runner = new Runner({'b': 'something'});
+      var env = new Environment([{a:1}, {a:2}, {}]);
+      env.runner = runner;
+      assert.deepEqual(env.lookup('b'), new run.NamedFunctionPlaceholder('b', runner));
+      assert.deepEqual(env.retrieveFunction('b'), 'something');
+      assert.deepEqual(env.lookup('a'), 2);
+    });
+  });
+});
+
+describe("Runner object", function(){
+  describe('Runs code', function(){
+    it('should run code without defns', function(){
+      var tmpEnv = new Environment([{'+': function(a, b){return a + b;}}, {a: 1}]);
+      var runner = new Runner(null);
+      runner.runLibraryCode('(define b 2)', tmpEnv);
+      assert.throws(function(){ runner.runLibraryCode('(defn foo 1)');}, /Runner doesn't allow named functions/);
+      assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 2});
+      runner.loadUserCode('(defn foo 1)', tmpEnv);
+      assert.throws(function(){ runner.value(); }, /Runner doesn't allow named functions/);
+      runner.funs = {};
+      runner.value();
+      assert.deepEqual(runner.funs.foo.body, 1);
+      assert.deepEqual(runner.funs.foo.name, 'foo');
+      assert.deepEqual(runner.funs.foo.env.scopes, 
+                       tmpEnv.scopes);
+    });
+    it('should load defn code', function(){
+      var tmpEnv = new Environment([{'+': function(a, b){return a + b;}}, {a: 1}]);
+      var runner = new Runner({});
+      runner.loadUserCode('(do (defn foo 1) (foo))', tmpEnv);
+      assert.deepEqual(runner.value(), 1);
+      assert.deepEqual(runner.value(), 1);
+    });
+  });
+  it("should check if function exists", function(){
+    var runner = new Runner({});
+    runner.funs.a = "hi";
+    assert.deepEqual(runner.functionExists('a'), true);
+    assert.deepEqual(runner.functionExists('b'), false);
   });
 });

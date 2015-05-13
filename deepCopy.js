@@ -138,7 +138,7 @@
         return obj.constructor.name === 'Environment';
       },
       create: function(obj){
-        return new obj.constructor(Symbol.for('deepCopy.dummy'), Symbol.for('deepCopy.dummy'));
+        return new obj.constructor();
       },
       populate: function(obj, copy, memo){
         for (var property in obj){
@@ -154,11 +154,8 @@
                 }
                 copy.scopes.push(scope);
               }
-            } else if (property === 'funs'){
-              copy.funs = [];
-              for (var name in obj.funs){
-                copy.funs[name] = innerDeepCopy(obj.funs[name], memo);
-              }
+            } else if (property === 'runner'){
+              copy.runner = obj.runner;
             } else if (property ===  '__obj_id'){
               // nop
             } else {

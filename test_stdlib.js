@@ -7,7 +7,7 @@ var Environment = run.Environment;
 var stdlib = require('./stdlib');
 var builtins = require('./builtins');
 
-var env = new Environment([builtins, stdlib], {});
+var env = new Environment([builtins, stdlib]);
 
 describe('stdlib', function(){
   describe('reduce', function(){

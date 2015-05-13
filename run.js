@@ -1,6 +1,40 @@
 ;(function() {
   'use strict';
 
+
+  // Runner object runs code.
+  //
+  // There are two helper ways to run code:
+  // * run(code, env) (doesn't bother with a runner)
+  // * runWithDefn(code, env) (builds a runner)
+  //
+  // It mostly iterates on an iterator, but it also:
+  // * can be updated at any point with new code
+  // * holds a dictionary of named functions
+  // * 
+  // Runners can run load user code and run it or run library code
+  // run library code. While run
+  //
+  // Environments are basically an array of scopes, but they have
+  // methods for looking things up in them.
+  //
+  // Question: who should hold a reference to the runner object
+  // so that iterators can use them to look up functions?
+  // Environment.lookup('name') should look for that name in scopes,
+  // and then if not found there should look for a global function
+  // if being run from a runner
+  // the current 
+  // 
+  // I guess environments run in a runner will be augmented with a reference
+  // to their runner. Should these references be removed later?
+  //
+  // Environment.bind(runner);
+  // Environment.forgetRunner();
+  //
+  // Function
+  // NamedFunctionPlaceholders should be callable, which retrieves them via
+  // a reference to the runner
+
   if (typeof window === 'undefined') {
     var require = module.require;
   } else {
@@ -12,42 +46,56 @@
   var parse = require('./parse.js');
   var deepCopy = require('./deepCopy.js');
 
-  function Runner(s, env){
+  function Runner(funs){
+    if (funs === undefined){
+      throw Error("Pass in an empty object for functions dictionary, or null for no defns");
+    }
+
+    this.funs = funs;
+    this.counter = 0;
+    this.values = [];
+
+    this.savedStates = {};
+  }
+
+  Runner.prototype = new BaseEval();
+  Runner.prototype.loadUserCode = function(s, env){
+    if (this.funs === null){
+      console.log('warning: maybe you wanted to set up a function dictionary on the runner before running user code?');
+    }
+    if (s === undefined){
+      throw Error("Specify program to load");
+    }
     if (env === undefined){
       env = new Environment([{}]);
     }
-
-    if (env.funs !== null){ // null while defining builtins
-      var self = this;
-      var saved_states = {};
-      env.funs.__save_state = function(name){
-        //console.log('saving state for function '+name);
-        saved_states[name] = self.copy();
-      };
-      env.funs.__restore_state = function(name){
-        var g = saved_states[name][1];
-        var i = saved_states[name][0];
-        self.counter = i;
-        self.delegate = g;
-      };
-      env.funs.__get_state = function(name){
-        if (name in saved_states){
-          return saved_states[name];
-        }
-        return [-2, null];
-      };
-    }
-
+    env.runner = this;
     this.ast = parse(s);
     this.oldFunctions = parse.findFunctions(this.ast);
-    this.funs = env.funs;
     this.delegate = evalGen(this.ast, env);
-    this.counter = 0;
-    this.values = [];
-  }
-  Runner.prototype = new BaseEval();
+  };
+  Runner.prototype.loadCode = function(s, env){
+    this.ast = parse(s);
+    this.delegate = evalGen(this.ast, env);
+  };
+  Runner.prototype.runLibraryCode = function(s, env){
+    // Code will be run in a context where defns are not allowed
+    if (this.funs !== null){
+      throw Error("Library code can only be run with a runner not allowing defns");
+    }
+    if (env === undefined){
+      env = new Environment([{}]);
+    }
+    env.runner = this;
+    this.ast = parse(s);
+    this.delegate = evalGen(this.ast, env);
+    return this.value();
+  };
   Runner.prototype.constructor = Runner;
   Runner.prototype.next = function(){
+    if (this.delegate === undefined){
+      throw Error("No code loaded to be iterated on");
+    }
     this.counter++;
     if (this.isFinished(this.delegate)) {
       return {value: this.values[0], finished:true};
@@ -69,13 +117,13 @@
     var earliestGen;
     for (var funcName in diff){
       console.log('change detected in function '+funcName);
-      console.log('last run at tick '+this.funs.__get_state(funcName)[0]);
-      if (this.funs.__get_state(funcName)[0] >= earliestTime){
+      console.log('last run at tick '+this.getState(funcName)[0]);
+      if (this.getState(funcName)[0] >= earliestTime){
         earliestGen = funcName;
-        earliestTime = this.funs.__get_state(funcName)[0];
+        earliestTime = this.getState(funcName)[0];
       }
       console.log('restoring state from last call of '+earliestGen);
-      this.funs.__restore_state(earliestGen);
+      this.restoreState(earliestGen);
     // TODO: make the top level a special case of a named function,
     //       or in the meantime just change the code.
     }
@@ -125,25 +173,52 @@
     }
     return value.value;
   };
+  Runner.prototype.saveState = function(name){
+    this.savedStates[name] = this.copy();
+  };
+  Runner.prototype.restoreState = function(name){
+    var g = this.savedStates[name][1];
+    var i = this.savedStates[name][0];
+    this.counter = i;
+    this.delegate = g;
+  };
+  Runner.prototype.getState = function(name){
+    if (name in this.savedStates){
+      return this.savedStates[name];
+    }
+    return [-2, null];
+  };
+  Runner.prototype.functionExists = function(name){
+    return (this.funs && this.funs.hasOwnProperty(name));
+  };
+  Runner.prototype.getFunction = function(name){
+    if (this.funs === null){
+      throw Error("Runner doesn't allow named functions");
+    }
+    return this.funs[name];
+  };
 
   function run(s, env){
-    var runner = new Runner(s, env);
-    var value = runner.next();
-    while (!value.finished){
-      value = runner.next();
-    }
-    return value.value;
+    var runner = new Runner(null);
+    runner.runLibraryCode(s, env);
+    return runner.value();
   }
 
-  function Environment(scopes, funs){
+  function runWithDefn(s, env){
+    var runner = new Runner({});
+    runner.loadUserCode(s, env);
+    return runner.value();
+  }
+
+  function Environment(scopes, runner){
     if (scopes === undefined){
       scopes = [{}];
     }
-    if (funs === undefined){
-      funs = {};
+    if (runner && runner.constructor !== Runner){
+      throw Error("Environment constructed with bad runner argument: ", runner);
     }
     this.scopes = scopes;
-    this.funs = funs;
+    this.runner = runner || null;
   }
 
   Environment.prototype.lookup = function(key){
@@ -152,7 +227,7 @@
         return this.scopes[i][key];
       }
     }
-    if (this.funs.hasOwnProperty(key)){
+    if (this.runner && this.runner.functionExists(key)){
       return new NamedFunctionPlaceholder(key);
     }
     throw Error("Name '"+key+"' not found in environment"+this);
@@ -173,20 +248,32 @@
     this.scopes[this.scopes.length - 1][name] = value;
   };
   Environment.prototype.setFunction = function(name, func){
-    this.funs[name] = func;
+    if (this.runner === null){
+      throw Error("Environment doesn't have a runner, defn not allowed");
+    }
+    if (this.runner.funs === null){
+      throw Error("Runner doesn't allow named functions");
+    }
+    this.runner.funs[name] = func;
   };
-  Environment.prototype.lookupFunction = function(name){
-    if (this.funs[name] === undefined){
+  Environment.prototype.retrieveFunction = function(name){
+    if (this.runner === undefined){
+      throw Error("Can't look up function because environment doesn't have a runner");
+    }
+    if (this.runner.funs === null){
+      throw Error("Runner doesn't allow named functions");
+    }
+    if (this.runner.funs[name] === undefined){
       throw Error("Named function "+name+" not found in " + Object.keys(this.funs));
     }
-    var g = this.funs.__save_state(name);
-    return this.funs[name];
+    this.runner.saveState(name);
+    return this.runner.getFunction(name);
   };
-  Environment.prototype.newWithScopeAndFuns = function(scope, funs){
-    if (scope === undefined || funs === undefined){
-      throw Error('Supply both scope and funs please!'+scope+' '+funs);
+  Environment.prototype.newWithScope = function(scope){
+    if (scope === undefined){
+      throw Error('Supply a scope!');
     }
-    return new Environment(this.scopes.concat([scope]), funs);
+    return new Environment(this.scopes.concat([scope]), this.runner);
   };
   Environment.prototype.toString = function(){
     var s = '<Environment: ';
@@ -194,9 +281,11 @@
       s = s + JSON.stringify(Object.keys(this.scopes[i]));
       s = s + "\n";
     }
-    s += 'with funs';
-    s += JSON.stringify(Object.keys(this.funs));
-    s = s + "\n";
+    if (this.runner){
+      s += 'with runner ';
+      s += this.runner;
+      s = s + "\n";
+    }
     s = s + '>';
     return s;
   };
@@ -441,10 +530,11 @@
             return {value: value, finished: true};
           } else if (this.values[0].constructor === NamedFunctionPlaceholder || this.values[0].constructor === parse.Function) {
             if (this.values[0].constructor === NamedFunctionPlaceholder){
-              this.values[0] = this.env.lookupFunction(this.values[0].name);
+              this.values[0] = this.env.retrieveFunction(this.values[0].name);
             }
             var callScope = this.values[0].buildScope(this.values.slice(1));
-            var callEnv = this.values[0].env.newWithScopeAndFuns(callScope, this.env.funs);
+            var callEnv = this.values[0].env.newWithScope(callScope);
+            callEnv.runner = this.env.runner; // This might be required?
             var value = evalGen(this.values[0].body, callEnv);
             return {value: value, finished: true};
           } else {
@@ -457,12 +547,15 @@
     }
   };
 
-  function NamedFunctionPlaceholder(name){this.name = name;}
+  function NamedFunctionPlaceholder(name){
+    this.name = name;
+  }
 
   run.run = run;
   run.Runner = Runner;
   run.Environment = Environment;
   run.evalGen = evalGen;
+  run.runWithDefn = runWithDefn;
 
   run.NamedFunctionPlaceholder = NamedFunctionPlaceholder;
 

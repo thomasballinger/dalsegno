@@ -68,8 +68,9 @@ describe('copyable execution trees', function(){
   });
   describe('runner makes copies', function(){
     it('should use different scopes for copies', function(){
-      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}], {});
-      var runner = new run.Runner('(begin (set! a (+ a 1)) a)', tmpEnv);
+      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
+      var runner = new run.Runner(null);
+      runner.loadCode('(begin (set! a (+ a 1)) a)', tmpEnv);
       runner.next();
       runner.next();
       runner.next();
@@ -85,31 +86,24 @@ describe('copyable execution trees', function(){
       assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 1, c: 1});
     });
     it.only('can be resumed after being cloned', function(){
-      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}], {});
-      var runner = new run.Runner('(begin (defn foo 1) (foo))', tmpEnv);
+      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
+      var runner = new run.Runner({});
+      runner.loadUserCode('(begin (defn foo 1) (foo))', tmpEnv);
       assert.equal(true, runner.runABit(100));
-      assert.deepEqual(runner.funs.__get_state('foo')[1].ast, ['foo']);
+      assert.deepEqual(runner.getState('foo')[1].ast, ['foo']);
       runner.update('(begin (defn foo 2) (foo))');
-      assert.deepEqual(runner.funs.__get_state('foo')[1].env.funs.foo.body, 1);
-      debugger;
-      // TODO there should only be one funs dict, and it belongs to the runner
-      // TODO Every time we restore a state, update all functions that have changed
-      // in last valid parse to new bodies and param sets
-      // Snapshotted functions keep their environments, but function lookups are global now.
-      //
-      // Tasks: Runner adds function lookup stuff to environments, reference to runner
-      // is passed around to environments. Environments have a runner reference if they
-      // can look up named funcitons.
+      assert.deepEqual(runner.getState('foo')[1].env.runner.funs.foo.body, 2);
       assert.deepEqual(runner.funs['foo'].body, 2);
-      assert.deepEqual(runner.delegate.env.funs['foo'].body, 2)
+      assert.deepEqual(runner.delegate.env.runner.funs['foo'].body, 2);
       assert.equal(2, runner.value());
-      assert.deepEqual(runner.funs.__get_state('foo')[1].env.funs.foo.body, 1);
+      assert.deepEqual(runner.getState('foo')[1].env.runner.funs.foo.body, 2);
       //var g = new run.evalGen.StringLiteral('hi');
     });
-    it('swapping out the delegate with __restore_state results in old environment', function(){
-      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1}], {});
+    it('swapping out the delegate with restoreState results in old environment', function(){
+      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1}]);
       var program = '(begin (defn main (do 1 2 (main))) (main))';
-      var runner = new run.Runner(program, tmpEnv);
+      var runner = new run.Runner({});
+      runner.loadUserCode(program, tmpEnv);
       tmpEnv.scopes[1].a = 42;
       var g = runner.copy()[1];
       tmpEnv.scopes[1].a = 9000;
@@ -125,7 +119,8 @@ describe('copyable execution trees', function(){
       var func = new parse.Function([1], [], tmpEnv, 'main');
       funs['main'] = func;
 
-      var runner = new run.Runner('(1)', tmpEnv);
+      var runner = new run.Runner(null);
+      runner.loadCode('(1)', tmpEnv);
       var g = runner.copy()[1];
       func.env.scopes[1].a = 42;
       //console.log(func)

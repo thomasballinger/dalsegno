@@ -12,25 +12,34 @@ var builtins = require('./builtins.js');
 var stdlib = require('./stdlib.js');
 
 var buildEnv = function(){
-  return new run.Environment([builtins, stdlib, {}], {});
+  return new run.Environment([builtins, stdlib, {}]);
 };
 
 describe('integration', function(){
-  describe('global functions', function(){
-    run("\n"+
+  it('store', function(){
+    run.runWithDefn("(defn foo 1)");
+  });
+  it('store, lookup and retrieve', function(){
+    run.runWithDefn("(do (defn foo 1) (foo))");
+  });
+  it('and retrieve', function(){
+    run.runWithDefn("(do (defn foo 1) (foo))", buildEnv());
+  });
+  it('global functions', function(){
+    run.runWithDefn("\n"+
         "(do                                   \n"+
-        "  (defn foo x (do (display x) x))     \n"+
+        "  (defn foo x (do x x))               \n"+
         "  (defn main (do                      \n"+
         "    (foo 1)                           \n"+
         "    (map foo (list 1 2 3))))          \n"+
         "  (main))",
     buildEnv());
   });
-  describe('browser bug?', function(){
-    run(
+  it('browser bug?', function(){
+    run.runWithDefn(
       "(do"+
-      "(defn game (do"+
-        '(display "game" "started")))'+
+      "(defn game (do "+
+        '"game" "started"))'+
       "(game))", buildEnv());
   });
 });
