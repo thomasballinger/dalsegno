@@ -129,11 +129,12 @@
   var currentlyRunning = true; // if not, change event needs to kick off runner
   var lib = new Gamelib('canvas');
   var gameMethods = lib.getFunctions();
-  var env = new run.Environment([gameMethods, builtins, stdlib, {}], {});
-  var runner = new run.Runner(editor.getValue(), env)
+  var env = new run.Environment([gameMethods, builtins, stdlib, {}]);
+  var runner = new run.Runner({});
+  runner.loadUserCode(editor.getValue(), env)
   var lastProgram = JSON.stringify(parse(editor.getValue()))
 
-  var speed = 50;
+  var speed = 200;
 
   var errback = function(e){ console.log(e); }
 

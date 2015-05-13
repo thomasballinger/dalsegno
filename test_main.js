@@ -43,3 +43,10 @@ describe('integration', function(){
       "(game))", buildEnv());
   });
 });
+
+describe('interactive features', function(){
+  it('updates functions', function(){
+    var env = new run.Environment([builtins, stdlib, {}]);
+    var runner = new run.Runner({});
+  });
+});

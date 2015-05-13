@@ -1,40 +1,6 @@
 ;(function() {
   'use strict';
 
-
-  // Runner object runs code.
-  //
-  // There are two helper ways to run code:
-  // * run(code, env) (doesn't bother with a runner)
-  // * runWithDefn(code, env) (builds a runner)
-  //
-  // It mostly iterates on an iterator, but it also:
-  // * can be updated at any point with new code
-  // * holds a dictionary of named functions
-  // * 
-  // Runners can run load user code and run it or run library code
-  // run library code. While run
-  //
-  // Environments are basically an array of scopes, but they have
-  // methods for looking things up in them.
-  //
-  // Question: who should hold a reference to the runner object
-  // so that iterators can use them to look up functions?
-  // Environment.lookup('name') should look for that name in scopes,
-  // and then if not found there should look for a global function
-  // if being run from a runner
-  // the current 
-  // 
-  // I guess environments run in a runner will be augmented with a reference
-  // to their runner. Should these references be removed later?
-  //
-  // Environment.bind(runner);
-  // Environment.forgetRunner();
-  //
-  // Function
-  // NamedFunctionPlaceholders should be callable, which retrieves them via
-  // a reference to the runner
-
   if (typeof window === 'undefined') {
     var require = module.require;
   } else {
@@ -122,11 +88,11 @@
         earliestGen = funcName;
         earliestTime = this.getState(funcName)[0];
       }
-      console.log('restoring state from last call of '+earliestGen);
-      this.restoreState(earliestGen);
     // TODO: make the top level a special case of a named function,
     //       or in the meantime just change the code.
     }
+    console.log('restoring state from last call of '+earliestGen);
+    this.restoreState(earliestGen);
 
     for (var funcName in functions){
       console.log('replacing body of '+funcName+' with', functions[funcName].body);
