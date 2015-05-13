@@ -29,7 +29,7 @@
            (list
              (list (randint 200) (randint 200))
              (list (randint -5 6) (randint -5 6))))
-         (range 0)))
+         (range 5)))
   (defn wrap-obj obj
     (list
       (list (% (first (first obj)) (width))
@@ -133,6 +133,8 @@
   var runner = new run.Runner(editor.getValue(), env)
   var lastProgram = JSON.stringify(parse(editor.getValue()))
 
+  var speed = 50;
+
   var errback = function(e){ console.log(e); }
 
   var runABit = function(){
@@ -140,12 +142,13 @@
       if (parse.safelyParses(editor.getValue())){
         shouldReload = false;
         runner.update(editor.getValue());
+        console.log(runner);
       } else {
         currentlyRunning = false;
         return;
       }
     }
-    var currentlyRunning = runner.runABit(10, errback);
+    var currentlyRunning = runner.runABit(speed, errback);
     if (currentlyRunning){
       setTimeout(runABit, .001);
     }

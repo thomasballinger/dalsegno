@@ -4,6 +4,7 @@ var assert = chai.assert;
 
 var deepCopy = require('./deepcopy.js');
 var run = require('./run');
+var parse = require('./parse');
 
 function removeIds(obj){
   if (obj === undefined){return;}
@@ -83,17 +84,61 @@ describe('copyable execution trees', function(){
       assert.deepEqual(runner.next(), { value: 2, finished: true });
       assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 1, c: 1});
     });
-    it('can be resumed after being cloned', function(){
+    it.only('can be resumed after being cloned', function(){
       var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}], {});
       var runner = new run.Runner('(begin (defn foo 1) (foo))', tmpEnv);
       assert.equal(true, runner.runABit(100));
-      assert.deepEqual(runner.env.funs.__get_state('foo')[1].ast, ['foo']);
+      assert.deepEqual(runner.funs.__get_state('foo')[1].ast, ['foo']);
       runner.update('(begin (defn foo 2) (foo))');
-      assert.deepEqual(runner.env.funs.__get_state('foo')[1].env.funs.foo.body, 2);
-      assert.deepEqual(runner.env.funs['foo'].body, 2);
+      assert.deepEqual(runner.funs.__get_state('foo')[1].env.funs.foo.body, 1);
+      debugger;
+      // TODO there should only be one funs dict, and it belongs to the runner
+      // TODO Every time we restore a state, update all functions that have changed
+      // in last valid parse to new bodies and param sets
+      // Snapshotted functions keep their environments, but function lookups are global now.
+      //
+      // Tasks: Runner adds function lookup stuff to environments, reference to runner
+      // is passed around to environments. Environments have a runner reference if they
+      // can look up named funcitons.
+      assert.deepEqual(runner.funs['foo'].body, 2);
+      assert.deepEqual(runner.delegate.env.funs['foo'].body, 2)
       assert.equal(2, runner.value());
-
+      assert.deepEqual(runner.funs.__get_state('foo')[1].env.funs.foo.body, 1);
       //var g = new run.evalGen.StringLiteral('hi');
     });
+    it('swapping out the delegate with __restore_state results in old environment', function(){
+      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1}], {});
+      var program = '(begin (defn main (do 1 2 (main))) (main))';
+      var runner = new run.Runner(program, tmpEnv);
+      tmpEnv.scopes[1].a = 42;
+      var g = runner.copy()[1];
+      tmpEnv.scopes[1].a = 9000;
+      assert.deepEqual(g.env.scopes[1].a, 42);
+      runner.delegate = g;
+      assert.deepEqual(runner.delegate.env.scopes[1].a, 42);
+      runner.runABit(100); 
+      assert.deepEqual(runner.delegate.env.scopes[1].a, 42);
+    });
+    it('should deepcopy the environment of functions', function(){
+      var funs = {};
+      var tmpEnv = new run.Environment([{}, {a: 1}], funs);
+      var func = new parse.Function([1], [], tmpEnv, 'main');
+      funs['main'] = func;
+
+      var runner = new run.Runner('(1)', tmpEnv);
+      var g = runner.copy()[1];
+      func.env.scopes[1].a = 42;
+      //console.log(func)
+      //console.log(g.env.funs['main']);
+      assert.deepEqual(g.env.funs['main'].env.scopes[1].a, 1);
+
+      // The problem seems to be that WHEN YOU LOOK UP THE FUNCTION, it has the
+      // old environment in it. I think functions are being redefined with new environments
+      // and that's affecting the old function copies somehow.
+      // Maybe we aren't deepcopying the environment in function objects?
+    });
+
+    // Only a problem with functions that are defined over and over I think.
+    // Functions that are defined again, we seem to get o
   });
 });

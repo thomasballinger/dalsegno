@@ -155,15 +155,10 @@
                 copy.scopes.push(scope);
               }
             } else if (property === 'funs'){
-              copy.funs = obj.funs; //globally shared object
-              /*
               copy.funs = [];
               for (var name in obj.funs){
-                // functions aren't copied
-                // so a shallow copy should be ok!
-                copy.funs[name] = obj.funs[name]; //innerDeepCopy(obj.funs[name], memo);
+                copy.funs[name] = innerDeepCopy(obj.funs[name], memo);
               }
-              */
             } else if (property ===  '__obj_id'){
               // nop
             } else {

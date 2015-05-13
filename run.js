@@ -29,7 +29,6 @@
         var i = saved_states[name][0];
         self.counter = i;
         self.delegate = g;
-        console.log(self.delegate);
       };
       env.funs.__get_state = function(name){
         if (name in saved_states){
@@ -41,7 +40,7 @@
 
     this.ast = parse(s);
     this.oldFunctions = parse.findFunctions(this.ast);
-    this.env = env;
+    this.funs = env.funs;
     this.delegate = evalGen(this.ast, env);
     this.counter = 0;
     this.values = [];
@@ -67,18 +66,24 @@
       return;
     }
     var earliestTime = -1;
+    var earliestGen;
     for (var funcName in diff){
       console.log('change detected in function '+funcName);
-      console.log('last run at tick '+this.env.funs.__get_state(funcName)[0]);
-      this.env.funs[funcName].body = diff[funcName].body;
-      this.env.funs[funcName].params = diff[funcName].params;
-      if (this.env.funs.__get_state(funcName)[0] >= earliestTime){
-        console.log('restoring state from last call of '+funcName);
-        earliestTime = this.env.funs.__get_state(funcName)[0];
-        this.env.funs.__restore_state(funcName);
+      console.log('last run at tick '+this.funs.__get_state(funcName)[0]);
+      if (this.funs.__get_state(funcName)[0] >= earliestTime){
+        earliestGen = funcName;
+        earliestTime = this.funs.__get_state(funcName)[0];
       }
+      console.log('restoring state from last call of '+earliestGen);
+      this.funs.__restore_state(earliestGen);
     // TODO: make the top level a special case of a named function,
     //       or in the meantime just change the code.
+    }
+
+    for (var funcName in functions){
+      console.log('replacing body of '+funcName+' with', functions[funcName].body);
+      this.funs[funcName].body = functions[funcName].body;
+      this.funs[funcName].params = functions[funcName].params;
     }
     this.values = [];
   };
@@ -128,58 +133,6 @@
       value = runner.next();
     }
     return value.value;
-  }
-
-  function runAtInterval(s, env, timeout, numIterations, callback, errback){
-    // If callback returns false, will stop running
-    // errback called when a runtime error occurs with the error
-    if (timeout === undefined){
-      timeout = 0.001;
-    }
-    if (numIterations === undefined){
-      numIterations = 1;
-    }
-    if (callback === undefined){
-      callback = function(){return true;};
-    }
-    if (!callback()){
-      return false;
-    }
-    var runner = new Runner(s, env);
-
-    var runABit = function(){
-      var result = callback();
-      if (result === false){
-        return;
-      }
-
-      //try {
-        var value = runner.next();
-      //} catch (ex) {
-      //  errback(ex);
-      //  return;
-      //}
-      for (var i=0; i<numIterations-1; i++){
-        if (value.finished){
-          console.log(value.value);
-          return;
-        } else {
-          //try {
-            value = runner.next();
-          //} catch (ex) {
-          //  errback(ex);
-          //  return;
-          //}
-        }
-      }
-      if (value.finished){
-        console.log('finished!', value.value);
-      } else {
-        setTimeout(runABit, timeout);
-      }
-    };
-
-    runABit();
   }
 
   function Environment(scopes, funs){
@@ -510,7 +463,6 @@
   run.Runner = Runner;
   run.Environment = Environment;
   run.evalGen = evalGen;
-  run.runAtInterval = runAtInterval;
 
   run.NamedFunctionPlaceholder = NamedFunctionPlaceholder;
 
