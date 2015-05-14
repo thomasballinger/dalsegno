@@ -29,7 +29,7 @@
            (list
              (list (randint 200) (randint 200))
              (list (randint -5 6) (randint -5 6))))
-         (range 5)))
+         (range 10)))
   (defn wrap-obj obj
     (list
       (list (% (first (first obj)) (width))
@@ -135,7 +135,7 @@
   runner.loadUserCode(editor.getValue(), env)
   var lastProgram = '';
 
-  var speed = 220;
+  var speed = 600;
 
   var errback = function(e){ console.log(e); }
 
