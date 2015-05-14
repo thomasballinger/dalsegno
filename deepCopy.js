@@ -81,10 +81,10 @@
         return obj.constructor.name === 'Function';
       },
       create: function(obj){
-        return new obj.constructor(Symbol.for('deepCopy.dummy'),
-                                   Symbol.for('deepCopy.dummy'),
-                                   Symbol.for('deepCopy.dummy'),
-                                   Symbol.for('deepCopy.dummy'));
+        return new obj.constructor(null,
+                                   null,
+                                   null,
+                                   null);
       },
       populate: function(obj, copy, memo){
         for (var property in obj){
@@ -111,7 +111,7 @@
         return obj.isEvalGen === true;
       },
       create: function(obj){
-        return new obj.constructor(Symbol.for('deepCopy.dummy'), Symbol.for('deepCopy.dummy'));
+        return new obj.constructor(null, null);
       },
       populate: function(obj, copy, memo){
         for (var property in obj){

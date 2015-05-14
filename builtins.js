@@ -17,10 +17,10 @@
     '*': function(a, b){ return a * b; },
     '/': function(a, b){ return a / b; },
     '%': function(a, b){
-      if (!Number.isInteger(a)){
+      if (!(a % 1 === 0)){
         throw Error('first modulus argument not an integer: '+b);
       }
-      if (!Number.isInteger(b)){
+      if (!(b % 1 === 0)){
         throw Error('second modulus argument not an integer: '+b);
       }
       while (a < 0){

@@ -60,7 +60,7 @@ describe('copyable execution trees', function(){
   describe('copiers', function(){
     it('evalGen co should work', function(){
       var g = new run.evalGen.StringLiteral('hi');
-      var test = new g.constructor(Symbol.for('deepcopy.dummy'), Symbol.for('deepcopy.dummy'));
+      var test = new g.constructor(null, null);
       var copy = deepCopy.copiers.EvalObject.create(g);
       assert.strictEqual(test.__proto__, g.__proto__);
       assert.strictEqual(copy.__proto__, g.__proto__);

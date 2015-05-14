@@ -316,7 +316,6 @@
   BaseEval.prototype.tostring = function(){
     return this.constructor.toString();
   };
-  BaseEval.prototype[Symbol.iterator] = function(){return this;};
   BaseEval.prototype.isEvalGen = true;
   BaseEval.prototype.isFinished = function(g){
     // Calls next on a generator, adds result to this.values if finished
