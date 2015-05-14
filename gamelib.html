@@ -16,15 +16,19 @@
       left: 630px;
       bottom: 0;
       right: 0;
+      background-color: #111111
     }
-    .ace-monokai {
-      opacity: .8;
+    .is-hidden {
+      display: none;
+    }
+    body {
+      background-color: #111111
     }
 </style>
 </head>
 <body>
 
-<div id="editor"># That headlight looks a little underpowered!
+<div id="editor" class="is-hidden"># That headlight looks a little underpowered!
 # Try changing the last two arguments to (draw-black x y h r theta)
 # on line 58, or delete that line altogether.
 # Then make more changes to see how the game works!
@@ -128,13 +132,15 @@
 
 <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
-    var editor = ace.edit("editor");
-    editor.setTheme("ace/theme/monokai");
-    editor.getSession().setMode("ace/mode/scheme");
-    var options = window.location.hash.substr(1);
-    if (options.indexOf('vim') != -1){
-      editor.setKeyboardHandler("ace/keyboard/vim");
-    }
+  var editor = ace.edit("editor");
+  editor.setTheme("ace/theme/monokai");
+  editor.getSession().setMode("ace/mode/scheme");
+  var options = window.location.hash.substr(1);
+  if (options.indexOf('vim') != -1){
+    editor.setKeyboardHandler("ace/keyboard/vim");
+  }
+  var editorContainer = document.getElementById('editor');
+  editorContainer.classList.remove('is-hidden');
 </script>
 
 <canvas id="canvas" width="1" height="1"></canvas>
