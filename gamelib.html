@@ -70,7 +70,7 @@
     (defn collide obj
         (< (dist x y (nth 0 (first obj)) (nth 1 (first obj))) 23))
     (defn any-collide (reduce or (map collide world) 0))
-    (defn to-render (filter nearby world))
+    (defn to-render world)
     (define counter 0)
     (defn on-click (do
       (set! vx (+ vx (* (x_comp (towards x y (mousex) (mousey))) .5)))
