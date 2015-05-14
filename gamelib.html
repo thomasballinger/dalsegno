@@ -82,7 +82,7 @@
       (if (< x 0) (set! x (width)))
       (if (< y 0) (set! y (height)))
       (render)
-      (if (not (any-collide))
+      (if (not 0)
           (main)
           (do
             (drawText 100 100 "your" "score:" counter)))))

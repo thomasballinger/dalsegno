@@ -69,7 +69,18 @@
     return {value: null, finished: false};
   };
   Runner.prototype.copy = function(){
-    return [this.counter, deepCopy(this.delegate)];
+    var copy = deepCopy([this.delegate, this.funs]);
+    return {counter: this.counter,
+            funs: copy[1],
+            delegate: copy[0]};
+  };
+  Runner.prototype.verboseCopy = function(){
+    var copy = deepCopy(this.delegate);
+    console.log('current:');
+    console.log(this.delegate.delegate.env);
+    console.log('copy:');
+    console.log(copy.delegate.env);
+    return [this.counter, copy];
   };
   Runner.prototype.update = function(s){
     this.ast = parse(s);
@@ -83,10 +94,10 @@
     var earliestGen;
     for (var funcName in diff){
       console.log('change detected in function '+funcName);
-      console.log('last run at tick '+this.getState(funcName)[0]);
-      if (this.getState(funcName)[0] >= earliestTime){
+      console.log('last run at tick '+this.getState(funcName).counter);
+      if (this.getState(funcName).counter >= earliestTime){
         earliestGen = funcName;
-        earliestTime = this.getState(funcName)[0];
+        earliestTime = this.getState(funcName).counter;
       }
     // TODO: make the top level a special case of a named function,
     //       or in the meantime just change the code.
@@ -95,7 +106,6 @@
     this.restoreState(earliestGen);
 
     for (var funcName in functions){
-      console.log('replacing body of '+funcName+' with', functions[funcName].body);
       this.funs[funcName].body = functions[funcName].body;
       this.funs[funcName].params = functions[funcName].params;
     }
@@ -143,10 +153,10 @@
     this.savedStates[name] = this.copy();
   };
   Runner.prototype.restoreState = function(name){
-    var g = this.savedStates[name][1];
-    var i = this.savedStates[name][0];
-    this.counter = i;
-    this.delegate = g;
+    var state = deepCopy(this.savedStates[name]);
+    this.counter = state.counter;
+    this.delegate = state.delegate;
+    this.funs = state.funs;
   };
   Runner.prototype.getState = function(name){
     if (name in this.savedStates){
@@ -155,7 +165,7 @@
     return [-2, null];
   };
   Runner.prototype.functionExists = function(name){
-    return (this.funs && this.funs.hasOwnProperty(name));
+    return ((this.funs !== null) && this.funs.hasOwnProperty(name));
   };
   Runner.prototype.getFunction = function(name){
     if (this.funs === null){

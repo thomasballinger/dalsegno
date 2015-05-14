@@ -1,4 +1,6 @@
 'use strict';
+var fs = require('fs');
+
 var chai = require('chai');
 var assert = chai.assert;
 
@@ -49,4 +51,26 @@ describe('interactive features', function(){
     var env = new run.Environment([builtins, stdlib, {}]);
     var runner = new run.Runner({});
   });
+  it('deepcopies closed-over state', function(){
+    var program = fs.readFileSync('savedscopebug.scm', {encoding: 'utf8'});
+    var runner = new run.Runner({});
+    var env = buildEnv();
+    env.define('c', 0);
+    runner.loadUserCode(program, env);
+    runner.runABit(100);
+
+    env.set('c', 1);
+    runner.runABit(100);
+    var save = runner.savedStates['on-c'];
+
+    runner.runABit(100);
+
+    var beforeRestore = runner.delegate.env.scopes[3].x;
+
+    runner.delegate = save.delegate;
+    runner.funs = save.funs;
+    runner.runABit(100);
+
+    assert.isTrue(runner.delegate.env.scopes[3].x < beforeRestore);
+  })
 });

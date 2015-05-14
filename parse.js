@@ -100,6 +100,8 @@
     // returns an array of functions that have changed
     // doesn't include new functions, because that would have changed the ast of an ourside function.
     // does include deleted functions, which need to be removed
+    //
+    // TODO don't include outer defn that changed defns are inside!
     var different = {};
     for (var name in oldFuncs){
       if (!(name in newFuncs)){

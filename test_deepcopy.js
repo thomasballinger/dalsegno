@@ -90,13 +90,13 @@ describe('copyable execution trees', function(){
       var runner = new run.Runner({});
       runner.loadUserCode('(begin (defn foo 1) (foo))', tmpEnv);
       assert.equal(true, runner.runABit(100));
-      assert.deepEqual(runner.getState('foo')[1].ast, ['foo']);
+      assert.deepEqual(runner.getState('foo').delegate.ast, ['foo']);
       runner.update('(begin (defn foo 2) (foo))');
-      assert.deepEqual(runner.getState('foo')[1].env.runner.funs.foo.body, 2);
+      assert.deepEqual(runner.getState('foo').delegate.env.runner.funs.foo.body, 2);
       assert.deepEqual(runner.funs['foo'].body, 2);
       assert.deepEqual(runner.delegate.env.runner.funs['foo'].body, 2);
       assert.equal(2, runner.value());
-      assert.deepEqual(runner.getState('foo')[1].env.runner.funs.foo.body, 2);
+      assert.deepEqual(runner.getState('foo').delegate.env.runner.funs.foo.body, 2);
       //var g = new run.evalGen.StringLiteral('hi');
     });
     it('swapping out the delegate with restoreState results in old environment', function(){
