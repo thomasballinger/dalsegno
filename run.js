@@ -74,14 +74,6 @@
             funs: copy[1],
             delegate: copy[0]};
   };
-  Runner.prototype.verboseCopy = function(){
-    var copy = deepCopy(this.delegate);
-    console.log('current:');
-    console.log(this.delegate.delegate.env);
-    console.log('copy:');
-    console.log(copy.delegate.env);
-    return [this.counter, copy];
-  };
   Runner.prototype.update = function(s){
     this.ast = parse(s);
     var functions = parse.findFunctions(this.ast);
@@ -102,12 +94,13 @@
     // TODO: make the top level a special case of a named function,
     //       or in the meantime just change the code.
     }
-    console.log('restoring state from last call of '+earliestGen);
     this.restoreState(earliestGen);
 
     for (var funcName in functions){
-      this.funs[funcName].body = functions[funcName].body;
-      this.funs[funcName].params = functions[funcName].params;
+      if (funcName in this.funs){
+        this.funs[funcName].body = functions[funcName].body;
+        this.funs[funcName].params = functions[funcName].params;
+      }
     }
     this.values = [];
   };
@@ -117,22 +110,22 @@
     if (numIterations === undefined){
       numIterations = 1;
     }
-    //try {
+    try {
       var value = this.next();
-    //} catch (ex) {
-    //  errback(ex);
-    //  return false;
-    //}
+    } catch (ex) {
+      errback(ex);
+      return false;
+    }
     for (var i=0; i<numIterations-1; i++){
       if (value.finished){
         break;
       } else {
-      //  try {
+        try {
           value = this.next();
-      //  } catch (ex) {
-      //    errback(ex);
-      //    return false;
-      //  }
+        } catch (ex) {
+          errback(ex);
+          return false;
+        }
       }
     }
     if (value.finished){
@@ -507,6 +500,7 @@
           } else if (this.values[0].constructor === NamedFunctionPlaceholder || this.values[0].constructor === parse.Function) {
             if (this.values[0].constructor === NamedFunctionPlaceholder){
               this.values[0] = this.env.retrieveFunction(this.values[0].name);
+              // TODO the runner counter still increments once each time we restart
             }
             var callScope = this.values[0].buildScope(this.values.slice(1));
             var callEnv = this.values[0].env.newWithScope(callScope);

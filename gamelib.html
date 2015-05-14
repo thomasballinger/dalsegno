@@ -64,7 +64,6 @@
       (set! vx (+ vx (* (x_comp (towards x y (mousex) (mousey))) .5)))
       (set! vy (+ vy (* (y_comp (towards x y (mousex) (mousey))) .5)))))
     (defn main (do
-      (set! counter (+ counter 1))
       (color 250 250 220)
       (drawCircle x y 300)
       (color 30 100 200)
@@ -82,8 +81,10 @@
       (if (< x 0) (set! x (width)))
       (if (< y 0) (set! y (height)))
       (render)
-      (if (not 0)
-          (main)
+      (if (not (any-collide))
+          (do 
+            (set! counter (+ counter 1))
+            (main))
           (do
             (drawText 100 100 "your" "score:" counter)))))
       (main)))
@@ -126,51 +127,57 @@
 <script src="stdlib.js"></script>
 <script>
   var shouldReload = true; // on next tick, reload the program
-  var currentlyRunning = true; // if not, change event needs to kick off runner
+  var currentlyRunning = false; // if not, change event needs to kick off runner
   var lib = new Gamelib('canvas');
   var gameMethods = lib.getFunctions();
   var env = new run.Environment([gameMethods, builtins, stdlib, {}]);
   var runner = new run.Runner({});
   runner.loadUserCode(editor.getValue(), env)
-  var lastProgram = JSON.stringify(parse(editor.getValue()))
+  var lastProgram = '';
 
-  var speed = 200;
+  var speed = 220;
 
   var errback = function(e){ console.log(e); }
 
   var runABit = function(){
+    var s = editor.getValue()
     if (shouldReload){
-      if (parse.safelyParses(editor.getValue())){
-        shouldReload = false;
-        runner.update(editor.getValue());
-        console.log(runner);
+      shouldReload = false;
+      if (parse.safelyParses(s), function(){}){
+        runner.update(s);
+        currentlyRunning = runner.runABit(speed, errback);
       } else {
         currentlyRunning = false;
         return;
       }
     }
-    var currentlyRunning = runner.runABit(speed, errback);
-    if (currentlyRunning){
+    if (currentlyRunning) {
+      currentlyRunning = runner.runABit(speed, errback);
       setTimeout(runABit, .001);
     }
   }
-
-  editor.getSession().on('change', function(e){
-    if (parse.safelyParses(editor.getValue())){
-      var newProgram = JSON.stringify(parse(editor.getValue()));
-      if (newProgram === lastProgram){
-        return;
-      } else {
-        lastProgram = newProgram;
-      }
+      
+  var onChange = function(e){
+    var s = editor.getValue();
+    if (!parse.safelyParses(s)){
+      lastProgram = '';
+      currentlyRunning = false;
+      return;
     }
+    var newProgram = JSON.stringify(parse(editor.getValue()));
+    if (newProgram === lastProgram){
+      return;
+    }
+    lastProgram = newProgram;
     shouldReload = true;
     if (!currentlyRunning){
+      currentlyRunning = true;
       runABit();
     }
-  });
+  };
 
-  runABit();
+  editor.getSession().on('change', onChange);
+  onChange()
 </script>
 </body>
 </html>

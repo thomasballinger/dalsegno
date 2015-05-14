@@ -113,12 +113,15 @@
     return different;
   }
 
-  var safelyParses = function(program){
+  var safelyParses = function(program, errback){
+    if (errback === undefined){
+      errback = function(msg){console.log(msg);};
+    }
     try {
       parse(program);
       return true;
     } catch (e) {
-      console.log(e);
+      errback(e);
       return false;
     }
   };
