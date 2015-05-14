@@ -62,14 +62,38 @@
     };
     this.toRender.push([doIt, x, y, width, height]);
   };
-  Gamelib.prototype.drawCircle = function(x, y, r){
-    var doIt = function(x, y, r){
+  Gamelib.prototype.drawArc = function(x, y, r, start, end){
+    if (start === undefined){
+      start = 0;
+    }
+    if (end === undefined){
+      end = 2 * Math.PI;
+    }
+    var doIt = function(x, y, r, start, end){
       this.ctx.beginPath();
-      this.ctx.arc(x, y, r, 0, Math.PI*2, true);
+      this.ctx.arc(x, y, r, start * Math.PI / 180, end * Math.PI / 180, true);
       this.ctx.closePath();
       this.ctx.fill();
     };
-    this.toRender.push([doIt, x, y, r]);
+    this.toRender.push([doIt, x, y, r, start, end]);
+  };
+  Gamelib.prototype.drawPoly = function(x, y, points, h){
+    var doIt = function(x, y, points, h){
+      points = points.map(function(arr){
+        var dx = arr[0], dy = arr[1];
+        return [x + dx * Math.cos(h * Math.PI / 180) - dy * Math.sin(h * Math.PI / 180),
+                y + dx * Math.sin(h * Math.PI / 180) + dy * Math.cos(h * Math.PI / 180)];
+      });
+      console.log(h);
+      this.ctx.beginPath();
+      this.ctx.moveTo(points[0][0], points[0][1]);
+      for (var i = 1; i < points.length; i++){
+        this.ctx.lineTo(points[i][0], points[i][1]);
+      }
+      this.ctx.closePath();
+      this.ctx.fill();
+    };
+    this.toRender.push([doIt, x, y, points, h]);
   };
   Gamelib.prototype.drawText = function(x, y){
     var args = Array.prototype.slice.call(arguments, 2);

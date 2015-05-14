@@ -4,7 +4,7 @@ todo:
   - [x] implement copy method on all evalGen objects
   - [x] keep track of function invocations
   - [x] parse code for function asts
-  - [ ] restore 
+  - [x] restore 
   - [ ] more parse-time errors (arity, valid literals)
   - [ ] vary speed in runner to achieve constant fps
 
@@ -14,3 +14,9 @@ todo:
 * interface
   - [ ] display error messages
   - [ ] restore to last parsable state
+
+
+
+
+
+

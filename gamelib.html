@@ -1,5 +1,6 @@
 <html>
 <head>
+<meta charset="UTF-8">
 <title>live code reloading eventually</title>
 <style type="text/css" media="screen">
     #editor { 
@@ -23,7 +24,15 @@
 </head>
 <body>
 
-<div id="editor">(do
+<div id="editor"># Welcome! That flashlight looks a little underpowered with those
+# dark asteroids - try removing the last two arguments from 
+# the flashlight (drawArc x y r θ1 θ2) to make it shine in
+# every direction. Or try changing the color of the asteroids!
+# Find the (color r g b) command inside the render-obj function
+# and change it. Then try changing anything else you like,
+# the code should update live.
+  
+(do
   (defn init-world
     (map (lambda i
            (list
@@ -41,8 +50,9 @@
             (+ (last (first obj)) (last (last obj))))
       (last obj)))
   (defn render-obj obj (do
+    (color 0 0 0)
     (define radius 20)
-    (drawCircle (first (first obj))
+    (drawArc (first (first obj))
               (nth 1 (first obj))
               radius)))
   (defn game (do
@@ -56,7 +66,7 @@
       (do
         (< (dist x y (nth 0 (first obj)) (nth 1 (first obj))) 300)))
     (defn collide obj
-        (< (dist x y (nth 0 (first obj)) (nth 1 (first obj))) (- (+ 20 50) 5)))
+        (< (dist x y (nth 0 (first obj)) (nth 1 (first obj))) 23))
     (defn any-collide (reduce or (map collide world) 0))
     (defn to-render (filter nearby world))
     (define counter 0)
@@ -65,10 +75,12 @@
       (set! vy (+ vy (* (y_comp (towards x y (mousex) (mousey))) .5)))))
     (defn main (do
       (color 250 250 220)
-      (drawCircle x y 300)
+      (define h (towards x y (mousex) (mousey)))
+      (drawArc x y 300 (+ h 100) (- h 100))
       (color 30 100 200)
-      (drawCircle x y 50)
-      (color 230 100 200)
+      (drawPoly x y
+        (list (list 15 0) (list -10 -12) (list -10 12))
+        (towards x y (mousex) (mousey)))
       (map render-obj (to-render))
       (set! world (map step-obj world))
       (set! world (map wrap-obj world))
@@ -119,7 +131,7 @@
   canvas.height = window.innerHeight;
 </script>
     
-<script src="deepcopy.js"></script>
+<script src="deepCopy.js"></script>
 <script src="parse.js"></script>
 <script src="run.js"></script>
 <script src="builtins.js"></script>
@@ -177,6 +189,8 @@
   };
 
   editor.getSession().on('change', onChange);
+  editor.on('focus', function(e){console.log('unblur')});
+  editor.on('blur', function(e){console.log('blur')});
   onChange()
 </script>
 </body>

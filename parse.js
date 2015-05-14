@@ -32,6 +32,7 @@
   };
 
   function tokenize(s) {
+    s = s.replace(/^[#].*$/mg, '');
     var token = /[()]|[^\s()]+/g;
     return s.match(token);
   }
