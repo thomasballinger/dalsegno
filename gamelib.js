@@ -44,6 +44,12 @@
     this.canvas.addEventListener('mouseup', function(e){
       mousedown[0] = false;
     }, false);
+    this.canvas.addEventListener('touchstart', function(e){
+      mousedown[0] = true;
+    }, false);
+    this.canvas.addEventListener('touchend', function(e){
+      mousedown[0] = false;
+    }, false);
   }
   Gamelib.prototype = new Builtin();
   Gamelib.prototype.mousepos = function(){
