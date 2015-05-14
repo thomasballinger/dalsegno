@@ -1,6 +1,14 @@
 ;(function() {
   'use strict';
 
+  function numToHex(n){
+    var s = n.toString(16);
+    if (s.length == 1){
+      s = '0' + s;
+    }
+    return s;
+  }
+
   function Builtin(){}
   Builtin.prototype.getFunctions = function(){
     var self = this;
@@ -62,6 +70,15 @@
     };
     this.toRender.push([doIt, x, y, width, height]);
   };
+  Gamelib.prototype.drawInverseCircle = function(x, y, r){
+    var doIt = function(x, y, r){
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, r, 0, 2 * Math.PI);
+      this.ctx.rect(this.canvas.width, 0, -(this.canvas.width), this.canvas.height);
+      this.ctx.fill();
+    };
+    this.toRender.push([doIt, x, y, r])
+  };
   Gamelib.prototype.drawArc = function(x, y, r, start, end){
     if (start === undefined){
       start = 0;
@@ -84,7 +101,6 @@
         return [x + dx * Math.cos(h * Math.PI / 180) - dy * Math.sin(h * Math.PI / 180),
                 y + dx * Math.sin(h * Math.PI / 180) + dy * Math.cos(h * Math.PI / 180)];
       });
-      console.log(h);
       this.ctx.beginPath();
       this.ctx.moveTo(points[0][0], points[0][1]);
       for (var i = 1; i < points.length; i++){
@@ -108,13 +124,6 @@
     if (r === undefined || g === undefined || b === undefined){
       throw new Error("not enough arguments to color");
     }
-    function numToHex(n){
-      var s = n.toString(16);
-      if (s.length == 1){
-        s = '0' + s;
-      }
-      return s;
-    }
     var doIt = function(r, g, b){
       var color = "#" + numToHex(r) + numToHex(g) + numToHex(b);
       this.ctx.fillStyle = color;
@@ -122,11 +131,29 @@
     };
     this.toRender.push([doIt, r, g, b]);
   };
-  Gamelib.prototype.render = function(){
+  Gamelib.prototype.render = function(r, g, b){
+    if (r === undefined || g === undefined || b === undefined){
+      if (r === undefined && g === undefined && b === undefined){
+        r = 0; g = 0; b = 0; // use black as default bg
+      } else {
+        throw Error("Render takes three argument for color or none");
+      }
+    }
     var oldFill = this.ctx.fillStyle;
-    this.ctx.fillStyle = '#000';
+    this.ctx.fillStyle = "#" + numToHex(r) + numToHex(g) + numToHex(b);
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = oldFill;
+    try {
+      for (var i = 0; i < this.toRender.length; i++){
+        var func = this.toRender[i][0];
+        var args = this.toRender[i].slice(1);
+        func.apply(this, args);
+      }
+    } finally {
+      this.toRender = [];
+    }
+  };
+  Gamelib.prototype.renderNoClear = function(){
     try {
       for (var i = 0; i < this.toRender.length; i++){
         var func = this.toRender[i][0];

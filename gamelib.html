@@ -24,14 +24,11 @@
 </head>
 <body>
 
-<div id="editor"># Welcome! That flashlight looks a little underpowered with those
-# dark asteroids - try removing the last two arguments from 
-# the flashlight (drawArc x y r θ1 θ2) to make it shine in
-# every direction. Or try changing the color of the asteroids!
-# Find the (color r g b) command inside the render-obj function
-# and change it. Then try changing anything else you like,
-# the code should update live.
-  
+<div id="editor"># That headlight looks a little underpowered!
+# Try changing the last two arguments to (draw-black x y h r theta)
+# on line 58, or delete that line altogether.
+# Then make more changes to see how the game works!
+ 
 (do
   (defn init-world
     (map (lambda i
@@ -50,11 +47,16 @@
             (+ (last (first obj)) (last (last obj))))
       (last obj)))
   (defn render-obj obj (do
-    (color 0 0 0)
+    (color 110 45 2)
     (define radius 20)
     (drawArc (first (first obj))
               (nth 1 (first obj))
               radius)))
+  (defn draw-black x y h d angle (do
+      (color 0 0 0)
+      (drawArc x y 1000 (+ h 180 angle) (+ h angle))
+      (drawArc x y 1000 (- h angle) (- (+ h 180) angle) )
+      (drawInverseCircle x y d)))
   (defn game (do
     (define x 300)
     (define y 300)
@@ -74,14 +76,23 @@
       (set! vx (+ vx (* (x_comp (towards x y (mousex) (mousey))) .5)))
       (set! vy (+ vy (* (y_comp (towards x y (mousex) (mousey))) .5)))))
     (defn main (do
-      (color 250 250 220)
       (define h (towards x y (mousex) (mousey)))
-      (drawArc x y 300 (+ h 100) (- h 100))
+
+      (color 40 40 100)
+      (map render-obj (to-render))
+
+      (draw-black x y h 100 25)
+
       (color 30 100 200)
       (drawPoly x y
         (list (list 15 0) (list -10 -12) (list -10 12))
         (towards x y (mousex) (mousey)))
-      (map render-obj (to-render))
+      (color 200 150 0)
+      (if (clicked)
+          (drawPoly x y
+            (list (list -13 -10) (list -9 -10) (list -9 10) (list -13 10))
+            (towards x y (mousex) (mousey))))
+
       (set! world (map step-obj world))
       (set! world (map wrap-obj world))
       (if (clicked)
@@ -92,12 +103,14 @@
       (if (> y (height)) (set! y 0))
       (if (< x 0) (set! x (width)))
       (if (< y 0) (set! y (height)))
-      (render)
+      (render 200 200 1)
       (if (not (any-collide))
           (do 
             (set! counter (+ counter 1))
             (main))
           (do
+            (map render-obj (to-render))
+            (renderNoClear)
             (drawText 100 100 "your" "score:" counter)))))
       (main)))
   (defn wait-for-unclick
