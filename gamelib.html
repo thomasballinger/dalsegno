@@ -152,6 +152,12 @@
 
   var editorContainer = document.getElementById('editor');
   editorContainer.classList.remove('is-hidden');
+
+  var saved = window.localStorage.getItem('program');
+  if (saved !== null){
+    editor.setValue(saved);
+  }
+  console.log(saved);
 </script>
 
 <canvas id="canvas" width="1" height="1"></canvas>
@@ -206,7 +212,10 @@
       currentlyRunning = false;
       return;
     }
-    var newProgram = JSON.stringify(parse(editor.getValue()));
+
+    window.localStorage.setItem('program', s);
+
+    var newProgram = JSON.stringify(parse(s));
     if (newProgram === lastProgram){
       return;
     }
