@@ -110,30 +110,22 @@
     if (numIterations === undefined){
       numIterations = 1;
     }
-    try {
-      var value = this.next();
-    } catch (ex) {
-      errback(ex);
-      return false;
-    }
-    for (var i=0; i<numIterations-1; i++){
-      if (value.finished){
-        break;
-      } else {
+
+    for (var i=0; i<numIterations; i++){
+      if (errback === undefined){
         try {
-          value = this.next();
+          var value = this.next();
         } catch (ex) {
           errback(ex);
           return false;
         }
-      }
+      } else { var value = this.next(); }
+      if (value.finished){ return true; }
     }
     if (value.finished){
       console.log('finished!', value.value);
-      return true;
-    } else {
-      return true;
     }
+    return true;
   };
   Runner.prototype.value = function(){
     var value = this.next();
