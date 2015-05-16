@@ -157,6 +157,7 @@ function getParameterByName(name) {
   if (getParameterByName('vim')){
     editor.setKeyboardHandler("ace/keyboard/vim");
   }
+  editor.commands.removeCommand('gotoline') // bound to command-L which selects the url in osx chrome
   editor.getSession().setTabSize(2);
   editor.getSession().setUseSoftTabs(true);
   document.getElementById('editor').style.fontSize='16px';
