@@ -113,13 +113,15 @@
 
     for (var i=0; i<numIterations; i++){
       if (errback === undefined){
+        var value = this.next();
+      } else {
         try {
           var value = this.next();
         } catch (ex) {
           errback(ex);
           return false;
         }
-      } else { var value = this.next(); }
+      }
       if (value.finished){ return true; }
     }
     if (value.finished){

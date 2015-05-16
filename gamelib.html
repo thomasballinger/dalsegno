@@ -28,7 +28,7 @@
 </head>
 <body>
 
-<div id="editor" class="is-hidden">; That headlight looks a little underpowered!
+<div id="space-program" class="is-hidden">; That headlight looks a little underpowered!
 ; Try changing the last two arguments to draw-black
 ; on line 70, or delete that line altogether.
 ; Then make more changes to see how the game works!
@@ -137,13 +137,24 @@
     (play-forever)))
   (play-forever))</div>
 
+<div id="editor" class="is-hidden"></div>
+
 <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+</script>
+
 <script>
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
   editor.getSession().setMode("ace/mode/scheme");
   var options = window.location.hash.substr(1);
-  if (options.indexOf('vim') != -1){
+  if (getParameterByName('vim')){
     editor.setKeyboardHandler("ace/keyboard/vim");
   }
   editor.getSession().setTabSize(2);
@@ -153,11 +164,17 @@
   var editorContainer = document.getElementById('editor');
   editorContainer.classList.remove('is-hidden');
 
-  var saved = window.localStorage.getItem('program');
-  if (saved !== null){
-    editor.setValue(saved);
+  var code = getParameterByName('code');
+  if (code) {
+    editor.setValue(code);
+  } else {
+    editor.setValue(document.getElementById('space-program').textContent)
   }
-  console.log(saved);
+
+  var updateUrl = function(){
+    var encoded = encodeURI(editor.getValue());
+    history.replaceState({}, "", "?code="+encoded);
+  };
 </script>
 
 <canvas id="canvas" width="1" height="1"></canvas>
@@ -213,7 +230,7 @@
       return;
     }
 
-    window.localStorage.setItem('program', s);
+    updateUrl();
 
     var newProgram = JSON.stringify(parse(s));
     if (newProgram === lastProgram){
@@ -228,9 +245,10 @@
   };
 
   editor.getSession().on('change', onChange);
-  editor.on('focus', function(e){console.log('unblur')});
-  editor.on('blur', function(e){console.log('blur')});
-  onChange()
+
+  shouldReload = true;
+  currentlyRunning = true;
+  runABit();
 </script>
 </body>
 </html>
