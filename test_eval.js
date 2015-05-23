@@ -29,6 +29,11 @@ describe('Evaluation Iterators', function(){
       assert.deepEqual(e.next(), {value: null, finished: false});
       assert.deepEqual(e.next(), {value: null, finished: false});
       assert.deepEqual(e.next(), {value: null, finished: false});
+      console.log(e.next())
+      console.log(e.next())
+      console.log(e.next())
+      console.log(e.next())
+      console.log(e.next())
       assert.deepEqual(e.next(), {value: 3, finished: true});
       assert.deepEqual(e.next(), {value: 3, finished: true});
     });

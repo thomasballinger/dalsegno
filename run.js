@@ -189,7 +189,7 @@
       var val = this.scopes[i][key];
       if (val !== undefined){
         if (typeof val === 'function'){
-          return function(){ return val.call(this.scopes[i], arguments); }.bind(this);
+          return val.bind(this);
         }
         return val;
       }

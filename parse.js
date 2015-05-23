@@ -30,6 +30,51 @@
     return  (JSON.stringify(this.body) !== JSON.stringify(other.body) ||
              JSON.stringify(this.params) !== JSON.stringify(other.params));
   };
+  Function.prototype.diffExceptDefnBodies = function(other){
+    // Whether two functions differ other than in internal function bodies
+    // both functions must have the same name
+    if (this.name !== other.name){
+      throw new Error("Tried to diff two functions with different names: "+this.name+" and "+other.name);
+    }
+    if (JSON.stringify(this.params) !== JSON.stringify(other.params)){
+      return true;
+    }
+
+    function isDefn(form){
+      return Array.isArray(form) && form[0] === 'defn';
+    }
+
+    function formDiff(form1, form2){
+      if (isDefn(form1) && isDefn(form2)){
+        if (form1[1] !== form2[1]){
+          return true;  // name is different
+        }
+        if (form1.slice(1, -1).length !== form2.slice(1, -1)){
+          return true;  // number of parameters is different
+        }
+        for (var i = 0; i < form1.slice(1, -1).length; i++){
+          if (form1.slice(1, -1)[i] !== form2.slice(1, -1)[i]){
+            return true;  // name of parameter is different
+          }
+        }
+        return false;  // only the named function bodies are different!
+      } else if (Array.isArray(form1) && Array.isArray(form2)) {
+        if (form1.length !== form2.length){
+          return true;
+        }
+        for (var i = 0; i < form1.length; i++){
+          if (formDiff(form1[i], form2[i])){
+            return true;
+          }
+          return false;
+        }
+      } else {
+        return form1 === form2;
+      }
+    }
+
+    return formDiff(this.body, other.body);
+  };
 
   function tokenize(s) {
     s = s.replace(/[;].*$/mg, '');
@@ -74,8 +119,8 @@
   function findFunctions(ast){
     // Return new Function objects that we'll swap out
     // Function objects will have environments of null
-    // If the only thing about a defn ast that has changed is
-    //
+    // 
+    // By default will count the top level function as its own
     var funcs = {};
     if (!Array.isArray(ast)){
       return {};
@@ -102,7 +147,8 @@
     // doesn't include new functions, because that would have changed the ast of an ourside function.
     // does include deleted functions, which need to be removed
     //
-    // TODO don't include outer defn that changed defns are inside!
+    // If the only thing about a defn ast that has changed is
+    // another defn ast, don't count it.
     var different = {};
     for (var name in oldFuncs){
       if (!(name in newFuncs)){
