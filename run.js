@@ -186,8 +186,12 @@
 
   Environment.prototype.lookup = function(key){
     for (var i = this.scopes.length - 1; i >= 0; i--){
-      if (this.scopes[i].hasOwnProperty(key)){
-        return this.scopes[i][key];
+      var val = this.scopes[i][key];
+      if (val !== undefined){
+        if (typeof val === 'function'){
+          return function(){ return val.call(this.scopes[i], arguments); }.bind(this);
+        }
+        return val;
       }
     }
     if (this.runner && this.runner.functionExists(key)){
