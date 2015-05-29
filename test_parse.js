@@ -56,6 +56,14 @@ describe('parse', function(){
     });
   });
   describe('diffFunctions', function(){
+    it('should identify that functions have changed', function(){
+      var ast1 = parse('(do (defn baz x) (defn qux 2))');
+      var ast2 = parse('(do (defn baz y) (defn qux 2))');
+      var functions1 = parse.findFunctions(ast1);
+      var functions2 = parse.findFunctions(ast2);
+      var changedFunctions = parse.diffFunctions(functions1, functions2);
+      assert.deepEqual(changedFunctions, {'baz': new parse.Function('y', [], null, 'baz')});
+    });
     it('should return only functions that have themselves changed', function(){
       var ast1 = parse('(defn bar x (do (defn baz x) (defn qux 2)))');
       var ast2 = parse('(defn bar x (do (defn baz y) (defn qux 2)))');

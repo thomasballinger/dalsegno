@@ -36,6 +36,9 @@
     if (this.name !== other.name){
       throw new Error("Tried to diff two functions with different names: "+this.name+" and "+other.name);
     }
+    if (!this.diff(other)){
+      return false;
+    }
     if (JSON.stringify(this.params) !== JSON.stringify(other.params)){
       return true;
     }
@@ -66,14 +69,15 @@
           if (formDiff(form1[i], form2[i])){
             return true;
           }
-          return false;
         }
+        return false;
       } else {
-        return form1 === form2;
+        return form1 !== form2;
       }
     }
 
-    return formDiff(this.body, other.body);
+    var isDifferent = formDiff(this.body, other.body);
+    return isDifferent;
   };
 
   function tokenize(s) {
@@ -153,7 +157,7 @@
     for (var name in oldFuncs){
       if (!(name in newFuncs)){
         different[name] = null;
-      } else if (oldFuncs[name].diff(newFuncs[name])){
+      } else if (oldFuncs[name].diffExceptDefnBodies(newFuncs[name])){
         different[name] = newFuncs[name];
       }
     }

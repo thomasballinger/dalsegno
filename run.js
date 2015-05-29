@@ -78,6 +78,7 @@
     this.ast = parse(s);
     var functions = parse.findFunctions(this.ast);
     var diff = parse.diffFunctions(this.oldFunctions, functions);
+    console.log(diff);
     this.oldFunctions = functions;
     if (Object.getOwnPropertyNames(diff).length === 0){
       return;
