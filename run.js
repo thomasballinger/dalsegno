@@ -25,20 +25,25 @@
   }
 
   Runner.prototype = new BaseEval();
-  Runner.prototype.loadUserCode = function(s, env){
+  Runner.prototype.loadUserCode = function(s, envBuilder){
     if (this.funs === null){
       console.log('warning: maybe you wanted to set up a function dictionary on the runner before running user code?');
     }
     if (s === undefined){
       throw Error("Specify program to load");
     }
-    if (env === undefined){
-      env = new Environment([{}]);
+    if (envBuilder === undefined){
+      envBuilder = function(){ return new Environment([{}]); };
     }
-    env.runner = this;
+    self = this;
+    this.envBuilder = function(){
+      var env = envBuilder();
+      env.runner = self;
+      return env;
+    };
     this.ast = parse(s);
     this.oldFunctions = parse.findFunctions(this.ast);
-    this.delegate = evalGen(this.ast, env);
+    this.delegate = evalGen(this.ast, this.envBuilder());
   };
   Runner.prototype.loadCode = function(s, env){
     this.ast = parse(s);
@@ -75,12 +80,17 @@
             delegate: copy[0]};
   };
   Runner.prototype.update = function(s){
-    this.ast = parse(s);
+    var newAst = parse(s);
     var functions = parse.findFunctions(this.ast);
+    if (JSON.stringify(newAst) === JSON.stringify(this.ast)){
+      return;
+    }
+    this.ast = newAst;
     var diff = parse.diffFunctions(this.oldFunctions, functions);
-    console.log(diff);
     this.oldFunctions = functions;
     if (Object.getOwnPropertyNames(diff).length === 0){
+      // Must have been the top level, because something changed!
+      this.delegate = evalGen(this.ast, this.envBuilder());
       return;
     }
     var earliestTime = -1;

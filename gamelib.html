@@ -160,6 +160,7 @@ function getParameterByName(name) {
   editor.commands.removeCommand('gotoline') // bound to command-L which selects the url in osx chrome
   editor.getSession().setTabSize(2);
   editor.getSession().setUseSoftTabs(true);
+  editor.$blockScrolling = Infinity
   document.getElementById('editor').style.fontSize='16px';
 
   var editorContainer = document.getElementById('editor');
@@ -196,9 +197,9 @@ function getParameterByName(name) {
   var currentlyRunning = false; // if not, change event needs to kick off runner
   var lib = new Gamelib('canvas');
   var gameMethods = lib.getFunctions();
-  var env = new run.Environment([gameMethods, builtins, stdlib, {}]);
+  var envBuilder = function(){return new run.Environment([gameMethods, builtins, stdlib, {}]);};
   var runner = new run.Runner({});
-  runner.loadUserCode(editor.getValue(), env)
+  runner.loadUserCode(editor.getValue(), envBuilder);
   var lastProgram = '';
 
   var speed = 600;
