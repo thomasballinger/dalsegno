@@ -25,22 +25,27 @@
   }
 
   Runner.prototype = new BaseEval();
-  Runner.prototype.loadUserCode = function(s, envBuilder){
+  Runner.prototype.setEnvBuilder = function(callback){
+    if (callback === undefined){
+      callback = function(){ return new Environment([{}]); };
+    }
+    self = this;
+    this.envBuilder = function(){
+      var env = callback();
+      env.runner = self;
+      return env;
+    };
+  };
+  Runner.prototype.loadUserCode = function(s, env){
     if (this.funs === null){
       console.log('warning: maybe you wanted to set up a function dictionary on the runner before running user code?');
     }
     if (s === undefined){
       throw Error("Specify program to load");
     }
-    if (envBuilder === undefined){
-      envBuilder = function(){ return new Environment([{}]); };
+    if (env === undefined){
+      env = new Environment([{}]);
     }
-    self = this;
-    this.envBuilder = function(){
-      var env = envBuilder();
-      env.runner = self;
-      return env;
-    };
     this.ast = parse(s);
     this.oldFunctions = parse.findFunctions(this.ast);
     this.delegate = evalGen(this.ast, this.envBuilder());

@@ -210,9 +210,13 @@ function getParameterByName(name) {
   var currentlyRunning = false; // if not, change event needs to kick off runner
   var lib = new Gamelib('canvas');
   var gameMethods = lib.getFunctions();
-  var envBuilder = function(){return new run.Environment([gameMethods, builtins, stdlib, {}]);};
+  var envBuilder = function(){
+    return new run.Environment([
+      window, console, document.getElementById('canvas').getContext('2d'),
+      gameMethods, builtins, stdlib, {}]);
+  };
   var runner = new run.Runner({});
-  runner.loadUserCode(editor.getValue(), envBuilder);
+  runner.setEnvBuilder(envBuilder);
   var lastProgram = '';
 
   var speed = 600;
