@@ -21,6 +21,16 @@
     .is-hidden {
       display: none;
     }
+    #errorbar {
+      position: absolute;
+      top: 100;
+      left: 660px;
+      bottom: 100;
+      right: 30;
+      background-color: #ff99cc;
+      text-align: center;
+      font-size: 2em;
+    }
     body {
       background-color: #111111
     }
@@ -180,6 +190,7 @@ function getParameterByName(name) {
 </script>
 
 <canvas id="canvas" width="1" height="1"></canvas>
+<div id="errorbar"></div>
 <script>
   var canvas = document.getElementById('canvas');
   canvas.width = window.innerWidth - 630;
@@ -193,6 +204,8 @@ function getParameterByName(name) {
 <script src="Gamelib.js"></script>
 <script src="stdlib.js"></script>
 <script>
+  var DEBUGMODE = false;
+
   var shouldReload = true; // on next tick, reload the program
   var currentlyRunning = false; // if not, change event needs to kick off runner
   var lib = new Gamelib('canvas');
@@ -204,13 +217,17 @@ function getParameterByName(name) {
 
   var speed = 600;
 
-  var errback = function(e){ console.log(e); }
+  var errorbar = document.getElementById('errorbar');
+
+  var errback = function(e){ errorbar.innerText = ''+e; errorbar.classList.remove('is-hidden');}
+  var clearError = function(){ errorbar.classList.add('is-hidden'); }
 
   var runABit = function(){
-    var s = editor.getValue()
+    clearError()
+    var s = editor.getValue();
     if (shouldReload){
       shouldReload = false;
-      if (parse.safelyParses(s), function(){}){
+      if (parse.safelyParses(s, errback)){
         runner.update(s);
         currentlyRunning = runner.runABit(speed, errback);
       } else {
@@ -220,13 +237,15 @@ function getParameterByName(name) {
     }
     if (currentlyRunning) {
       currentlyRunning = runner.runABit(speed, errback);
-      setTimeout(runABit, .001);
+      if (currentlyRunning) {
+        setTimeout(runABit, .001);
+      }
     }
   }
       
   var onChange = function(e){
     var s = editor.getValue();
-    if (!parse.safelyParses(s)){
+    if (!parse.safelyParses(s, errback)){
       lastProgram = '';
       currentlyRunning = false;
       return;

@@ -123,7 +123,7 @@
     }
 
     for (var i=0; i<numIterations; i++){
-      if (errback === undefined){
+      if (errback === undefined || DEBUGMODE){
         var value = this.next();
       } else {
         try {
