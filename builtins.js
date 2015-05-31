@@ -142,11 +142,28 @@
       return ((Math.atan2(dx, -dy) * 180 / Math.PI) + 270 + 360) % 360;
     },
     'x_comp': function(h){
-        return Math.cos(h * Math.PI / 180);
+      return Math.cos(h * Math.PI / 180);
     },
     'y_comp': function(h){
-        return Math.sin(h * Math.PI / 180);
+      return Math.sin(h * Math.PI / 180);
     },
+    'jsSet': function(obj, prop, value){
+      if (obj === undefined || prop === undefined || value === undefined){
+        throw Error("jsGet needs three arguments");
+      }
+      obj[prop] = value;
+    },
+    'jsGet': function(obj, prop){
+      if (obj === undefined || prop === undefined){
+        throw Error("jsGet needs two arguments");
+      }
+      var val = obj[prop];
+      if (typeof val === 'function'){
+        val = val.bind(obj);
+      }
+      return val;
+    }
+
   };
 
   builtins.builtins = builtins;
