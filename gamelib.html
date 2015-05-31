@@ -233,7 +233,7 @@ function getParameterByName(name) {
       shouldReload = false;
       if (parse.safelyParses(s, errback)){
         runner.update(s);
-        currentlyRunning = runner.runABit(speed, errback);
+        currentlyRunning = runner.runABit(1, errback);
       } else {
         currentlyRunning = false;
         return;

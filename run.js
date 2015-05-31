@@ -20,6 +20,7 @@
     this.funs = funs;
     this.counter = 0;
     this.values = [];
+    this.finished = false;
 
     this.savedStates = {};
   }
@@ -87,9 +88,10 @@
   Runner.prototype.update = function(s){
     var newAst = parse(s);
     var functions = parse.findFunctions(this.ast);
-    if (JSON.stringify(newAst) === JSON.stringify(this.ast)){
+    if (JSON.stringify(newAst) === JSON.stringify(this.ast) && !this.finished){
       return;
     }
+    this.values = [];
     this.ast = newAst;
     var diff = parse.diffFunctions(this.oldFunctions, functions);
     this.oldFunctions = functions;
@@ -97,6 +99,8 @@
       // Must have been the top level, because something changed!
       this.delegate = evalGen(this.ast, this.envBuilder());
       return;
+    } else {
+      //console.log('functions changed: ', diff);
     }
     var earliestTime = -1;
     var earliestGen;
@@ -138,10 +142,14 @@
           return false;
         }
       }
-      if (value.finished){ return true; }
+      if (value.finished){ 
+        break;
+      }
     }
     if (value.finished){
       console.log('finished!', value.value);
+      runner.finished = true;
+      return false;
     }
     return true;
   };
@@ -150,6 +158,7 @@
     while (!value.finished){
       value = this.next();
     }
+    this.finished = true;
     return value.value;
   };
   Runner.prototype.saveState = function(name){
@@ -205,7 +214,7 @@
       var val = this.scopes[i][key];
       if (val !== undefined){
         if (typeof val === 'function'){
-          return val.bind(this);
+          return val.bind(this.scopes[i]);
         }
         return val;
       }

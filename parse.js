@@ -149,14 +149,14 @@
   function diffFunctions(oldFuncs, newFuncs){
     // returns an array of functions that have changed
     // doesn't include new functions, because that would have changed the ast of an ourside function.
-    // does include deleted functions, which need to be removed
+    // doesn't include deleted functions, though eventually should so snapshots can be discarded
     //
     // If the only thing about a defn ast that has changed is
     // another defn ast, don't count it.
     var different = {};
     for (var name in oldFuncs){
       if (!(name in newFuncs)){
-        different[name] = null;
+        //different[name] = null;
       } else if (oldFuncs[name].diffExceptDefnBodies(newFuncs[name])){
         different[name] = newFuncs[name];
       }
