@@ -87,7 +87,7 @@
   };
   Runner.prototype.update = function(s){
     var newAst = parse(s);
-    var functions = parse.findFunctions(this.ast);
+    var functions = parse.findFunctions(newAst);
     if (JSON.stringify(newAst) === JSON.stringify(this.ast) && !this.finished){
       return;
     }
