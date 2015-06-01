@@ -146,11 +146,16 @@
             if (property === 'scopes'){
               copy.scopes = [];
               for (var i = 0; i < obj.scopes.length; i++){
-                var scope = {};
-                for (var prop in obj.scopes[i]){
-                  // values of symbols are never mutated
-                  // so a shallow copy should be ok!
-                  scope[prop] = obj.scopes[i][prop];
+                if (obj.scopes[i].constructor === Object){
+                  var scope = {};
+                  for (var prop in obj.scopes[i]){
+                    // values of symbols are never mutated
+                    // so a shallow copy should be ok!
+                    scope[prop] = obj.scopes[i][prop];
+                  }
+                } else {
+                  // window and other non-object literals
+                  var scope = obj.scopes[i];
                 }
                 copy.scopes.push(scope);
               }
