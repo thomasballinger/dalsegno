@@ -4,7 +4,7 @@
   if (typeof window === 'undefined') {
     var require = module.require;
   } else {
-    var require = function(name){ 
+    var require = function(name){
       var realname = name.match(/(\w+)[.]?j?s?$/)[1];
       return window[realname];
     };

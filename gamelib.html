@@ -3,7 +3,7 @@
 <meta charset="UTF-8">
 <title>live code reloading</title>
 <style type="text/css" media="screen">
-    #editor { 
+    #editor {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -42,7 +42,7 @@
 ; Try changing the last two arguments to draw-black
 ; on line 70, or delete that line altogether.
 ; Then make more changes to see how the game works!
- 
+
 (do
   (defn init-world
     (map (lambda i
@@ -53,8 +53,8 @@
 
   (defn wrap-obj obj
     (list
-      (list (% (first (first obj)) (width))
-            (% (last (first obj)) (height)))
+      (list (% (first (first obj)) width)
+            (% (last (first obj)) height))
       (last obj)))
 
   (defn step-obj obj
@@ -104,6 +104,8 @@
 
     (defn main (do
       (define h (towards x y (mousex) (mousey)))
+      (color 200 200 30)
+      (fillRect 0 0 width height)
       (color 40 40 100)
       (map render-obj (to-render))
 
@@ -119,10 +121,10 @@
       (if (clicked) (on-click))
       (set! x (+ x vx))
       (set! y (+ y vy))
-      (if (> x (width)) (set! x 0))
-      (if (> y (height)) (set! y 0))
-      (if (< x 0) (set! x (width)))
-      (if (< y 0) (set! y (height)))
+      (if (> x width) (set! x 0))
+      (if (> y height) (set! y 0))
+      (if (< x 0) (set! x width))
+      (if (< y 0) (set! y height))
       (render 200 200 1)
       (if (not (any-collide))
           (do 
@@ -130,8 +132,9 @@
             (main))
           (do
             (map render-obj (to-render))
-            (renderNoClear)
-            (drawText 100 100 "your" "score:" counter)))))
+            (drawText 100 100 "your" "score:" counter)
+            (render)
+            ))))
       (main)))
 
   (defn wait-for-unclick
@@ -201,18 +204,21 @@ function getParameterByName(name) {
 <script src="parse.js"></script>
 <script src="run.js"></script>
 <script src="builtins.js"></script>
-<script src="Gamelib.js"></script>
+<script src="MouseTracker.js"></script>
 <script src="stdlib.js"></script>
-<script src="LazyCanvas.js"></script>
+<script src="LazyCanvasCtx.js"></script>
+<script src="DrawHelpers.js"></script>
 <script>
   var DEBUGMODE = false;
 
   var shouldReload = true; // on next tick, reload the program
   var currentlyRunning = false; // if not, change event needs to kick off runner
-  var lazyCanvas = new LazyCanvas('canvas', true);
+  var lazyCanvasCtx = new LazyCanvasCtx('canvas', true);
+  var mouseTracker = new MouseTracker('canvas');
+  var drawHelpers = new DrawHelpers(lazyCanvasCtx, document.getElementById('canvas'));
   var envBuilder = function(){
     return new run.Environment([
-      window, console, lazyCanvas, builtins, stdlib, {}]);
+      window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, builtins, stdlib, {}]);
   };
   var runner = new run.Runner({});
   runner.setEnvBuilder(envBuilder);
@@ -245,7 +251,7 @@ function getParameterByName(name) {
       }
     }
   }
-      
+
   var onChange = function(e){
     var s = editor.getValue();
     if (!parse.safelyParses(s, errback)){

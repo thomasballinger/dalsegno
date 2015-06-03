@@ -1,13 +1,13 @@
 // lispy functions or JavaScript ones that call lispy ones
-// This will load once, so 
+// This will load once, so
 //
 ;(function() {
   'use strict';
 
   if (typeof window === 'undefined') {
-    var require = module.require
+    var require = module.require;
   } else {
-    var require = function(name){ 
+    var require = function(name){
       var realname = name.match(/(\w+)[.]?j?s?$/)[1];
       return window[realname];
     };

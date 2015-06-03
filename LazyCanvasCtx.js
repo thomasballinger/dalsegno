@@ -1,14 +1,16 @@
 ;(function() {
   'use strict';
 
-  function LazyCanvas(canvasId, lazy){
+  function LazyCanvasCtx(canvasId, lazy){
     if (lazy === undefined){
       lazy = false;
     }
-    this.canvas = document.getElementById(canvasId);
     this.ctx = canvas.getContext('2d');
     this.lazy = lazy;
     this.operations = [];
+    this.testCtx = document.createElement('canvas').getContext('2d');
+
+    var self = this;
 
     for (var property in this.ctx){
       if (typeof this.ctx[property] === 'function'){
@@ -16,11 +18,10 @@
           return function(){
             var method = this.ctx[property];
             var args = Array.prototype.slice.call(arguments);
-            if (method.length !== args.length){
-              throw Error(method+' called with '+args.length+' parameters, expected '+method.length);
-            }
             this.operations.push([method, args]);
-            if (!this.lazy){
+            if (this.lazy){
+              method.apply(this.testCtx, args);
+            } else {
               this.trigger();
             }
           };
@@ -29,7 +30,6 @@
         var getter = this.ctx.__lookupGetter__(property);
         var setter = this.ctx.__lookupSetter__(property);
         (function(getter, setter, property){
-          self = this;
           var descriptors = {};
           if (getter){
             descriptors.get = function(){
@@ -65,22 +65,27 @@
       }
     }
   }
-  LazyCanvas.prototype.trigger = function(){
+  LazyCanvasCtx.prototype.trigger = function(){
     var returnValue;
-    while (this.operations.length){
-      var operation = this.operations.shift();
-      returnValue = operation[0].apply(this.ctx, operation[1]);
+    try {
+      while (this.operations.length){
+        var operation = this.operations.shift();
+        returnValue = operation[0].apply(this.ctx, operation[1]);
+      }
+    } catch (e) {
+      this.operations = [];
+      throw e;
     }
     return returnValue;
   };
 
-  LazyCanvas.LazyCanvas = LazyCanvas;
+  LazyCanvasCtx.LazyCanvasCtx = LazyCanvasCtx;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = LazyCanvas;
+      exports = module.exports = LazyCanvasCtx;
     }
   } else {
-    window.LazyCanvas = LazyCanvas;
+    window.LazyCanvasCtx = LazyCanvasCtx;
   }
 })();
