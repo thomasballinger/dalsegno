@@ -19,7 +19,7 @@
             throw Error(method+' called with '+args.length+' parameters, expected '+method.length);
           }
           this.operations.push([method, args]);
-          if (this.lazy){
+          if (!this.lazy){
             this.trigger();
           }
         };
