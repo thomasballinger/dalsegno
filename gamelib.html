@@ -16,7 +16,7 @@
       left: 630px;
       bottom: 0;
       right: 0;
-      background-color: #111111
+      background-color: #777777;
     }
     .is-hidden {
       display: none;
@@ -196,24 +196,23 @@ function getParameterByName(name) {
   canvas.width = window.innerWidth - 630;
   canvas.height = window.innerHeight;
 </script>
-    
+
 <script src="deepCopy.js"></script>
 <script src="parse.js"></script>
 <script src="run.js"></script>
 <script src="builtins.js"></script>
 <script src="Gamelib.js"></script>
 <script src="stdlib.js"></script>
+<script src="LazyCanvas.js"></script>
 <script>
   var DEBUGMODE = false;
 
   var shouldReload = true; // on next tick, reload the program
   var currentlyRunning = false; // if not, change event needs to kick off runner
-  var lib = new Gamelib('canvas');
-  var gameMethods = lib.getFunctions();
+  var lazyCanvas = new LazyCanvas('canvas', true);
   var envBuilder = function(){
     return new run.Environment([
-      window, console, document.getElementById('canvas').getContext('2d'),
-      gameMethods, builtins, stdlib, {}]);
+      window, console, lazyCanvas, builtins, stdlib, {}]);
   };
   var runner = new run.Runner({});
   runner.setEnvBuilder(envBuilder);
