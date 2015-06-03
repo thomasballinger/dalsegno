@@ -219,7 +219,7 @@ function getParameterByName(name) {
   runner.setEnvBuilder(envBuilder);
   var lastProgram = '';
 
-  var speed = 600;
+  var speed = 500;
 
   var errorbar = document.getElementById('errorbar');
 
@@ -242,7 +242,7 @@ function getParameterByName(name) {
     if (currentlyRunning) {
       currentlyRunning = runner.runABit(speed, errback);
       if (currentlyRunning) {
-        setTimeout(runABit, .001);
+        setTimeout(runABit, 0);
       }
     }
   }
