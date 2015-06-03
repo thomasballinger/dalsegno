@@ -30,7 +30,7 @@
   var passthroughCopier = {
     name: 'Passthrough',
     canCopy: function(obj){
-      return (obj === null || 
+      return (obj === null ||
         typeof obj === 'boolean' ||
         typeof obj === 'undefined' ||
         typeof obj === 'undefined' ||

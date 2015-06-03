@@ -151,7 +151,7 @@ describe("Runner object", function(){
       runner.value();
       assert.deepEqual(runner.funs.foo.body, 1);
       assert.deepEqual(runner.funs.foo.name, 'foo');
-      assert.deepEqual(runner.funs.foo.env.scopes, 
+      assert.deepEqual(runner.funs.foo.env.scopes,
                        tmpEnv.scopes);
     });
     it('should load defn code', function(){

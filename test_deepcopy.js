@@ -38,8 +38,8 @@ describe('copyable execution trees', function(){
       assert.deepEqual(john2.hobbies, removeIds(john.hobbies));
       assert.deepEqual(john2.name, john.name);
       assert.deepEqual(john2, removeIds(john));
-      assert.notStrictEqual(john2, removeIds(john)); 
-      assert.notStrictEqual(bob2, removeIds(bob)); 
+      assert.notStrictEqual(john2, removeIds(john));
+      assert.notStrictEqual(bob2, removeIds(bob));
       assert.strictEqual(bob2, removeIds(bob2.friends[0].friends[0]));
       assert.deepEqual(bob2, removeIds(bob));
       assert.strictEqual(bob2.friends[0], john2);
@@ -110,7 +110,7 @@ describe('copyable execution trees', function(){
       assert.deepEqual(g.env.scopes[1].a, 42);
       runner.delegate = g;
       assert.deepEqual(runner.delegate.env.scopes[1].a, 42);
-      runner.runABit(100); 
+      runner.runABit(100);
       assert.deepEqual(runner.delegate.env.scopes[1].a, 42);
     });
     it('should deepcopy the environment of functions', function(){

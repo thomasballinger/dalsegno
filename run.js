@@ -126,7 +126,7 @@
   };
   Runner.prototype.runABit = function(numIterations, errback){
     // Returns whether it is still running
-    
+
     if (numIterations === undefined){
       numIterations = 1;
     }
@@ -142,7 +142,7 @@
           return false;
         }
       }
-      if (value.finished){ 
+      if (value.finished){
         break;
       }
     }
@@ -307,7 +307,7 @@
     if (ast[0] === 'begin' || ast[0] === 'do'){
       return new Begin(ast, env);
     }
-    if (ast[0] === 'if'){ 
+    if (ast[0] === 'if'){
       if (ast.length > 4 || ast.length < 3){
         throw Error("wrong number of argumentsi for if: "+ast);
       }
