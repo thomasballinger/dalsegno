@@ -100,19 +100,24 @@
       this.delegate = evalGen(this.ast, this.envBuilder());
       return;
     } else {
-      //console.log('functions changed: ', diff);
+      // console.log('functions changed: ', diff);
     }
     var earliestTime = -1;
     var earliestGen;
     for (var funcName in diff){
-      console.log('change detected in function '+funcName);
-      console.log('last run at tick '+this.getState(funcName).counter);
+      // console.log('change detected in function '+funcName);
+      // console.log('last run at tick '+this.getState(funcName).counter);
       if (this.getState(funcName).counter >= earliestTime){
         earliestGen = funcName;
         earliestTime = this.getState(funcName).counter;
       }
     // TODO: make the top level a special case of a named function,
     //       or in the meantime just change the code.
+    }
+    if (earliestGen === undefined){
+      // only changed functions were never run
+      this.delegate = evalGen(this.ast, this.envBuilder());
+      return;
     }
     this.restoreState(earliestGen);
 
@@ -166,6 +171,7 @@
   };
   Runner.prototype.restoreState = function(name){
     var state = deepCopy(this.savedStates[name]);
+    console.log(state);
     this.counter = state.counter;
     this.delegate = state.delegate;
     this.funs = state.funs;

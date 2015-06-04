@@ -29,11 +29,23 @@
       return a % b;
     },
     'or': function(a, b){ return a || b; },
+    'and': function(a, b){ return a && b; },
     'not': function(x){return !x;},
     'list': function(){ return Array.prototype.slice.call(arguments); },
+    'any': function(arr){
+      if(!Array.isArray(arr)){
+        throw Error("argument to any is not an array: "+arr);
+      }
+      for (var i = 0; i < arr.length; i++){
+        if (arr[i]){
+          return true;
+        }
+      }
+      return false;
+    },
     'nth': function(i, arr){
       if(!Array.isArray(arr)){
-        throw Error("second argument to nth is not an array: "+array);
+        throw Error("second argument to nth is not an array: "+arr);
       }
       if(i>=arr.length){
         throw Error("Index error: "+i+" "+array);
@@ -42,7 +54,7 @@
     },
     'first': function(arr){
       if(!Array.isArray(arr)){
-        throw Error("argument to first is not an array: "+array);
+        throw Error("argument to first is not an array: "+arr);
       }
       if(arr.length < 1){
         throw Error("Index error: "+0+" "+array);
@@ -51,16 +63,16 @@
     },
     'last': function(arr){
       if(!Array.isArray(arr)){
-        throw Error("argument to last is not an array: "+array);
+        throw Error("argument to last is not an array: "+arr);
       }
       if(arr.length < 1){
-        throw Error("called last on empty list: "+array);
+        throw Error("called last on empty list: "+arr);
       }
       return arr[arr.length - 1];
     },
     'rest': function(arr){
       if(!Array.isArray(arr)){
-        throw Error("Index error: "+i+" "+array);
+        throw Error("Index error: "+i+" "+arr);
       }
       return arr.slice(1);
     },

@@ -20,6 +20,10 @@ todo:
   - [x] display error messages
   - [ ] restore to last parsable state
 
+* build
+  - [ ] start using a real module system
+  - [ ] use a cool coroutine runner thing
+  - [ ] allow external files so scm programs are in their own files
 
 Language ideas
 --------------
