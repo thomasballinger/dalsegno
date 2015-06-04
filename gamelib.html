@@ -205,6 +205,7 @@ function getParameterByName(name) {
 <script src="run.js"></script>
 <script src="builtins.js"></script>
 <script src="MouseTracker.js"></script>
+<script src="KeyboardTracker.js"></script>
 <script src="stdlib.js"></script>
 <script src="LazyCanvasCtx.js"></script>
 <script src="DrawHelpers.js"></script>
@@ -215,10 +216,11 @@ function getParameterByName(name) {
   var currentlyRunning = false; // if not, change event needs to kick off runner
   var lazyCanvasCtx = new LazyCanvasCtx('canvas', true);
   var mouseTracker = new MouseTracker('canvas');
+  var keyboardTracker = new KeyboardTracker('canvas');
   var drawHelpers = new DrawHelpers(lazyCanvasCtx, document.getElementById('canvas'));
   var envBuilder = function(){
     return new run.Environment([
-      window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, builtins, stdlib, {}]);
+      window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, keyboardTracker, builtins, stdlib, {}]);
   };
   var runner = new run.Runner({});
   runner.setEnvBuilder(envBuilder);

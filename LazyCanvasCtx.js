@@ -20,7 +20,12 @@
             var args = Array.prototype.slice.call(arguments);
             this.operations.push([method, args]);
             if (this.lazy){
-              method.apply(this.testCtx, args);
+              try {
+                method.apply(this.testCtx, args);
+              } catch (e) {
+                this.operations = [];
+                throw e;
+              }
             } else {
               this.trigger();
             }

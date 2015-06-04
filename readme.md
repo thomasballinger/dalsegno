@@ -4,7 +4,7 @@ todo:
   - [x] implement copy method on all evalGen objects
   - [x] keep track of function invocations
   - [x] parse code for function asts
-  - [x] restore 
+  - [x] restore
   - [x] handling changing the top level expression
   - [ ] more parse-time errors (arity, valid literals)
   - [ ] vary speed in runner to achieve constant fps
@@ -14,10 +14,10 @@ todo:
   - [ ] somehow do reasonable scheduling of draw operations - maybe can group
         code to be run together somewhow?
   - [ ] methods for drawing and loading assets over http
-  - [ ] include canvas methods and window methods in the lookup chain
+  - [x] include canvas methods and window methods in the lookup chain
 
 * interface
-  - [ ] display error messages
+  - [x] display error messages
   - [ ] restore to last parsable state
 
 
