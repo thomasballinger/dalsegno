@@ -137,6 +137,9 @@
     }
 
     for (var i=0; i<numIterations; i++){
+      if (window.pause) {
+        return false;
+      }
       if (errback === undefined || DEBUGMODE){
         var value = this.next();
       } else {
@@ -191,6 +194,9 @@
     }
     return this.funs[name];
   };
+  Runner.prototype.display = function(){
+    console.log(this.delegate.display());
+  };
 
   function run(s, env){
     var runner = new Runner(null);
@@ -220,7 +226,9 @@
       var val = this.scopes[i][key];
       if (val !== undefined){
         if (typeof val === 'function'){
-          return val.bind(this.scopes[i]);
+          var bound = val.bind(this.scopes[i]);
+          bound.betterName = key;
+          return bound;
         }
         return val;
       }
@@ -360,9 +368,60 @@
       return false;
     } else {
       this.values.push(r.value);
+      if (this.finished === undefined){
+        this.finished = true;
+      }
       return true;
     }
   };
+  function functionName(f){
+    if (f && f.name){
+      return f.name;
+    }
+    if (f && f.betterName){
+      return f.betterName;
+    }
+    return 'Invocation';
+  }
+  BaseEval.prototype.display = function(){
+    var s = "";
+    var i = 0;
+    if (this.constructor.name === 'Invocation' && this.values && this.values[0]){
+      s += this.values[0].betterName || this.values[0].name || 'Invocation';
+      i = 1;
+    } else {
+      s += this.constructor.name;
+    }
+    s += "{\n";
+    if (this.values){
+      for (i; i < this.values.length; i++){
+        if (this.values[i] && this.values[i].name){
+          s += indent(this.values[i].name);
+        } else if (this.values[i] && this.values[i].betterName){
+          s += indent(this.values[i].betterName);
+        } else {
+          s += indent(this.values[i]);
+        }
+        s += "\n";
+      }
+    }
+    if (this.delegate) {
+      s += indent(this.delegate.display());
+    }
+    s += '\n}';
+    return s;
+  };
+
+  function indent(text){
+    if (!(typeof text === 'string')){
+      text = ''+text;
+    }
+    var lines = text.split(/\r?\n/);
+    for (var i=0; i<lines.length; i++){
+      lines[i] = '  '+lines[i];
+    }
+    return lines.join("\n");
+  }
 
   function StringLiteral(ast){ this.ast = ast; }
   StringLiteral.prototype = new BaseEval();

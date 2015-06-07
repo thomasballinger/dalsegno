@@ -126,6 +126,8 @@
               copy.env = innerDeepCopy(obj.env, memo);
             } else if (property ===  '__obj_id'){
               // nop
+            } else if (property ===  'finished'){
+              copy.finished = obj.finished;
             } else {
               throw Error("deepCopying unknown property "+property+" on "+obj);
             }
