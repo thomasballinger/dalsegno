@@ -32,5 +32,11 @@ describe('continuation passing style eval', function(){
     it('should call a single arity function', function(){
       cps.cps(['+', 2], justSum, makeAssert(2));
     });
+    it('should call an arity 2 function', function(){
+      cps.cps(['+', 2, 3], justSum, makeAssert(5));
+    });
+    it('should call an arity 3 function', function(){
+      cps.cps(['+', 2, 3, 4], justSum, makeAssert(9));
+    });
   });
 });

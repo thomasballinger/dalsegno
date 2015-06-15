@@ -19,13 +19,17 @@
     } else if (typeof ast === 'string') {
       k(ast);
     } else if (Array.isArray(ast)) {
-      if (ast.length != 2) {throw Error("only arity 1 for now");}
       var func = env.lookup(ast[0]);
-
-      var callFunc = function callFunc(value) {
-        k(func(value));
+      var args = [];
+      var pushAndEvalNext = function pushAndEvalNext(value) {
+        args.push(value);
+        if (args.length < ast.length - 1) {
+          cps(ast[args.length + 1], env, pushAndEvalNext);
+        } else {
+          k(func.apply(null, args));
+        }
       };
-      cps(ast[1], env, callFunc);
+      cps(ast[1], env, pushAndEvalNext);
     } else {
       throw Error("Can't evaluate "+ast);
     }
