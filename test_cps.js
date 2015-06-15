@@ -25,7 +25,7 @@ function makeAssert(expected){
 }
 
 describe('continuation passing style eval', function(){
-  describe('cps', function(){
+  describe('cps function calls', function(){
     it('should evalute a literal', function(){
       cps.cps(1, justSum, makeAssert(1));
     });
@@ -37,6 +37,21 @@ describe('continuation passing style eval', function(){
     });
     it('should call an arity 3 function', function(){
       cps.cps(['+', 2, 3, 4], justSum, makeAssert(9));
+    });
+  });
+  describe('environment stuff should work', function(){
+    it('set!', function(){
+      var env = new Environment([{a: 1}]);
+      cps.cps(['set!', 'a', 2], env, function(){});
+      assert.equal(env.scopes[0].a, 2);
+    });
+  });
+  describe('control flow', function(){
+    it('do', function(){
+      var env = new Environment([{a: 1, b: 2, c: 3}]);
+      cps.cps(parse('(do (set! a 10) (set! b 20) (set! c 30))'),
+              env, function(){});
+      assert.deepEqual(env.scopes[0], {a: 10, b: 20, c:30});
     });
   });
 });
