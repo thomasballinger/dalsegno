@@ -36,7 +36,7 @@
   function cps_set(ast, env, k){
     var setIt = function setIt(value) {
       env.set(ast[1], value);
-      k(undefined);
+      k(value);
     };
     return cps(ast[2], env, setIt);
   }

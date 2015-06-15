@@ -50,8 +50,14 @@ describe('continuation passing style eval', function(){
     it('do', function(){
       var env = new Environment([{a: 1, b: 2, c: 3}]);
       cps.cps(parse('(do (set! a 10) (set! b 20) (set! c 30))'),
-              env, function(){});
+              env, makeAssert(30));
       assert.deepEqual(env.scopes[0], {a: 10, b: 20, c:30});
+    });
+    it('if', function(){
+      var env = new Environment([{a: 1, b: 2, c: 3}]);
+      cps.cps(parse('(if (set! c 30) (set! a 10) (set! b 20))'),
+              env, makeAssert(10));
+      assert.deepEqual(env.scopes[0], {a: 10, b: 2, c: 30});
     });
   });
 });
