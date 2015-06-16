@@ -26,6 +26,9 @@
       if (ast[0] === 'do'){
         return cps_do(ast, env, k);
       }
+      if (ast[0] === 'if'){
+        return cps_if(ast, env, k);
+      }
       return cps_invoke(ast, env, k);
 
     } else {
@@ -54,17 +57,27 @@
     return cps(ast[1], env, pushAndEvalNext);
   }
   function cps_do(ast, env, k){
-    var counter = 0;
-    var incCounterAndEvalNext = function incCounterAndEvalNext(value){
-      counter++;
-      if (counter < ast.length - 2) {
-        cps(ast[counter + 1], env, incCounterAndEvalNext);
+    if (ast[0] === 'do'){
+      cps_do(ast.slice(1), env, k);
+    } else if (ast.length === 1) {
+      cps(ast[0], env, k);
+    } else {
+      var doRest = function doRest(value){
+        cps_do(ast.slice(1), env, k);
+      };
+      cps(ast[0], env, doRest);
+    }
+  }
+  function cps_if(ast, env, k){
+    var ifHandler = function ifHandler(value){
+      if (value) {
+        cps(ast[2], env, k);
       } else {
-        cps(ast[counter + 1], env, k);
+        cps(ast[3], env, k);
       }
     };
-    return cps(ast[1], env, incCounterAndEvalNext);
-  };
+    cps(ast[1], env, ifHandler);
+  }
 
   cps.cps = cps;
 
