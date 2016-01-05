@@ -52,7 +52,7 @@
         if (form1[1] !== form2[1]){
           return true;  // name is different
         }
-        if (form1.slice(1, -1).length !== form2.slice(1, -1)){
+        if (form1.slice(1, -1).length !== form2.slice(1, -1).length){
           return true;  // number of parameters is different
         }
         for (var i = 0; i < form1.slice(1, -1).length; i++){

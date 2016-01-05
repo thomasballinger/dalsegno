@@ -69,6 +69,7 @@ describe('parse', function(){
       var ast2 = parse('(defn bar x (do (defn baz y) (defn qux 2)))');
       var functions1 = parse.findFunctions(ast1);
       var functions2 = parse.findFunctions(ast2);
+      assert.isFalse(functions1['bar'].diffExceptDefnBodies(functions2['bar']));
       var changedFunctions = parse.diffFunctions(functions1, functions2);
       assert.deepEqual(changedFunctions, {'baz': new parse.Function('y', [], null, 'baz')});
     });
