@@ -87,9 +87,11 @@ describe('copyable execution trees', function(){
     });
     it.only('can be resumed after being cloned', function(){
       var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
+      var tmpEnvBuilder = function(){return tmpEnv;};
       var runner = new run.Runner({});
+      runner.setEnvBuilder(tmpEnvBuilder);
       runner.loadUserCode('(begin (defn foo 1) (foo))', tmpEnv);
-      assert.equal(true, runner.runABit(100));
+      assert.equal(false, runner.runABit(100));
       assert.deepEqual(runner.getState('foo').delegate.ast, ['foo']);
       runner.update('(begin (defn foo 2) (foo))');
       assert.deepEqual(runner.getState('foo').delegate.env.runner.funs.foo.body, 2);

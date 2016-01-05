@@ -25,7 +25,7 @@ describe('integration', function(){
     run.runWithDefn("(do (defn foo 1) (foo))");
   });
   it('and retrieve', function(){
-    run.runWithDefn("(do (defn foo 1) (foo))", buildEnv());
+    run.runWithDefn("(do (defn foo 1) (foo))", buildEnv);
   });
   it('global functions', function(){
     run.runWithDefn("\n"+
@@ -35,14 +35,14 @@ describe('integration', function(){
         "    (foo 1)                           \n"+
         "    (map foo (list 1 2 3))))          \n"+
         "  (main))",
-    buildEnv());
+    buildEnv);
   });
   it('browser bug?', function(){
     run.runWithDefn(
       "(do"+
       "(defn game (do "+
         '"game" "started"))'+
-      "(game))", buildEnv());
+      "(game))", buildEnv);
   });
 });
 
@@ -55,6 +55,8 @@ describe('interactive features', function(){
     var program = fs.readFileSync('savedscopebug.scm', {encoding: 'utf8'});
     var runner = new run.Runner({});
     var env = buildEnv();
+    var returnEnv = function(){ return env; };
+    runner.setEnvBuilder(returnEnv);
     env.define('c', 0);
     runner.loadUserCode(program, env);
     runner.runABit(100);

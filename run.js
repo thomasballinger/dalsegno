@@ -153,7 +153,7 @@
     }
     if (value.finished){
       console.log('finished!', value.value);
-      runner.finished = true;
+      this.finished = true;
       return false;
     }
     return true;
