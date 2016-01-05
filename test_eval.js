@@ -148,7 +148,7 @@ describe("Runner object", function(){
       assert.throws(function(){ runner.runLibraryCode('(defn foo 1)');}, /Runner doesn't allow named functions/);
       assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 2});
       runner.setEnvBuilder(tmpEnvBuilder);
-      runner.loadUserCode('(defn foo 1)', tmpEnv);
+      runner.loadUserCode('(defn foo 1)');
       assert.throws(function(){ runner.value(); }, /Runner doesn't allow named functions/);
       runner.funs = {};
       runner.value();
@@ -162,7 +162,7 @@ describe("Runner object", function(){
       var tmpEnvBuilder = function(){return tmpEnv;};
       var runner = new Runner({});
       runner.setEnvBuilder(tmpEnvBuilder);
-      runner.loadUserCode('(do (defn foo 1) (foo))', tmpEnv);
+      runner.loadUserCode('(do (defn foo 1) (foo))');
       assert.deepEqual(runner.value(), 1);
       assert.deepEqual(runner.value(), 1);
     });

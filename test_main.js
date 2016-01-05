@@ -58,7 +58,7 @@ describe('interactive features', function(){
     var returnEnv = function(){ return env; };
     runner.setEnvBuilder(returnEnv);
     env.define('c', 0);
-    runner.loadUserCode(program, env);
+    runner.loadUserCode(program);
     runner.runABit(100);
 
     env.set('c', 1);

@@ -78,19 +78,17 @@ describe('copyable execution trees', function(){
       runner.next();
       assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 1, c: 1});
       var old = runner.delegate;
-      var toUnpack = runner.copy();
-      var g = toUnpack[1];
-      runner.delegate = toUnpack[1];
+      runner.delegate = runner.copy().delegate;
       runner.next();
       assert.deepEqual(runner.next(), { value: 2, finished: true });
       assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 1, c: 1});
     });
-    it.only('can be resumed after being cloned', function(){
+    it('can be resumed after being cloned', function(){
       var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
       var tmpEnvBuilder = function(){return tmpEnv;};
       var runner = new run.Runner({});
       runner.setEnvBuilder(tmpEnvBuilder);
-      runner.loadUserCode('(begin (defn foo 1) (foo))', tmpEnv);
+      runner.loadUserCode('(begin (defn foo 1) (foo))');
       assert.equal(false, runner.runABit(100));
       assert.deepEqual(runner.getState('foo').delegate.ast, ['foo']);
       runner.update('(begin (defn foo 2) (foo))');
@@ -99,15 +97,16 @@ describe('copyable execution trees', function(){
       assert.deepEqual(runner.delegate.env.runner.funs['foo'].body, 2);
       assert.equal(2, runner.value());
       assert.deepEqual(runner.getState('foo').delegate.env.runner.funs.foo.body, 2);
-      //var g = new run.evalGen.StringLiteral('hi');
     });
     it('swapping out the delegate with restoreState results in old environment', function(){
       var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1}]);
+      var tmpEnvBuilder = function(){return tmpEnv;};
       var program = '(begin (defn main (do 1 2 (main))) (main))';
       var runner = new run.Runner({});
-      runner.loadUserCode(program, tmpEnv);
+      runner.setEnvBuilder(tmpEnvBuilder);
+      runner.loadUserCode(program);
       tmpEnv.scopes[1].a = 42;
-      var g = runner.copy()[1];
+      var g = runner.copy().delegate;
       tmpEnv.scopes[1].a = 9000;
       assert.deepEqual(g.env.scopes[1].a, 42);
       runner.delegate = g;
@@ -117,25 +116,17 @@ describe('copyable execution trees', function(){
     });
     it('should deepcopy the environment of functions', function(){
       var funs = {};
-      var tmpEnv = new run.Environment([{}, {a: 1}], funs);
+      var tmpEnv = new run.Environment([{}, {a: 1}]);
       var func = new parse.Function([1], [], tmpEnv, 'main');
-      funs['main'] = func;
 
-      var runner = new run.Runner(null);
+      var runner = new run.Runner(funs);
       runner.loadCode('(1)', tmpEnv);
-      var g = runner.copy()[1];
+      tmpEnv.runner = runner;
+      tmpEnv.setFunction('main', func);
+
+      var newfuns = runner.copy().funs;
       func.env.scopes[1].a = 42;
-      //console.log(func)
-      //console.log(g.env.funs['main']);
-      assert.deepEqual(g.env.funs['main'].env.scopes[1].a, 1);
-
-      // The problem seems to be that WHEN YOU LOOK UP THE FUNCTION, it has the
-      // old environment in it. I think functions are being redefined with new environments
-      // and that's affecting the old function copies somehow.
-      // Maybe we aren't deepcopying the environment in function objects?
+      assert.deepEqual(newfuns['main'].env.scopes[1].a, 1);
     });
-
-    // Only a problem with functions that are defined over and over I think.
-    // Functions that are defined again, we seem to get o
   });
 });

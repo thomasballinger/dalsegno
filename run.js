@@ -37,15 +37,15 @@
       return env;
     };
   };
-  Runner.prototype.loadUserCode = function(s, env){
+  Runner.prototype.loadUserCode = function(s){
+    if (arguments.length > 1){
+      throw Error("loadUserCode no longer accepts an environment");
+    }
     if (this.funs === null){
       console.log('warning: maybe you wanted to set up a function dictionary on the runner before running user code?');
     }
     if (s === undefined){
       throw Error("Specify program to load");
-    }
-    if (env === undefined){
-      env = new Environment([{}]);
     }
     this.ast = parse(s);
     this.oldFunctions = parse.findFunctions(this.ast);
@@ -171,7 +171,6 @@
   };
   Runner.prototype.restoreState = function(name){
     var state = deepCopy(this.savedStates[name]);
-    console.log(state);
     this.counter = state.counter;
     this.delegate = state.delegate;
     this.funs = state.funs;
@@ -201,7 +200,7 @@
   function runWithDefn(s, envBuilder){
     var runner = new Runner({});
     runner.setEnvBuilder(envBuilder)
-    runner.loadUserCode(s, runner.envBuilder());
+    runner.loadUserCode(s);
     return runner.value();
   }
 
