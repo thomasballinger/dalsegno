@@ -30,7 +30,7 @@
     if (callback === undefined){
       callback = function(){ return new Environment([{}]); };
     }
-    self = this;
+    var self = this;
     this.envBuilder = function(){
       var env = callback();
       env.runner = self;
@@ -198,9 +198,10 @@
     return runner.value();
   }
 
-  function runWithDefn(s, env){
+  function runWithDefn(s, envBuilder){
     var runner = new Runner({});
-    runner.loadUserCode(s, env);
+    runner.setEnvBuilder(envBuilder)
+    runner.loadUserCode(s, runner.envBuilder());
     return runner.value();
   }
 
