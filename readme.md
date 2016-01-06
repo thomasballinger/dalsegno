@@ -1,11 +1,10 @@
 #Dal Segno
 
-Write games, see your changes immediately
-
-Every time you change your code, Dal Segno rewinds your game
+Write games, see your changes immediately:
+every time you change your code, Dal Segno rewinds your game
 back to the last time that piece of code was run.
 
-[live site](http://dalsegno.ballingt.com/)
+[live demo](http://dalsegno.ballingt.com/)
 
 #Language
 
@@ -36,19 +35,19 @@ Only one expression is allowed in a program.
 * (**lambda** [*parameter1*...] *expression*)
 * (**defn** *name* [*parameter1*...] *expression*)
 
-*defn* expressions work update a global table of named functions in addition to
+*defn* expressions update a global table of named functions in addition to
 evaluating to a function.
 
 ### API
 
-Identifier lookup checks the local namespace, then outer scopes.
-Next is the standard library and builtin functions:
+Identifier lookup checks the local scope, outer scopes, then
+the standard library and builtin functions:
 
 * standard library - written in this this language and can be stepped through
   * (map *func* *array*)
   * (reduce *func* *array* *initial*)
   * (filter *func* *array*)
-* builtins
+* builtins - written in JavaScript and execute in a single tick
   * (display *expr* [...]) - just (`console.log(args)`)
   * binary operators (prefix notation, like `(+ 2 2)`)
   * boolean logic
@@ -137,7 +136,10 @@ Ideas for improvements
   currently happen at runtime)
 * vary speed in runner to achieve constant fps
 * button to restore source to last parsable state
+* buttons for step evaluation
 * inline documentation viewer
+* prettier error message display
+* write a virtual machine instead of using generators
 * language changes
   * group args in defns and lambdas
   * implicit do blocks everywhere (allow multiple expressions)
@@ -151,8 +153,6 @@ Ideas for improvements
   * Lisp 2 (have to use apply for first element of a form to be dynamically
     evaluated) for easier compile-time arity checking
   * parens after function calls
-* design
-  * Prettier error message display
 
 # Motivation
 
