@@ -161,7 +161,7 @@
     },
     'jsSet': function(obj, prop, value){
       if (obj === undefined || prop === undefined || value === undefined){
-        throw Error("jsGet needs three arguments");
+        throw Error("jsSet needs three arguments");
       }
       obj[prop] = value;
     },
