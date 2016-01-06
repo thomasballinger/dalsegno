@@ -7,37 +7,20 @@ back to the last time that piece of code was run.
 
 [live site](http://dalsegno.ballingt.com/)
 
-
-
-For something more polished, see Mary's [Code Lauren](http://codelauren.com/)
-project.
-
-
 #Language
 
+It's sort of like Scheme.
 Only one expression is allowed in a program.
 
-##Keywords
-* (**do** *expr1* [*expr2...*])
-* (**if** *cond* *then* [*else*])
-* (**define** *name* *expression*)
-* (**set!** *name* *expression*)
-* (**lambda** [*parameter1*...] *expression*)
-* (**defn** *name* [*parameter1*...] *expression*)
-
-defn expressions work update a global table of named functions in addition to
-evaluating to a function.
-
-## Example
+### Example
 
     (do                       ;semicolons make the rest of a line a comment
-      (define x 10)           ;creates function definitions
+      (define x 10)           ;defines a new variable x and sets to 10
       (defn recur             ;named function definitions are global
         (do                   ;do blocks allow multiple expressions
           (color x 200 200)   ;sets the color to be used
                               ;for future draw operations
           (drawArc 300 x 111) ;queues a circle to be drawn
-
           (render)            ;actually paints queued drawings
           (set! x (+ x .01))  ;change var wherever it was defined
           (if (> x 300)       ;you've got if, set!, define, defn,
@@ -45,22 +28,32 @@ evaluating to a function.
           (recur)))           ;no loop constructs - you have to recur!
       (recur))
 
-## API
+###Keywords
+* (**do** *expr1* [*expr2...*])
+* (**if** *cond* *then* [*else*])
+* (**define** *name* *expression*)
+* (**set!** *name* *expression*)
+* (**lambda** [*parameter1*...] *expression*)
+* (**defn** *name* [*parameter1*...] *expression*)
+
+*defn* expressions work update a global table of named functions in addition to
+evaluating to a function.
+
+### API
 
 Identifier lookup checks the local namespace, then outer scopes.
 Next is the standard library and builtin functions:
 
-* stdlib - written in this this language and can be stepped through
-  * map *
-  * reduce
-  * filter
-
-* builtins - these are uninterruptable
-  * (display *expr* [...]) - just (`console.log(args))
+* standard library - written in this this language and can be stepped through
+  * (map *func* *array*)
+  * (reduce *func* *array* *initial*)
+  * (filter *func* *array*)
+* builtins
+  * (display *expr* [...]) - just (`console.log(args)`)
   * binary operators (prefix notation, like `(+ 2 2)`)
   * boolean logic
     * (and *e1* *e2*)
-    * (or *e1* *e2)
+    * (or *e1* *e2*)
     * (not *expr*)
     * (any [*expr*...])
   * list operations
@@ -85,14 +78,13 @@ Next is the standard library and builtin functions:
   * JavaScript interop
     * (jsGet *obj* *prop*)
     * (jsSet *obj* *prop* *value*)
-
 * mouseTracker
   * (mousex) - horizontal position from the left
   * (mousey) - vertical position from the top
   * (mousepos) - list of [x, y]
 * drawHelpers
   * (color *r* *g* *b*)
-  * (render) - runs queued drawing events
+  * (render) - runs queued canvas context drawing procedures
   * (drawText *x* *y* [*text*...])
   * (drawPoly *x* *y* *list-of-x-y-pairs* *heading-in-degrees*])
   * (drawInverseCircle *x* *y* *radius*)
@@ -102,17 +94,20 @@ JavaScript objects. If the found value is a function, a version of
 it bound to the object it was looked up on is returned.
 e.g. `log` -> `console.log.bind(console)`
 
-* main canvas context
-* main canvas
-* console
-* window
+* main lazy canvas context which is similar to a [CanvasRenderingContext2d](
+  https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D)
+  but rendering does not occur until `render` is called. This is where
+  drawing functions like `(fillRect x y width height)` come from.
+* main [canvas](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement)
+* [console](https://developer.mozilla.org/en-US/docs/Web/API/Console)
+* [window](https://developer.mozilla.org/en-US/docs/Web/API/Window)
 
 # Development
 
-To run the code locally, run make then run a static file server:
+To run the code locally, run make to download a dependency then run a static file server:
 
     make
-    python3 -m http.server
+    python3 -m http.server 8000  # or any other static file server
 
 then open localhost:8000 in a webbrowser.
 
@@ -122,8 +117,17 @@ To run the tests, install mocha and chai and run mocha on the tests:
     npm install chai
     mocha test*
 
-There's currently no build process, so JavaScript code
-is limited to features that most browsers understand.
+There's currently no build process, so no need for gulp/grunt yet.
+There's also no module system, so code using this pattern to work
+both in the browser and node:
+
+    if (typeof exports !== 'undefined') {
+      if (typeof module !== 'undefined' && module.exports) {
+        exports = module.exports = LazyCanvasCtx;
+      }
+    } else {
+      window.LazyCanvasCtx = LazyCanvasCtx;
+    }
 
 Ideas for improvements
 
@@ -147,3 +151,11 @@ Ideas for improvements
   * Lisp 2 (have to use apply for first element of a form to be dynamically
     evaluated) for easier compile-time arity checking
   * parens after function calls
+* design
+  * Prettier error message display
+
+# Motivation
+
+I wrote this to play with interpreters and so I could be informed as
+I talked to [Mary Rose Cook](http://maryrosecook.com/) about her
+[Code Lauren](http://codelauren.com/) project.
