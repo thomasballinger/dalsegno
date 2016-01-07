@@ -12,16 +12,18 @@ It's sort of like Scheme.
 Only one expression is allowed in a program.
 
 ### Example
-
     (do                       ;semicolons make the rest of a line a comment
       (define x 10)           ;defines a new variable x and sets to 10
       (defn recur             ;named function definitions are global
         (do                   ;do blocks allow multiple expressions
-          (color x 200 200)   ;sets the color to be used
+          (color 100 200 100) ;sets the color to be used
                               ;for future draw operations
+          (fillRect 0 0 width height) ;this is the canvas
+                              ;context drawing operation
+          (color 0 0 230)   
           (drawArc 300 x 111) ;queues a circle to be drawn
           (render)            ;actually paints queued drawings
-          (set! x (+ x .01))  ;change var wherever it was defined
+          (set! x (+ x .1))   ;change var wherever it was defined
           (if (> x 300)       ;you've got if, set!, define, defn,
               (set! x 0))     ;and lambda - that's it for special forms
           (recur)))           ;no loop constructs - you have to recur!
