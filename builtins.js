@@ -18,7 +18,7 @@
     '/': function(a, b){ return a / b; },
     '%': function(a, b){
       if (!(a % 1 === 0)){
-        throw Error('first modulus argument not an integer: '+b);
+        throw Error('first modulus argument not an integer: '+a);
       }
       if (!(b % 1 === 0)){
         throw Error('second modulus argument not an integer: '+b);
