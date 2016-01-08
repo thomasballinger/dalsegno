@@ -31,11 +31,11 @@ Only one expression is allowed in a program.
 
 ###Keywords
 * (**do** *expr1* [*expr2...*])
-* (**if** *cond* *then* [*else*])
-* (**define** *name* *expression*)
-* (**set!** *name* *expression*)
-* (**lambda** [*parameter1*...] *expression*)
-* (**defn** *name* [*parameter1*...] *expression*)
+* (**if** *cond* *expr1* [*expr2*])
+* (**define** *name* *expr*)
+* (**set!** *name* *expr*)
+* (**lambda** [*param*...] *expr*)
+* (**defn** *name* [*param1*...] *expr*)
 
 *defn* expressions update a global table of named functions in addition to
 evaluating to a function.
