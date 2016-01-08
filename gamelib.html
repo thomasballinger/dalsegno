@@ -232,13 +232,18 @@ function getParameterByName(name) {
 
   var errorbar = document.getElementById('errorbar');
 
-  var errback = function(e){ errorbar.innerText = ''+e; errorbar.classList.remove('is-hidden');}
-  var clearError = function(){ errorbar.classList.add('is-hidden'); }
+  var errback = function(e){
+    errorbar.innerText = ''+e;
+    errorbar.classList.remove('is-hidden');
+  }
+  var clearError = function(){
+    errorbar.classList.add('is-hidden');
+  }
 
   var runABit = function(){
-    clearError()
     var s = editor.getValue();
     if (shouldReload){
+      clearError()
       shouldReload = false;
       if (parse.safelyParses(s, errback)){
         runner.update(s);
