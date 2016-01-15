@@ -1,0 +1,14 @@
+{
+  "name": "dalsegno",
+  "version": "0.1.0",
+  "devDependencies": {
+    "chai": "^3.2.0"
+  },
+  "scripts": {
+    "test": "mocha test*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomasballinger/dalsegno.git"
+  }
+}
