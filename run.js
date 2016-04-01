@@ -201,14 +201,14 @@
 
   function runWithDefn(s, envBuilder){
     var runner = new Runner({});
-    runner.setEnvBuilder(envBuilder)
+    runner.setEnvBuilder(envBuilder);
     runner.loadUserCode(s);
     return runner.value();
   }
 
   function Environment(scopes, runner){
     if (scopes === undefined){
-      scopes = [{}];
+      scopes = [Immutable.Map()];
     }
     if (runner && runner.constructor !== Runner){
       throw Error("Environment constructed with bad runner argument: ", runner);
@@ -219,7 +219,12 @@
 
   Environment.prototype.lookup = function(key){
     for (var i = this.scopes.length - 1; i >= 0; i--){
-      var val = this.scopes[i][key];
+      var val;
+      if (Immutable.Map.isMap(this.scopes[i])){
+        val = this.scopes[i].get(key);
+      } else {
+        val = this.scopes[i][key];
+      }
       if (val !== undefined){
         if (typeof val === 'function'){
           return val.bind(this.scopes[i]);
@@ -234,7 +239,12 @@
   };
   Environment.prototype.set = function(key, value){
     for (var i = this.scopes.length - 1; i >= 0; i--){
-      if (this.scopes[i].hasOwnProperty(key)){
+      if (Immutable.Map.isMap(this.scopes[i])){
+        if (this.scopes[i].has(key)){
+          this.scopes[i] = this.scopes[i].set(key, value);
+          return value;
+        }
+      } else if (this.scopes[i].hasOwnProperty(key)){
         this.scopes[i][key] = value;
         return value;
       }
@@ -245,7 +255,11 @@
     throw Error("Name '"+key+"' not found in environment"+this);
   };
   Environment.prototype.define = function(name, value){
-    this.scopes[this.scopes.length - 1][name] = value;
+    var scope = this.scopes[this.scopes.length - 1];
+    if (!Immutable.Map.isMap(scope)){
+      throw Error("Innermost scope isn't an immutable map somehow:"+typeof scope + ':'+scope+Object.keys(scope));
+    }
+    this.scopes[this.scopes.length - 1] = scope.set(name, value);
   };
   Environment.prototype.setFunction = function(name, func){
     if (this.runner === null){
@@ -273,7 +287,7 @@
     if (scope === undefined){
       throw Error('Supply a scope!');
     }
-    return new Environment(this.scopes.concat([scope]), this.runner);
+    return new Environment(this.scopes.concat([Immutable.Map(scope)]), this.runner);
   };
   Environment.prototype.toString = function(){
     var s = '<Environment: ';

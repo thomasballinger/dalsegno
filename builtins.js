@@ -1,7 +1,18 @@
 ;(function() {
   'use strict';
 
-  var builtins = {
+  var require;
+  if (typeof window === 'undefined') {
+    require = module.require;
+  } else {
+    require = function(name){
+      var realname = name.match(/(\w+)[.]?j?s?$/)[1];
+      return window[realname];
+    };
+  }
+  var Immutable = require('./Immutable.js');
+
+  var builtins = Immutable.Map({
     '+': function(){
       return Array.prototype.slice.call(arguments).reduce(function(a, b){
         return a + b;
@@ -171,8 +182,7 @@
       }
       return val;
     }
-
-  };
+  });
 
   builtins.builtins = builtins;
 

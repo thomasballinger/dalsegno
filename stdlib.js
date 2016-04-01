@@ -15,9 +15,9 @@
 
   var builtins = require('./builtins.js');
   var run = require('./run');
+  var Immutable = require('./Immutable');
 
-  var stdlib = {};
-  var env = new run.Environment([builtins, stdlib], null);
+  var env = new run.Environment([builtins, Immutable.Map()], null);
 
   // Use lambdas so snapshots aren't tracked of them
   // Don't create any funs here! They won't work.
@@ -42,7 +42,8 @@
       "      (prepend (func (first arr)) (map func (rest arr))))))",
       env);
 
-  stdlib.stdlib = stdlib;
+
+  var stdlib = env.scopes[1];
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

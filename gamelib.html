@@ -191,7 +191,11 @@ function getParameterByName(name) {
 
   var updateUrl = function(){
     var encoded = encodeURI(editor.getValue());
-    history.replaceState({}, "", "?code="+encoded);
+    try {
+      history.replaceState({}, "", "?code="+encoded);
+    }catch(e){
+      console.log('failed to change url');
+    }
   };
 </script>
 
@@ -213,7 +217,7 @@ function getParameterByName(name) {
 <script src="LazyCanvasCtx.js"></script>
 <script src="DrawHelpers.js"></script>
 <script>
-  var DEBUGMODE = false;
+  var DEBUGMODE = true;
 
   var shouldReload = true; // on next tick, reload the program
   var currentlyRunning = false; // if not, change event needs to kick off runner
@@ -223,7 +227,7 @@ function getParameterByName(name) {
   var drawHelpers = new DrawHelpers(lazyCanvasCtx, document.getElementById('canvas'));
   var envBuilder = function(){
     return new run.Environment([
-      window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, keyboardTracker, builtins, stdlib, {}]);
+      window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, keyboardTracker, builtins, stdlib, Immutable.Map()]);
   };
   var runner = new run.Runner({});
   runner.setEnvBuilder(envBuilder);
