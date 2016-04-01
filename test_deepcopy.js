@@ -5,6 +5,7 @@ var assert = chai.assert;
 var deepCopy = require('./deepcopy.js');
 var run = require('./run');
 var parse = require('./parse');
+var Immutable = require('./Immutable');
 
 function removeIds(obj){
   if (obj === undefined){return;}
@@ -64,6 +65,12 @@ describe('copyable execution trees', function(){
       var copy = deepCopy.copiers.EvalObject.create(g);
       assert.strictEqual(test.__proto__, g.__proto__);
       assert.strictEqual(copy.__proto__, g.__proto__);
+    });
+  });
+  describe('immutable', function(){
+    it('passes immutable.js objects through', function(){
+      var a = Immutable.Map({name: 'hi'});
+      assert.strictEqual(a, deepCopy(a));
     });
   });
   describe('runner makes copies', function(){
