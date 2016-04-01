@@ -31,80 +31,80 @@
     'or': function(a, b){ return a || b; },
     'and': function(a, b){ return a && b; },
     'not': function(x){return !x;},
-    'list': function(){ return Array.prototype.slice.call(arguments); },
+    'list': function(){ return Immutable.List(Array.prototype.slice.call(arguments)); },
     'any': function(arr){
-      if(!Array.isArray(arr)){
-        throw Error("argument to any is not an array: "+arr);
+      if(!Immutable.List.isList(arr)){
+        throw Error("argument to any is not a list: "+arr);
       }
-      for (var i = 0; i < arr.length; i++){
-        if (arr[i]){
+      for (var i = 0; i < arr.count(); i++){
+        if (arr.get(i)){
           return true;
         }
       }
       return false;
     },
     'nth': function(i, arr){
-      if(!Array.isArray(arr)){
-        throw Error("second argument to nth is not an array: "+arr);
+      if(!Immutable.List.isList(arr)){
+        throw Error("second argument to any is not a list: "+arr);
       }
-      if(i>=arr.length){
+      if(i>=arr.count()){
         throw Error("Index error: "+i+" "+array);
       }
-      return arr[i];
+      return arr.get(i);
     },
     'first': function(arr){
-      if(!Array.isArray(arr)){
-        throw Error("argument to first is not an array: "+arr);
+      if(!Immutable.List.isList(arr)){
+        throw Error("argument to first is not a list: "+arr);
       }
-      if(arr.length < 1){
+      if(arr.count() < 1){
         throw Error("Index error: "+0+" "+array);
       }
-      return arr[0];
+      return arr.first();
     },
     'last': function(arr){
-      if(!Array.isArray(arr)){
-        throw Error("argument to last is not an array: "+arr);
+      if(!Immutable.List.isList(arr)){
+        throw Error("argument to last is not a list: "+arr);
       }
-      if(arr.length < 1){
+      if(arr.count() < 1){
         throw Error("called last on empty list: "+arr);
       }
-      return arr[arr.length - 1];
+      return arr.get(arr.count() - 1);
     },
     'rest': function(arr){
-      if(!Array.isArray(arr)){
+      if(!Immutable.List.isList(arr)){
         throw Error("Index error: "+i+" "+arr);
       }
-      return arr.slice(1);
+      return arr.rest();
     },
     'concat': function(){
       var args = Array.prototype.slice.call(arguments);
-      for (var i = 0; i++; i<list.length){
-        if (!Array.isArray(list[i])){
-          throw Error("Concat arguments are not all arrays: "+list[i]);
+      for (var i = 0; i++; i<list.count()){
+        if (!Immutable.List.isList(list[i])){
+          throw Error("Concat arguments are not all lists: "+list[i]);
         }
       }
-      return [].concat.apply([], args);
+      return Immutable.List.concat.apply([], args);
     },
     'append': function(arr, item){
-      if (!Array.isArray(arr)){
-        throw Error("append first arg is not an array: "+JSON.stringify(arr));
+      if (!Immutable.List.isList(arr)){
+        throw Error("append first arg is not a list: "+JSON.stringify(arr));
       }
-      return arr.concat([item]);
+      return arr.push(item);
     },
     'prepend': function(item, arr){
-      if (!Array.isArray(arr)){
-        throw Error("prepend second arg is not an array: "+JSON.stringify(arr));
+      if (!Immutable.List.isList(arr)){
+        throw Error("prepend second arg is not a list: "+JSON.stringify(arr));
       }
-      return [item].concat(arr);
+      return arr.unshift(item);
     },
     'dist': function(p1, p2, x2, y2){
       // works with 2 or 4 arguments
       var x1, y1;
       if (x2 === undefined && y2 === undefined) {
-        x1 = p1[0];
-        y1 = p1[1];
-        x2 = p2[0];
-        y2 = p2[1];
+        x1 = p1.get(0);
+        y1 = p1.get(1);
+        x2 = p2.get(0);
+        y2 = p2.get(1);
       } else {
         x1 = p1;
         y1 = p2;
@@ -112,10 +112,10 @@
       return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
     },
     'length': function(arr){
-      if (!Array.isArray(arr)){
-        throw Error("length arg is not an array: "+arr);
+      if (!Immutable.List.isList(arr)){
+        throw Error("length arg is not a list: "+arr);
       }
-      return arr.length;
+      return arr.count();
     },
     'randint': function(lower, upper){
       if (lower === undefined){
@@ -131,20 +131,16 @@
       if (n === undefined){
         throw Error("range called with no arguments");
       }
-      var arr = [];
-      for (var i = 0; i < n; i++){
-        arr.push(i);
-      }
-      return arr;
+      return Immutable.List(Immutable.Range(0, n));
     },
     'towards': function(p1, p2, x2, y2){
       // works with 2 or 4 arguments
       var x1, y1;
       if (x2 === undefined && y2 === undefined) {
-        x1 = p1[0];
-        y1 = p1[1];
-        x2 = p2[0];
-        y2 = p2[1];
+        x1 = p1.get(0);
+        y1 = p1.get(1);
+        x2 = p2.get(0);
+        y2 = p2.get(1);
       } else {
         x1 = p1;
         y1 = p2;

@@ -33,10 +33,10 @@
   };
   DrawHelpers.prototype.drawPoly = function(x, y, points, h){
     points = points.map(function(arr){
-      var dx = arr[0], dy = arr[1];
+      var dx = arr.get(0), dy = arr.get(1);
       return [x + dx * Math.cos(h * Math.PI / 180) - dy * Math.sin(h * Math.PI / 180),
               y + dx * Math.sin(h * Math.PI / 180) + dy * Math.cos(h * Math.PI / 180)];
-    });
+    }).toArray();
     this.ctx.beginPath();
     this.ctx.moveTo(points[0][0], points[0][1]);
     for (var i = 1; i < points.length; i++){
