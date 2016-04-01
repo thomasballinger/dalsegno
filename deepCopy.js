@@ -7,6 +7,16 @@
 ;(function() {
   'use strict';
 
+  if (typeof window === 'undefined') {
+    var require = module.require;
+  } else {
+    var require = function(name){
+      var realname = name.match(/(\w+)[.]?j?s?$/)[1];
+      return window[realname];
+    };
+  }
+  var Immutable = require('./Immutable');
+
   var _numObjects = 0;
   function objectId(obj) {
     if (typeof obj !== 'object' || obj === null){
@@ -41,7 +51,14 @@
     create: function(obj){ return obj; },
     populate: function(obj){ return; }
   };
-
+  var immutableCopier = {
+    name: 'Immutable',
+    canCopy: function(obj){
+      return Immutable.Iterable.isIterable(obj)
+    },
+    create: function(obj){ return obj; },
+    populate: function(obj){ return; }
+  };
   var copiers = {
     'Array': {
       canCopy: function(obj){ return Array.isArray(obj); },
@@ -177,6 +194,7 @@
       throw Error("Need to pass second argument to deepCopy");
     }
     if (passthroughCopier.canCopy(x)){ return x; }
+    if (immutableCopier.canCopy(x)){ return x; }
 
     var id = objectId(x);
     var copy = memo[id];
