@@ -1,16 +1,18 @@
 ;(function() {
   'use strict';
 
+  var require;
   if (typeof window === 'undefined') {
-    var require = module.require;
+    require = module.require;
   } else {
-    var require = function(name){
+    require = function(name){
       var realname = name.match(/(\w+)[.]?j?s?$/)[1];
       return window[realname];
     };
   }
   var parse = require('./parse.js');
   var deepCopy = require('./deepCopy.js');
+  var Immutable = require('./Immutable.js');
 
   function Runner(funs){
     if (funs === undefined){
@@ -395,7 +397,7 @@
   Lookup.prototype = new BaseEval();
   Lookup.prototype.constructor = Lookup;
   Lookup.prototype.next = function(){
-    return {value: this.env.lookup(this.ast), finished: true}
+    return {value: this.env.lookup(this.ast), finished: true};
   };
 
   function SetBang(ast, env){
@@ -409,7 +411,7 @@
   SetBang.prototype.next = function(){
     if (this.delegate === null){
       this.delegate = evalGen(this.ast[2], this.env);
-      return {value: null, finished: false}
+      return {value: null, finished: false};
     } else {
       if (this.isFinished(this.delegate)) {
         this.env.set(this.ast[1], this.values[0]);
