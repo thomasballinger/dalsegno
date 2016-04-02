@@ -132,6 +132,7 @@ both in the browser and node:
 
 Ideas for improvements
 
+* include line numbers in parse tree
 * use immutable data structures for cheaper copies
 * bytecode
 * test and document keypress handler (keyPressed key from KeyboardTracker)

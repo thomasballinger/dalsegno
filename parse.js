@@ -123,7 +123,7 @@
   function findFunctions(ast){
     // Return new Function objects that we'll swap out
     // Function objects will have environments of null
-    // 
+    //
     // By default will count the top level function as its own
     var funcs = {};
     if (!Array.isArray(ast)){

@@ -2,22 +2,24 @@
 var chai = require('chai');
 var assert = chai.assert;
 
-var tokenize = require('./parse.js').tokenize;
-var parse = require('./parse.js').parse;
+
+var parse = require('./newparse.js').parse;
+var tokenize = parse.tokenize;
+var jc = parse.justContent;
 
 describe('parse', function(){
   describe('tokenize', function(){
     it('should tokenize simple literals', function(){
-      assert.deepEqual(tokenize('+'), ['+']);
-      assert.deepEqual(tokenize('1.2'), ['1.2']);
-      assert.deepEqual(tokenize('2'), ['2']);
-      assert.deepEqual(tokenize('"asdf"'), ['"asdf"']);
+      assert.deepEqual(jc(tokenize('+')), ['+']);
+      assert.deepEqual(jc(tokenize('1.2')), ['1.2']);
+      assert.deepEqual(jc(tokenize('2')), ['2']);
+      assert.deepEqual(jc(tokenize('"asdf"')), ['"asdf"']);
     });
     it('should tokenize nested structures', function(){
-      assert.deepEqual(tokenize('("asdf")'), ["(", '"asdf"', ")"]);
-      assert.deepEqual(tokenize('(+ 1 2)'), ["(", "+", "1", "2", ")"]);
-      assert.deepEqual(tokenize('(+ (thing 1 2))'), ["(", "+", "(", "thing", "1", "2", ")", ")"]);
-      assert.deepEqual(tokenize('(+ (thing 1 2) (other 3 4))'),
+      assert.deepEqual(jc(tokenize('("asdf")')), ["(", '"asdf"', ")"]);
+      assert.deepEqual(jc(tokenize('(+ 1 2)')), ["(", "+", "1", "2", ")"]);
+      assert.deepEqual(jc(tokenize('(+ (thing 1 2))')), ["(", "+", "(", "thing", "1", "2", ")", ")"]);
+      assert.deepEqual(jc(tokenize('(+ (thing 1 2) (other 3 4))')),
                    ['(', '+', '(', 'thing', '1', '2', ')', '(', 'other', '3', '4', ')', ')']);
     });
     /*
@@ -28,11 +30,11 @@ describe('parse', function(){
   });
   describe('parse', function(){
     it('should parse nested forms', function(){
-      assert.deepEqual(parse('(+ (thing 1 2) (other 3 "4"))'),
+      assert.deepEqual(jc(parse('(+ (thing 1 2) (other 3 "4"))')),
                        ['+', ['thing', 1, 2], ['other', 3, '"4"']])
     });
     it('should return throw an error when parse fails', function(){
-      assert.deepEqual(parse('(+ 1 2)'), ['+', 1, 2]);
+      assert.deepEqual(jc(parse('(+ 1 2)')), ['+', 1, 2]);
       assert.throw(function(){parse('(+ 1 2');}, Error);
       assert.throw(function(){parse('+ 1 2)');}, Error);
     });
@@ -41,11 +43,19 @@ describe('parse', function(){
     it('should build a function object', function(){
       var ast = parse('(defn foo 1)');
       var functions = parse.findFunctions(ast);
+      Object.keys(functions).forEach(function(name){
+        functions[name].body = jc(functions[name].body);
+        functions[name].params = jc(functions[name].params);
+      });
       assert.deepEqual(functions, {'foo': new parse.Function(1, [], null, 'foo')});
     });
     it('should return a hash of all defn asts', function(){
       var ast = parse('(do (defn foo 1) (defn bar x (do (defn baz x) (defn qux 2))))');
       var functions = parse.findFunctions(ast);
+      Object.keys(functions).forEach(function(name){
+        functions[name].body = jc(functions[name].body);
+        functions[name].params = jc(functions[name].params);
+      });
       assert.deepEqual(functions, {'foo': new parse.Function(1, [], null, 'foo'),
                                    'bar': new parse.Function(
                   ['do',
@@ -62,7 +72,8 @@ describe('parse', function(){
       var functions1 = parse.findFunctions(ast1);
       var functions2 = parse.findFunctions(ast2);
       var changedFunctions = parse.diffFunctions(functions1, functions2);
-      assert.deepEqual(changedFunctions, {'baz': new parse.Function('y', [], null, 'baz')});
+      assert.deepEqual(Object.keys(changedFunctions), ['baz']);
+      assert.deepEqual(jc(changedFunctions['baz'].body), 'y');
     });
     it('should return only functions that have themselves changed', function(){
       var ast1 = parse('(defn bar x (do (defn baz x) (defn qux 2)))');
@@ -71,7 +82,8 @@ describe('parse', function(){
       var functions2 = parse.findFunctions(ast2);
       assert.isFalse(functions1['bar'].diffExceptDefnBodies(functions2['bar']));
       var changedFunctions = parse.diffFunctions(functions1, functions2);
-      assert.deepEqual(changedFunctions, {'baz': new parse.Function('y', [], null, 'baz')});
+      assert.deepEqual(Object.keys(changedFunctions), ['baz']);
+      assert.deepEqual(jc(changedFunctions['baz'].body), 'y');
     });
   });
 });
