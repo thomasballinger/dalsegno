@@ -227,7 +227,7 @@ function getParameterByName(name) {
   var drawHelpers = new DrawHelpers(lazyCanvasCtx, document.getElementById('canvas'));
   var envBuilder = function(){
     return new run.Environment([
-      window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, keyboardTracker, builtins, stdlib, Immutable.Map()]);
+    window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, keyboardTracker, new run.Scope(builtins), new run.Scope(stdlib), new run.Scope()]);
   };
   var runner = new run.Runner({});
   runner.setEnvBuilder(envBuilder);

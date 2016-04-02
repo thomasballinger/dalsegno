@@ -164,12 +164,9 @@
               copy.scopes = [];
               for (var i = 0; i < obj.scopes.length; i++){
                 if (obj.scopes[i].constructor === Object){
-                  var scope = {};
-                  for (var prop in obj.scopes[i]){
-                    // values of symbols are never mutated
-                    // so a shallow copy should be ok!
-                    scope[prop] = obj.scopes[i][prop];
-                  }
+                  throw Error('Environment should not have simple objects as scopes');
+                } else if (obj.scopes[i].constructor.name === 'Scope') {
+                  var scope = obj.scopes[i].copy(); // this should be cheap
                 } else {
                   // window and other non-object literals
                   var scope = obj.scopes[i];

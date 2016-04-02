@@ -30,7 +30,7 @@
   Runner.prototype = new BaseEval();
   Runner.prototype.setEnvBuilder = function(callback){
     if (callback === undefined){
-      callback = function(){ return new Environment([{}]); };
+      callback = function(){ return new Environment([new Scope()]); };
     }
     var self = this;
     this.envBuilder = function(){
@@ -63,7 +63,7 @@
       throw Error("Library code can only be run with a runner not allowing defns");
     }
     if (env === undefined){
-      env = new Environment([{}]);
+      env = new Environment([new Scope()]);
     }
     env.runner = this;
     this.ast = parse(s);
@@ -206,9 +206,29 @@
     return runner.value();
   }
 
+  function Scope(im){
+    if (im === undefined){
+      im = Immutable.Map();
+    }
+    if (!Immutable.Map.isMap(im)){
+      console.log(im);
+      throw Error('Scopes should be made with immutable maps');
+    }
+    this.data = im;
+  }
+  Scope.prototype.copy = function(){
+    var s = new Scope(this.data);
+  };
+
   function Environment(scopes, runner){
     if (scopes === undefined){
-      scopes = [Immutable.Map()];
+      scopes = [new Scope()];
+    }
+    for (var scope of scopes){
+      if (scope.constructor === Object){
+        console.log(scope);
+        throw ('Environment constructed with non-scope args!');
+      }
     }
     if (runner && runner.constructor !== Runner){
       throw Error("Environment constructed with bad runner argument: ", runner);
@@ -220,8 +240,8 @@
   Environment.prototype.lookup = function(key){
     for (var i = this.scopes.length - 1; i >= 0; i--){
       var val;
-      if (Immutable.Map.isMap(this.scopes[i])){
-        val = this.scopes[i].get(key);
+      if (this.scopes[i].constructor === Scope){
+        val = this.scopes[i].data.get(key);
       } else {
         val = this.scopes[i][key];
       }
@@ -239,27 +259,28 @@
   };
   Environment.prototype.set = function(key, value){
     for (var i = this.scopes.length - 1; i >= 0; i--){
-      if (Immutable.Map.isMap(this.scopes[i])){
-        if (this.scopes[i].has(key)){
-          this.scopes[i] = this.scopes[i].set(key, value);
+      if (this.scopes[i].constructor === Scope){
+        if (this.scopes[i].data.has(key)){
+          this.scopes[i].data = this.scopes[i].data.set(key, value);
           return value;
         }
       } else if (this.scopes[i].hasOwnProperty(key)){
-        this.scopes[i][key] = value;
-        return value;
+        throw Error("Name '"+key+"' is in a special scope, so you can't change it");
       }
     }
     if (this.funs.hasOwnProperty(key)){
-      throw Error("Name '"+key+"' is in global functions, so can't change it");
+      throw Error("Name '"+key+"' is in global functions, so you can't change it");
     }
     throw Error("Name '"+key+"' not found in environment"+this);
   };
   Environment.prototype.define = function(name, value){
     var scope = this.scopes[this.scopes.length - 1];
-    if (!Immutable.Map.isMap(scope)){
-      throw Error("Innermost scope isn't an immutable map somehow:"+typeof scope + ':'+scope+Object.keys(scope));
+    if (scope.constructor !== Scope){
+      console.log(this.scopes);
+      console.log(scope.toJS());
+      throw Error("Innermost scope isn't an immutable map somehow:"+typeof scope + ':');
     }
-    this.scopes[this.scopes.length - 1] = scope.set(name, value);
+    scope.data = scope.data.set(name, value);
   };
   Environment.prototype.setFunction = function(name, func){
     if (this.runner === null){
@@ -287,7 +308,7 @@
     if (scope === undefined){
       throw Error('Supply a scope!');
     }
-    return new Environment(this.scopes.concat([Immutable.Map(scope)]), this.runner);
+    return new Environment(this.scopes.concat([new Scope(Immutable.Map(scope))]), this.runner);
   };
   Environment.prototype.toString = function(){
     var s = '<Environment: ';
@@ -567,6 +588,7 @@
 
   run.run = run;
   run.Runner = Runner;
+  run.Scope = Scope;
   run.Environment = Environment;
   run.evalGen = evalGen;
   run.runWithDefn = runWithDefn;

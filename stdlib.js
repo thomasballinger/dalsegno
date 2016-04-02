@@ -17,7 +17,7 @@
   var run = require('./run');
   var Immutable = require('./Immutable');
 
-  var env = new run.Environment([builtins, Immutable.Map()], null);
+  var env = new run.Environment([new run.Scope(builtins), new run.Scope()], null);
 
   // Use lambdas so snapshots aren't tracked of them
   // Don't create any funs here! They won't work.
@@ -43,7 +43,7 @@
       env);
 
 
-  var stdlib = env.scopes[1];
+  var stdlib = env.scopes[1].data;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
