@@ -2,12 +2,12 @@
 var chai = require('chai');
 var assert = chai.assert;
 
-var run = require('./run')
+var run = require('./run');
 var Environment = run.Environment;
 var stdlib = require('./stdlib');
 var builtins = require('./builtins');
 
-var env = new Environment([builtins, stdlib]);
+var env = new Environment([new run.Scope(builtins), new run.Scope(stdlib)]);
 
 describe('stdlib', function(){
   describe('reduce', function(){
@@ -17,7 +17,7 @@ describe('stdlib', function(){
   });
   describe('filter', function(){
     it('should passthrough', function(){
-      assert.deepEqual(run('(filter (lambda a 1) (list 1 2 3))', env), [1, 2, 3]);
+      assert.deepEqual(run('(filter (lambda a 1) (list 1 2 3))', env).toJS(), [1, 2, 3]);
     });
   });
 });
@@ -25,7 +25,7 @@ describe('stdlib', function(){
 describe('builtins', function(){
   describe('nth', function(){
     it('should index', function(){
-      assert.deepEqual(run('(nth 0 (list 1 2 3))', env), 1)
+      assert.deepEqual(run('(nth 0 (list 1 2 3))', env), 1);
     });
   });
 });
