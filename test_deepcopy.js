@@ -75,7 +75,7 @@ describe('copyable execution trees', function(){
   });
   describe('runner makes copies', function(){
     it('should use different scopes for copies', function(){
-      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
+      var tmpEnv = new run.Environment.fromObjects([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
       var runner = new run.Runner(null);
       runner.loadCode('(begin (set! a (+ a 1)) a)', tmpEnv);
       runner.next();
@@ -83,15 +83,15 @@ describe('copyable execution trees', function(){
       runner.next();
       runner.next();
       runner.next();
-      assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 1, c: 1});
+      assert.deepEqual(tmpEnv.toObjects()[1], {a: 1, b: 1, c: 1});
       var old = runner.delegate;
       runner.delegate = runner.copy().delegate;
       runner.next();
       assert.deepEqual(runner.next(), { value: 2, finished: true });
-      assert.deepEqual(tmpEnv.scopes[1], {a: 1, b: 1, c: 1});
+      assert.deepEqual(tmpEnv.toObjects()[1], {a: 1, b: 1, c: 1});
     });
     it('can be resumed after being cloned', function(){
-      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
+      var tmpEnv = new run.Environment.fromObjects([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
       var tmpEnvBuilder = function(){return tmpEnv;};
       var runner = new run.Runner({});
       runner.setEnvBuilder(tmpEnvBuilder);
@@ -106,7 +106,7 @@ describe('copyable execution trees', function(){
       assert.deepEqual(runner.getState('foo').delegate.env.runner.funs.foo.body, 2);
     });
     it('swapping out the delegate with restoreState results in old environment', function(){
-      var tmpEnv = new run.Environment([{'+': function(a, b){return a + b;}}, {a: 1}]);
+      var tmpEnv = new run.Environment.fromObjects([{'+': function(a, b){return a + b;}}, {a: 1}]);
       var tmpEnvBuilder = function(){return tmpEnv;};
       var program = '(begin (defn main (do 1 2 (main))) (main))';
       var runner = new run.Runner({});
@@ -123,7 +123,7 @@ describe('copyable execution trees', function(){
     });
     it('should deepcopy the environment of functions', function(){
       var funs = {};
-      var tmpEnv = new run.Environment([{}, {a: 1}]);
+      var tmpEnv = new run.Environment.fromObjects([{}, {a: 1}]);
       var func = new parse.Function([1], [], tmpEnv, 'main');
 
       var runner = new run.Runner(funs);
