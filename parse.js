@@ -6,29 +6,109 @@
 ;(function() {
   'use strict';
 
+  function tokenize(s) {
+    var lines = s.split('\n');
+    var tokens = [];
+    var word;
+    for (var lineno=1; lineno<=lines.length; lineno++){
+      var line = lines[lineno-1];
+      word = '';
+      for (var col=1; col<=line.length; col++){
+        var chr = line[col-1];
+        if(chr === ';'){
+          tokens.push({type: 'comment', content: line.slice(col-1),
+                       lineStart: lineno, lineEnd: lineno,
+                       colStart: col, colEnd: line.length});
+          break;
+        }
+        if(/\s|[()]/.test(chr)){
+          if (word){
+            tokens.push({type: 'word', content: word,
+                         lineStart: lineno, lineEnd: lineno,
+                         colStart: col-word.length, colEnd: col});
+            word = '';
+          }
+          if (/[()]/.test(chr)){
+            tokens.push({type: chr === '(' ? 'lparen' : 'rparen', content: chr,
+                         lineStart: lineno, lineEnd: lineno,
+                         colStart: col, colEnd: col+1});
+          }
+        } else {
+          word += chr;
+          continue;
+        }
+      }
+    }
+    if (word){
+        // lots of -1's because we're off the edge of the program
+        tokens.push({type: 'word', content: word,
+                     lineStart: lineno-1, lineEnd: lineno-1,
+                     colStart: col-word.length-1, colEnd: col-1});
+    }
+
+    return tokens;
+  }
+
+  function parse(s) {
+    if (typeof s === 'string') {
+      s = tokenize(s);
+    }
+    var result = innerParse(s);
+    if (s.length !== 0) {
+      throw new Error("Didn't finish parse of "+s);
+    }
+    return result;
+  }
+
+  function innerParse(tokens) {
+    var cur;
+    do {
+      cur = tokens.shift();
+      if (cur === undefined) {
+        throw new Error("forgot to close something?");
+      }
+    } while (cur.type === 'comment');
+    if (cur.content === '(') {
+      var form = [];
+      while (true) {
+        var f = innerParse(tokens);
+        if (f === ')') {
+            return form;
+        }
+        form.push(f);
+      }
+    } else if (cur.content === ')') {
+      return ')';
+    } else if (/^[+-]?\d*[.]?\d+$/.test(cur.content)) {
+      cur.type = 'number';
+      cur.content = parseFloat(cur.content);
+      return cur;
+    } else {
+      return cur; // passthrough for identifiers and keywords
+    }
+  }
+
+  function justContent(ast){
+    if (Array.isArray(ast)){
+      return ast.map(justContent);
+    }
+    if (!ast.hasOwnProperty('content')){
+      throw Error('justContent called on non-token: '+ast);
+    }
+    return ast.content;
+  }
+
   function Function(body, params, env, name){
     if (name === undefined){
       name = null; // anonymous function
     }
-    this.name = name;
-    this.body = body;
-    this.params = params;
-    this.env = env;
+    this.name = name;      // string
+    this.body = body;      // ast with linenos
+    this.params = params;  // list of tokens with linenos
   }
-  Function.prototype.buildScope = function(args){
-    if (this.params.length != args.length){
-      throw Error("Calling function "+this.name+" with wrong arity! Expected " +
-             this.params.length + " params but got " + args.length);
-    }
-    var scope = {};
-    for (var i = 0; i < args.length; i++){
-      scope[this.params[i]] = args[i];
-    }
-    return scope;
-  };
   Function.prototype.diff = function(other){
-    return  (JSON.stringify(this.body) !== JSON.stringify(other.body) ||
-             JSON.stringify(this.params) !== JSON.stringify(other.params));
+    return  (JSON.stringify(justContent(this.body)) !== JSON.stringify(justContent(other.body)) ||
+             JSON.stringify(justContent(this.params)) !== JSON.stringify(justContent(other.params)));
   };
   Function.prototype.diffExceptDefnBodies = function(other){
     // Whether two functions differ other than in internal function bodies
@@ -39,14 +119,9 @@
     if (!this.diff(other)){
       return false;
     }
-    if (JSON.stringify(this.params) !== JSON.stringify(other.params)){
-      return true;
-    }
-
     function isDefn(form){
       return Array.isArray(form) && form[0] === 'defn';
     }
-
     function formDiff(form1, form2){
       if (isDefn(form1) && isDefn(form2)){
         if (form1[1] !== form2[1]){
@@ -76,49 +151,9 @@
       }
     }
 
-    var isDifferent = formDiff(this.body, other.body);
+    var isDifferent = formDiff(justContent(this.body), justContent(other.body));
     return isDifferent;
   };
-
-  function tokenize(s) {
-    s = s.replace(/[;].*$/mg, '');
-    var token = /[()]|[^\s()]+/g;
-    return s.match(token);
-  }
-
-  function parse(s) {
-    if (typeof s === 'string') {
-      s = tokenize(s);
-    }
-    var result = innerParse(s);
-    if (s.length !== 0) {
-      throw new Error("Didn't finish parse of "+s);
-    }
-    return result;
-  }
-
-  function innerParse(tokens) {
-    var cur = tokens.shift();
-    if (cur === undefined) {
-      throw new Error("forgot to close something?");
-    }
-    if (cur === '(') {
-      var form = [];
-      while (true) {
-        var f = innerParse(tokens);
-        if (f === ')') {
-            return form;
-        }
-        form.push(f);
-      }
-    } else if (cur === ')') {
-      return ')';
-    } else if (/^[+-]?\d*[.]?\d+$/.test(cur)) {
-      return parseFloat(cur);
-    } else {
-      return cur; // passthrough for identifiers and keywords
-    }
-  }
 
   function findFunctions(ast){
     // Return new Function objects that we'll swap out
@@ -129,8 +164,8 @@
     if (!Array.isArray(ast)){
       return {};
     }
-    if (ast[0] === 'defn'){
-      var func = new Function(ast[ast.length-1], ast.slice(2, -1), null, ast[1]);
+    if (ast[0].content === 'defn'){
+      var func = new Function(ast[ast.length-1], ast.slice(2, -1), null, ast[1].content);
       funcs[func.name] = func;
     }
     for (var i = 0; i < ast.length; i++){
@@ -164,26 +199,17 @@
     return different;
   }
 
-  var safelyParses = function(program, errback){
-    if (errback === undefined){
-      errback = function(msg){console.log(msg);};
-    }
-    try {
-      parse(program);
-      return true;
-    } catch (e) {
-      errback(e);
-      return false;
-    }
-  };
+  //console.log(tokenize(`;hello\n(+ 123 (- 2 3))`));
+  //console.log(justContent(tokenize(`;hello\n(+ 1 (- 2 3))`)));
+  //console.log(parse(`;hello\n(+ 123 (- 2 3))`));
+  //console.log(justContent(parse(`;hello\n(+ 123 (- 2 3))`)));
 
-
-  parse.parse = parse;
   parse.tokenize = tokenize;
+  parse.parse = parse;
+  parse.justContent = justContent;
   parse.Function = Function;
-  parse.findFunctions = findFunctions;
   parse.diffFunctions = diffFunctions;
-  parse.safelyParses = safelyParses;
+  parse.findFunctions = findFunctions;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

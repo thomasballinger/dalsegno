@@ -3,7 +3,7 @@ var chai = require('chai');
 var assert = chai.assert;
 
 
-var parse = require('./newparse.js').parse;
+var parse = require('./parse.js').parse;
 var tokenize = parse.tokenize;
 var jc = parse.justContent;
 
