@@ -259,7 +259,7 @@
     });
   };
 
-  Environment.prototype.lookup = function(key){
+  Environment.prototype.lookup = function(key, ast){
     for (var i = this.scopes.length - 1; i >= 0; i--){
       var val;
       if (this.scopes[i].constructor === Scope){
@@ -277,7 +277,9 @@
     if (this.runner && this.runner.functionExists(key)){
       return new NamedFunctionPlaceholder(key);
     }
-    throw Error("Name '"+key+"' not found in environment"+this);
+    var e = Error("Name '"+key+"' not found in "+this);
+    e.ast = ast;
+    throw e;
   };
   Environment.prototype.set = function(key, value){
     for (var i = this.scopes.length - 1; i >= 0; i--){
@@ -365,7 +367,7 @@
         var end = ast.content.slice(-1);
         if (start === end && (start === '"' || start === "'")){
             return new StringLiteral({type: 'string', content: ast.content.slice(1, -1),
-                                     linenoStart: ast.linenoStart, linenoEnd: ast.linenoEnd,
+                                     lineStart: ast.lineStart, lineEnd: ast.lineEnd,
                                      colStart: ast.colStart, colEnd: ast.colEnd});
         } else {
             return new Lookup(ast, env);
@@ -464,7 +466,7 @@
   Lookup.prototype = new BaseEval();
   Lookup.prototype.constructor = Lookup;
   Lookup.prototype.next = function(){
-    return {value: this.env.lookup(this.ast.content), finished: true};
+    return {value: this.env.lookup(this.ast.content, this.ast), finished: true};
   };
 
   function SetBang(ast, env){

@@ -31,6 +31,11 @@
       text-align: center;
       font-size: 2em;
     }
+    .errorHighlight{
+      position:absolute;
+      z-index:20;
+      background-color:#F4B9B7;
+    }
     body {
       background-color: #111111
     }
@@ -217,7 +222,7 @@ function getParameterByName(name) {
 <script src="LazyCanvasCtx.js"></script>
 <script src="DrawHelpers.js"></script>
 <script>
-  var DEBUGMODE = true;
+  var DEBUGMODE = false;
 
   var shouldReload = true; // on next tick, reload the program
   var currentlyRunning = false; // if not, change event needs to kick off runner
@@ -237,12 +242,25 @@ function getParameterByName(name) {
 
   var errorbar = document.getElementById('errorbar');
 
+  var badSpot;
   var errback = function(e){
     errorbar.innerText = ''+e;
     errorbar.classList.remove('is-hidden');
+    if (e.ast){
+      Range = ace.require("ace/range").Range
+      badSpot = editor.session.addMarker(new Range(
+        e.ast.lineStart-1,
+        e.ast.colStart-1,
+        e.ast.lineEnd-1,
+        e.ast.colEnd-1), "errorHighlight");
+    }
   }
   var clearError = function(){
     errorbar.classList.add('is-hidden');
+    if (badSpot){
+      editor.getSession().removeMarker(badSpot)
+      badSpot = undefined;
+    }
   }
 
   var runABit = function(){
