@@ -90,7 +90,9 @@
   Runner.prototype.update = function(s){
     var newAst = parse(s);
     var functions = parse.findFunctions(newAst);
-    if (JSON.stringify(newAst) === JSON.stringify(this.ast) && !this.finished){
+    if (this.ast !== undefined &&
+        JSON.stringify(parse.justContent(newAst)) ===
+        JSON.stringify(parse.justContent(this.ast)) && !this.finished){
       return;
     }
     this.values = [];
@@ -221,6 +223,7 @@
   };
   Scope.prototype.copy = function(){
     var s = new Scope(this.data);
+    return s;
   };
 
   function Environment(scopes, runner){
@@ -230,7 +233,7 @@
     for (var scope of scopes){
       if (scope.constructor === Object){
         console.log(scope);
-        throw ('Environment constructed with non-scope args!');
+        throw Error('Environment constructed with non-scope args!');
       }
     }
     if (runner && runner.constructor !== Runner){
@@ -327,12 +330,19 @@
     if (scope === undefined){
       throw Error('Supply a scope!');
     }
-    return new Environment(this.scopes.concat([new Scope(Immutable.Map(scope))]), this.runner);
+    if (Object.keys(scope)[0] === 'undefined'){
+      debugger;
+      throw Error('wtf');
+    }
+    var env = new Environment(this.scopes.concat([new Scope(Immutable.Map(scope))]), this.runner);
+    return env;
   };
   Environment.prototype.toString = function(){
     var s = '<Environment: ';
     for (var i = this.scopes.length - 1; i>=0; i--){
-      s = s + JSON.stringify(Object.keys(this.scopes[i]));
+      s = s + JSON.stringify(this.scopes[i].hasOwnProperty('data') ?
+                             Object.keys(this.scopes[i].data.toJS()) :
+                             Object.keys(this.scopes[i]));
       s = s + "\n";
     }
     if (this.runner){
@@ -346,47 +356,50 @@
 
   function evalGen(ast, env){
     // Returns an iterable which will evaluate this ast
-    if (typeof ast === 'number'){
+    if (ast.type === 'number'){
         return new NumberLiteral(ast);
     }
 
-    if (typeof ast === 'string'){
-        var start = ast.slice(0, 1);
-        var end = ast.slice(-1);
+    if (ast.type === 'word'){
+        var start = ast.content.slice(0, 1);
+        var end = ast.content.slice(-1);
         if (start === end && (start === '"' || start === "'")){
-            return new StringLiteral(ast.slice(1, -1));
+            return new StringLiteral({type: 'string', content: ast.content.slice(1, -1),
+                                     linenoStart: ast.linenoStart, linenoEnd: ast.linenoEnd,
+                                     colStart: ast.colStart, colEnd: ast.colEnd});
         } else {
             return new Lookup(ast, env);
         }
     }
 
     if (!Array.isArray(ast)){
-        throw Error('What even is this: '+ast);
+      console.log(ast);
+      throw Error('What even is this: '+ast);
     }
 
     // special forms go here once we have those
 
-    if (ast[0] === 'begin' || ast[0] === 'do'){
+    if (ast[0].content === 'begin' || ast[0].content === 'do'){
       return new Begin(ast, env);
     }
-    if (ast[0] === 'if'){
+    if (ast[0].content === 'if'){
       if (ast.length > 4 || ast.length < 3){
         throw Error("wrong number of argumentsi for if: "+ast);
       }
       return new If(ast, env);
     }
-    if (ast[0] === 'set!'){
+    if (ast[0].content === 'set!'){
       if (ast.length != 3){ throw Error("wrong number of arguments for set: "+ast); }
         return new SetBang(ast, env);
     }
-    if (ast[0] === 'define'){
+    if (ast[0].content === 'define'){
       return new Define(ast, env);
     }
-    if (ast[0] === 'defn'){
+    if (ast[0].content === 'defn'){
       if (ast.length < 3){ throw Error("Not enough arguments for defn: "+ast); }
       return new NamedFunction(ast, env);
     }
-    if (ast[0] === 'lambda'){
+    if (ast[0].content === 'lambda'){
       if (ast.length < 2){ throw Error("Not enough arguments for lambda: "+ast); }
       return new LambdaExpression(ast, env);
     }
@@ -423,12 +436,12 @@
   function StringLiteral(ast){ this.ast = ast; }
   StringLiteral.prototype = new BaseEval();
   StringLiteral.prototype.constructor = StringLiteral;
-  StringLiteral.prototype.next = function(){ return {value: this.ast, finished: true}; };
+  StringLiteral.prototype.next = function(){ return {value: this.ast.content, finished: true}; };
 
   function NumberLiteral(ast){ this.ast = ast; }
   NumberLiteral.prototype = new BaseEval();
   NumberLiteral.prototype.constructor = NumberLiteral;
-  NumberLiteral.prototype.next = function(){ return {value: this.ast, finished: true}; };
+  NumberLiteral.prototype.next = function(){ return {value: this.ast.content, finished: true}; };
 
   function LambdaExpression(ast, env){ this.ast = ast; this.env = env; }
   LambdaExpression.prototype = new BaseEval();
@@ -442,7 +455,7 @@
   NamedFunction.prototype = new BaseEval();
   NamedFunction.prototype.constructor = NamedFunction;
   NamedFunction.prototype.next = function(){
-    var f = new parse.Function(this.ast[this.ast.length - 1], this.ast.slice(2, -1), this.env, this.ast[1]);
+    var f = new parse.Function(this.ast[this.ast.length - 1], this.ast.slice(2, -1), this.env, this.ast[1].content);
     this.env.setFunction(f.name, f);
     return {value: new NamedFunctionPlaceholder(f.name), finished: true};
   };
@@ -451,7 +464,7 @@
   Lookup.prototype = new BaseEval();
   Lookup.prototype.constructor = Lookup;
   Lookup.prototype.next = function(){
-    return {value: this.env.lookup(this.ast), finished: true};
+    return {value: this.env.lookup(this.ast.content), finished: true};
   };
 
   function SetBang(ast, env){
@@ -468,7 +481,7 @@
       return {value: null, finished: false};
     } else {
       if (this.isFinished(this.delegate)) {
-        this.env.set(this.ast[1], this.values[0]);
+        this.env.set(this.ast[1].content, this.values[0]);
         return {value: this.values[0], finished: true};
       } else {
         return {value: null, finished: false};
@@ -490,7 +503,7 @@
       return {value: null, finished: false};
     } else {
       if (this.isFinished(this.delegate)) {
-        this.env.define(this.ast[1], this.values[0]);
+        this.env.define(this.ast[1].content, this.values[0]);
         return {value: this.values[0], finished: true};
       } else {
         return {value: null, finished: false};

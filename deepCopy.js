@@ -112,11 +112,16 @@
               copy.body = obj.body; // shallow copy should be ok bc
             } else if (property === 'params'){
               copy.params = obj.params; // should be fine
+              if (obj.params === null){
+                debugger;
+                throw Error('params being null makes no sense');
+              }
             } else if (property === 'env'){
               copy.env = innerDeepCopy(obj.env, memo);
             } else if (property ===  '__obj_id'){
               // nop
             } else {
+              console.log(obj);
               throw Error("deepCopying unknown property "+property+" on "+obj);
             }
           }
@@ -163,7 +168,9 @@
             if (property === 'scopes'){
               copy.scopes = [];
               for (var i = 0; i < obj.scopes.length; i++){
-                if (obj.scopes[i].constructor === Object){
+                if (obj.scopes[i] === undefined){
+                  throw Error("Scopes probably shouldn't be undefined");
+                } else if (obj.scopes[i].constructor === Object){
                   throw Error('Environment should not have simple objects as scopes');
                 } else if (obj.scopes[i].constructor.name === 'Scope') {
                   var scope = obj.scopes[i].copy(); // this should be cheap

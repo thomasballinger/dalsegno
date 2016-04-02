@@ -5,6 +5,7 @@ var assert = chai.assert;
 var deepCopy = require('./deepcopy.js');
 var run = require('./run');
 var parse = require('./parse');
+var jc = parse.justContent;
 var Immutable = require('./Immutable');
 
 function removeIds(obj){
@@ -92,18 +93,19 @@ describe('copyable execution trees', function(){
     });
     it('can be resumed after being cloned', function(){
       var tmpEnv = new run.Environment.fromObjects([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
+      console.log('tmpEnv:', tmpEnv);
       var tmpEnvBuilder = function(){return tmpEnv;};
       var runner = new run.Runner({});
       runner.setEnvBuilder(tmpEnvBuilder);
       runner.loadUserCode('(begin (defn foo 1) (foo))');
       assert.equal(false, runner.runABit(100));
-      assert.deepEqual(runner.getState('foo').delegate.ast, ['foo']);
+      assert.deepEqual(jc(runner.getState('foo').delegate.ast), ['foo']);
       runner.update('(begin (defn foo 2) (foo))');
-      assert.deepEqual(runner.getState('foo').delegate.env.runner.funs.foo.body, 2);
-      assert.deepEqual(runner.funs['foo'].body, 2);
-      assert.deepEqual(runner.delegate.env.runner.funs['foo'].body, 2);
+      assert.deepEqual(jc(runner.getState('foo').delegate.env.runner.funs.foo.body), 2);
+      assert.deepEqual(jc(runner.funs['foo'].body), 2);
+      assert.deepEqual(jc(runner.delegate.env.runner.funs['foo'].body), 2);
       assert.equal(2, runner.value());
-      assert.deepEqual(runner.getState('foo').delegate.env.runner.funs.foo.body, 2);
+      assert.deepEqual(jc(runner.getState('foo').delegate.env.runner.funs.foo.body), 2);
     });
     it('swapping out the delegate with restoreState results in old environment', function(){
       var tmpEnv = new run.Environment.fromObjects([{'+': function(a, b){return a + b;}}, {a: 1}]);
@@ -112,14 +114,14 @@ describe('copyable execution trees', function(){
       var runner = new run.Runner({});
       runner.setEnvBuilder(tmpEnvBuilder);
       runner.loadUserCode(program);
-      tmpEnv.scopes[1].a = 42;
+      tmpEnv.scopes[1].data = tmpEnv.scopes[1].data.set('a', 42);
       var g = runner.copy().delegate;
       tmpEnv.scopes[1].a = 9000;
-      assert.deepEqual(g.env.scopes[1].a, 42);
+      assert.deepEqual(g.env.scopes[1].data.get('a'), 42);
       runner.delegate = g;
-      assert.deepEqual(runner.delegate.env.scopes[1].a, 42);
+      assert.deepEqual(runner.delegate.env.scopes[1].data.get('a'), 42);
       runner.runABit(100);
-      assert.deepEqual(runner.delegate.env.scopes[1].a, 42);
+      assert.deepEqual(runner.delegate.env.scopes[1].data.get('a'), 42);
     });
     it('should deepcopy the environment of functions', function(){
       var funs = {};
@@ -132,8 +134,8 @@ describe('copyable execution trees', function(){
       tmpEnv.setFunction('main', func);
 
       var newfuns = runner.copy().funs;
-      func.env.scopes[1].a = 42;
-      assert.deepEqual(newfuns['main'].env.scopes[1].a, 1);
+      func.env.scopes[1].data = func.env.scopes[1].data.set('a', 42);
+      assert.deepEqual(newfuns['main'].env.scopes[1].data.get('a'), 1);
     });
   });
 });

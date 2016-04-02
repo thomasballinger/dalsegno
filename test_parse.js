@@ -31,7 +31,17 @@ describe('parse', function(){
   describe('parse', function(){
     it('should parse nested forms', function(){
       assert.deepEqual(jc(parse('(+ (thing 1 2) (other 3 "4"))')),
-                       ['+', ['thing', 1, 2], ['other', 3, '"4"']])
+                       ['+', ['thing', 1, 2], ['other', 3, '"4"']]);
+    });
+    it('should parse newlines right', function(){
+      var s = `
+        (defn init-world
+          (map (lambda i
+                 (list
+                   (list (randint 200) (randint 200))
+                   (list (randint -5 6) (randint -5 6))))
+               (range 10)))`;
+      assert.equal(jc(parse(s)).length, 3);
     });
     it('should return throw an error when parse fails', function(){
       assert.deepEqual(jc(parse('(+ 1 2)')), ['+', 1, 2]);

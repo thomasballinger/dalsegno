@@ -14,7 +14,7 @@ var builtins = require('./builtins.js');
 var stdlib = require('./stdlib.js');
 
 var buildEnv = function(){
-  return new run.Environment([builtins, stdlib, {}]);
+  return new run.Environment.fromObjects([builtins, stdlib, {}]);
 };
 
 describe('integration', function(){
@@ -48,7 +48,7 @@ describe('integration', function(){
 
 describe('interactive features', function(){
   it('updates functions', function(){
-    var env = new run.Environment([builtins, stdlib, {}]);
+    var env = new run.Environment.fromObjects([builtins, stdlib, {}]);
     var runner = new run.Runner({});
   });
   it('deepcopies closed-over state', function(){
@@ -67,12 +67,12 @@ describe('interactive features', function(){
 
     runner.runABit(100);
 
-    var beforeRestore = runner.delegate.env.scopes[3].x;
+    var beforeRestore = runner.delegate.env.scopes[3].data.get('x');
 
     runner.delegate = save.delegate;
     runner.funs = save.funs;
     runner.runABit(100);
 
-    assert.isTrue(runner.delegate.env.scopes[3].x < beforeRestore);
+    assert.isTrue(runner.delegate.env.scopes[3].data.get('x') < beforeRestore);
   })
 });

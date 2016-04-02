@@ -12,6 +12,7 @@
     var word;
     for (var lineno=1; lineno<=lines.length; lineno++){
       var line = lines[lineno-1];
+
       word = '';
       for (var col=1; col<=line.length; col++){
         var chr = line[col-1];
@@ -37,6 +38,13 @@
           word += chr;
           continue;
         }
+      }
+      if (word){
+          // some -1's because we're off the edge of the line
+          tokens.push({type: 'word', content: word,
+                       lineStart: lineno, lineEnd: lineno,
+                       colStart: col-word.length-1, colEnd: col-1});
+          word = '';
       }
     }
     if (word){
@@ -105,6 +113,7 @@
     this.name = name;      // string
     this.body = body;      // ast with linenos
     this.params = params;  // list of tokens with linenos
+    this.env = env;
   }
   Function.prototype.diff = function(other){
     return  (JSON.stringify(justContent(this.body)) !== JSON.stringify(justContent(other.body)) ||
@@ -154,6 +163,20 @@
     var isDifferent = formDiff(justContent(this.body), justContent(other.body));
     return isDifferent;
   };
+  Function.prototype.buildScope = function(args){
+    if (this.params.length != args.length){
+      throw Error("Calling function "+this.name+" with wrong arity! Expected " +
+             this.params.length + " params but got " + args.length);
+    }
+    var scope = {};
+    for (var i = 0; i < args.length; i++){
+      if (!this.params[i].hasOwnProperty('content')){
+        debugger;
+      }
+      scope[this.params[i].content] = args[i];
+    }
+    return scope;
+  };
 
   function findFunctions(ast){
     // Return new Function objects that we'll swap out
@@ -199,6 +222,19 @@
     return different;
   }
 
+  var safelyParses = function(program, errback){
+    if (errback === undefined){
+      errback = function(msg){console.log(msg);};
+    }
+    try {
+      parse(program);
+      return true;
+    } catch (e) {
+      errback(e);
+      return false;
+    }
+  };
+
   //console.log(tokenize(`;hello\n(+ 123 (- 2 3))`));
   //console.log(justContent(tokenize(`;hello\n(+ 1 (- 2 3))`)));
   //console.log(parse(`;hello\n(+ 123 (- 2 3))`));
@@ -210,6 +246,7 @@
   parse.Function = Function;
   parse.diffFunctions = diffFunctions;
   parse.findFunctions = findFunctions;
+  parse.safelyParses = safelyParses;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

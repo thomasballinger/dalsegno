@@ -4,7 +4,8 @@ var assert = chai.assert;
 
 var Immutable = require('./Immutable')
 var tokenize = require('./parse.js').tokenize;
-var parse = require('./parse.js').parse;
+var parse = require('./parse.js');
+var jc = parse.justContent;
 var run = require('./run');
 var Environment = run.Environment;
 var evalGen = run.evalGen;
@@ -18,12 +19,12 @@ var justSum = new Environment([new Scope(Immutable.Map({'+': function(a, b){retu
 describe('Evaluation Iterators', function(){
   describe('evalGen', function(){
     it('should return an evaluation object', function(){
-      var e = evalGen(1);
+      var e = evalGen({content: 1, type: 'number'});
       assert(e.isEvalGen);
-      assert.equal(e.ast, 1);
+      assert.equal(jc(e.ast), 1);
       var e = evalGen(parse('(+ 1 2)'), justSum);
       assert(e.isEvalGen);
-      assert.deepEqual(e.ast, ['+', 1, 2]);
+      assert.deepEqual(jc(e.ast), ['+', 1, 2]);
     });
   });
   describe('Invocation', function(){
@@ -155,7 +156,7 @@ describe("Runner object", function(){
       assert.throws(function(){ runner.value(); }, /Runner doesn't allow named functions/);
       runner.funs = {};
       runner.value();
-      assert.deepEqual(runner.funs.foo.body, 1);
+      assert.deepEqual(jc(runner.funs.foo.body), 1);
       assert.deepEqual(runner.funs.foo.name, 'foo');
       assert.deepEqual(runner.funs.foo.env.scopes,
                        tmpEnv.scopes);
