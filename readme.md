@@ -132,6 +132,8 @@ both in the browser and node:
 
 Ideas for improvements
 
+* use immutable data structures for cheaper copies
+* bytecode
 * test and document keypress handler (keyPressed key from KeyboardTracker)
 * methods for drawing and loading external assets by url
 * more parse-time errors (function call arity, literal validity

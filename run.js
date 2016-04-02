@@ -216,6 +216,9 @@
     }
     this.data = im;
   }
+  Scope.prototype.fromObject = function(obj){
+    return new Scope(Immutable.Map(obj));
+  };
   Scope.prototype.copy = function(){
     var s = new Scope(this.data);
   };
@@ -236,6 +239,22 @@
     this.scopes = scopes;
     this.runner = runner || null;
   }
+
+  // testing methods
+  Environment.fromObjects = function(arr, runner){
+    var scopes = arr.map(function(x){
+      if (x.constructor === Scope){
+        return x;
+      }
+      return new Scope(Immutable.Map(x));
+    });
+    return new Environment(scopes, runner);
+  };
+  Environment.prototype.toObjects = function(){
+    return this.scopes.map(function(x){
+      return x.data.toJS();
+    });
+  };
 
   Environment.prototype.lookup = function(key){
     for (var i = this.scopes.length - 1; i >= 0; i--){
