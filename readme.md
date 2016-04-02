@@ -132,9 +132,9 @@ both in the browser and node:
 
 Ideas for improvements
 
-* include line numbers in parse tree
+* highlight source code for errors
 * use immutable data structures for cheaper copies
-* bytecode
+* compile to bytecode for way less copying
 * test and document keypress handler (keyPressed key from KeyboardTracker)
 * methods for drawing and loading external assets by url
 * more parse-time errors (function call arity, literal validity
