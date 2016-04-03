@@ -54,6 +54,36 @@
       case BC.NameLookup:
         valueStack = valueStack.push(env.lookup(arg));
         break;
+      case BC.FunctionLookup:
+        //TODO use funs on runner for this
+        valueStack = valueStack.push(env.lookup(arg));
+        break;
+      case BC.FunctionCall:
+        var args = [];
+        for (var i=0; i<arg; i++){
+          args.push(valueStack.peek());
+          valueStack = valueStack.pop();
+        }
+        args.reverse();
+        var func = valueStack.peek();
+        valueStack = valueStack.pop();
+        if (typeof func === 'function'){
+          var result = func.apply(null, args);
+          valueStack = valueStack.push(result);
+        } else {
+          if (func.params.length !== arg){
+            throw Error('Function called with wrong arity! Takes ' +
+              func.params.length + ' args, given ' + args.length);
+          }
+          var scope = {};
+          args.forEach((x, i) => scope[func.params[i]] = x);
+          var newEnv = env.newWithScope(scope);
+          bytecodeStack = bytecodeStack.push(func.code);
+          // off the top (-1) because counter++ on return
+          counterStack = counterStack.push(-1);
+          envStack = envStack.push(newEnv);
+        }
+        break;
       default:
         throw Error('unrecognized bytecode: '+bytecodeName(bc));
     }
@@ -61,8 +91,8 @@
     return [counterStack, bytecodeStack, envStack, valueStack, done];
   }
 
-  function runBytecode(bytecode, env, showSteps){
-    showSteps = showSteps || false;
+  function runBytecode(bytecode, env, source){
+    source = source || false;
     bytecode = [].concat(bytecode, [[BC.Return, null, undefined]]);
     var counterStack  = Immutable.Stack([0]);
     var bytecodeStack = Immutable.Stack([bytecode]);
@@ -71,8 +101,8 @@
     var valueStack    = Immutable.Stack([]);
     var finished;
     do {
-      if (showSteps && counterStack.count() && bytecodeStack.count()){
-        dis(bytecodeStack.peek(), counterStack.peek(), valueStack, envStack.peek());
+      if (source && counterStack.count() && bytecodeStack.count()){
+        dis(bytecodeStack.peek(), counterStack.peek(), valueStack, envStack.peek(), source);
       }
       var x = runBytecodeOneStep(counterStack, bytecodeStack, envStack, valueStack);
       counterStack=x[0];bytecodeStack=x[1];envStack=x[2];valueStack=x[3];
@@ -110,16 +140,32 @@
     return outputLines.join('\n');
   }
 
-  function stackDraw(stack, label){
+  function stackDraw(stack, label, cutoff){
+    cutoff = cutoff || (label ? Math.max(label.length, 40) : 40);
     if (Immutable.Iterable.isIterable(stack)){
       stack = stack.toJS();
     }
-    var lines = stack.map( v => ''+v );
+    function pprint(v){
+      if (typeof v === 'function'){
+        if (v.name){ return ''+(v.origFunc ? v.origFunc : v); }
+        return 'anon native function';
+      } else {
+        return ''+v;
+      }
+    }
+    var lines = stack.map(pprint);
     var maxWidth = Math.max.apply(null, [label ? label.length : 0].concat(
       lines.map( s => s.length )));
+    maxWidth = Math.min(cutoff, maxWidth);
     lines.push('-'.repeat(maxWidth));
-    lines = lines.map( s => ' '.repeat((maxWidth-s.length)/2)+s );
     if (label){ lines.push(label); }
+    lines = lines.map( s => {
+      if (s.length > maxWidth){
+        return s.slice(0, maxWidth-3) + '...';
+      } else {
+        return ' '.repeat((maxWidth-s.length)/2)+s;
+      }
+    });
     return lines.join('\n');
   }
 
@@ -132,7 +178,7 @@
   //rewind the interpreter etc. but when only linenumbers change, we need to
   //update the line numbers in all saved named functions. Unnamed functions
   //should be held onto somewhere so their linenums can be changed too.
-  function dis(bytecode, counter, stack, env){
+  function dis(bytecode, counter, stack, env, source){
     //TODO if there are jumps, add labels
     var termWidth = typeof process === undefined ? 1000 : process.stdout.columns;
     var lines = bytecode.map( code => {
@@ -162,6 +208,9 @@
     if(env){
       output = horzCat(output, envDraw(env), true);
     }
+    if(source){
+      output = horzCat(output, source, true);
+    }
     console.log('-'.repeat(Math.max.apply(null, output.split('\n').map( l => l.length ))));
     console.log(output);
   }
@@ -179,11 +228,14 @@
     //console.log('AST:', parse.justContent(ast));
     var bytecode = compile(ast);
     //console.log('bytecode:');
-    console.log('compile result:', runBytecode(bytecode, makeEnv(), true));
+    console.log('compile result:', runBytecode(bytecode, makeEnv(), s));
     console.log('eval result:', compile.evaluate(ast, makeEnv()));
   }
   //bytecoderun('1');
-  bytecoderun('(do (define a 1) a)');
+  //bytecoderun('(do (define a 1) a)');
+  //bytecoderun('(+ a 1)');
+  //bytecoderun('(do (define a 2) (+ a 1))');
+  bytecoderun('(do\n (define a 2)\n (+ a 1))');
 
   bytecoderun.bytecoderun = bytecoderun;
 

@@ -85,6 +85,27 @@
     return [].concat(bodyCode, [[BC.StoreNew, this.name, lineInfo(this.ast)]]);
   };
 
+  function Invocation(ast){
+    if (ast[0].type !== 'word'){ err('function calls cannot start with expressions', ast); }
+    this.ast = ast;
+    this.head = new FunctionLookup(ast[0]);
+    this.args = ast.slice(1).map( a => build(a) );
+  }
+  Invocation.prototype.eval = function(env){
+    var func = this.head.eval(env);
+    var argValues = this.args.map(node => node.eval(env));
+    if (typeof func === 'function'){
+      return func.apply(null, argValues);
+    } else {
+      return func.run(argValues);
+    }
+  };
+  Invocation.prototype.compile = function() {
+    var loadfunc = this.head.compile();
+    var loadargs = [].concat.apply([], this.args.map( x => x.compile()));
+    return [].concat(loadfunc, loadargs, [[BC.FunctionCall, this.args.length, lineInfo(this.ast)]]);
+  };
+
 
   function NumberLiteral(ast){
     this.ast = ast;
@@ -111,6 +132,15 @@
   Lookup.prototype.eval = function(env){ return env.lookup(this.name); };
   Lookup.prototype.compile = function(){
     return [[BC.NameLookup, this.name, lineInfo(this.ast)]];
+  };
+
+  function FunctionLookup(ast){
+    this.ast = ast;
+    this.name = ast.content;
+  }
+  FunctionLookup.prototype.eval = function(env){ return env.lookup(this.name); };
+  FunctionLookup.prototype.compile = function(){
+    return [[BC.FunctionLookup, this.name, lineInfo(this.ast)]];
   };
 
   function err(msg, ast){

@@ -269,7 +269,11 @@
       }
       if (val !== undefined){
         if (typeof val === 'function'){
-          return val.bind(this.scopes[i]);
+          var origName = val.name;
+          var newfunc = val.bind(this.scopes[i]);
+          newfunc.origName = origName;
+          newfunc.origFunc = val;
+          return newfunc;
         }
         return val;
       }
