@@ -73,7 +73,6 @@
     do {
       if (showSteps && counterStack.count() && bytecodeStack.count()){
         dis(bytecodeStack.peek(), counterStack.peek(), valueStack, envStack.peek());
-        console.log(' ');
       }
       var x = runBytecodeOneStep(counterStack, bytecodeStack, envStack, valueStack);
       counterStack=x[0];bytecodeStack=x[1];envStack=x[2];valueStack=x[3];
@@ -93,8 +92,6 @@
 
   function horzCat(s1, s2, pad2FromTop){
     pad2FromTop = pad2FromTop || false;
-    var maxWidth = typeof process === undefined ? 1000 : process.stdout.columns;
-    //TODO use this to avoid terminal wrapping
 
     var lines1 = s1.split('\n');
     var lines2 = s2.split('\n');
@@ -137,6 +134,7 @@
   //should be held onto somewhere so their linenums can be changed too.
   function dis(bytecode, counter, stack, env){
     //TODO if there are jumps, add labels
+    var termWidth = typeof process === undefined ? 1000 : process.stdout.columns;
     var lines = bytecode.map( code => {
       var instruction = bytecodeName(code[0]);
       var arg = code[1] === null ? '' : ''+code[1];
@@ -164,6 +162,7 @@
     if(env){
       output = horzCat(output, envDraw(env), true);
     }
+    console.log('-'.repeat(Math.max.apply(null, output.split('\n').map( l => l.length ))));
     console.log(output);
   }
 
@@ -180,7 +179,6 @@
     //console.log('AST:', parse.justContent(ast));
     var bytecode = compile(ast);
     //console.log('bytecode:');
-    dis(bytecode);
     console.log('compile result:', runBytecode(bytecode, makeEnv(), true));
     console.log('eval result:', compile.evaluate(ast, makeEnv()));
   }
