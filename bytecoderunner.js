@@ -20,12 +20,6 @@
   var Immutable = require('./Immutable.js');
 
 
-  function err(msg, ast){
-    e = Error(msg);
-    e.ast = ast;
-    throw e;
-  }
-
   function runBytecodeOneStep(counterStack, bytecodeStack, envStack, valueStack){
     var env = envStack.peek();
     var bytecode = bytecodeStack.peek();
@@ -34,7 +28,6 @@
         throw Error('counter went off the end of bytecode: missing return?');
     }
     var done = false;
-    console.log('bytecode: ', bytecode);
     var x = bytecode[counter];
     var bc=x[0], arg=x[1];
     switch (bc){
@@ -51,16 +44,26 @@
           counter = counterStack.peek();
         }
         break;
+      case BC.StoreNew:
+        env.define(arg, valueStack.peek());
+        break;
+      case BC.Pop:
+        if (arg !== null){ throw Error('Pop arg should be null, was '+arg); }
+        valueStack = valueStack.pop();
+        break;
+      case BC.NameLookup:
+        valueStack = valueStack.push(env.lookup(arg));
+        break;
       default:
-        throw Error('unrecognized bytecode: '+bc);
+        throw Error('unrecognized bytecode: '+bytecodeName(bc));
     }
     counterStack = counterStack.pop().push(counter+1);
     return [counterStack, bytecodeStack, envStack, valueStack, done];
   }
 
-  function runBytecode(bytecode, env){
-    bytecode.push([BC.Return, null]);
-    console.log('after add', bytecode);
+  function runBytecode(bytecode, env, showSteps){
+    showSteps = showSteps || false;
+    bytecode = [].concat(bytecode, [[BC.Return, null, undefined]]);
     var counterStack  = Immutable.Stack([0]);
     var bytecodeStack = Immutable.Stack([bytecode]);
     var envStack      = Immutable.Stack([env]);
@@ -68,8 +71,11 @@
     var valueStack    = Immutable.Stack([]);
     var finished;
     do {
+      if (showSteps && counterStack.count() && bytecodeStack.count()){
+        dis(bytecodeStack.peek(), counterStack.peek(), valueStack, envStack.peek());
+        console.log(' ');
+      }
       var x = runBytecodeOneStep(counterStack, bytecodeStack, envStack, valueStack);
-      console.log(x);
       counterStack=x[0];bytecodeStack=x[1];envStack=x[2];valueStack=x[3];
       finished=x[4];
     } while (!finished);
@@ -79,18 +85,107 @@
     return valueStack.peek();
   }
 
-  function bytecoderun(){
-    var s = '1';
-    var ast = parse(s);
-    console.log(ast);
-    console.log('eval result:', compile.evaluate(ast,
-      new Environment.fromObjects(
-        [{'+': function(a, b){ return a + b; }}])));
-    var bytecode = compile(ast);
-    console.log('from compile:', bytecode);
-    console.log(runBytecode(bytecode, new Environment()));
+  function bytecodeName(num){
+    var index = Object.keys(BC).map( name => BC[name] ).indexOf(num);
+    if (index === -1){ return ''+num; }
+    return Object.keys(BC)[index];
   }
-  bytecoderun('1');
+
+  function horzCat(s1, s2, pad2FromTop){
+    pad2FromTop = pad2FromTop || false;
+    var maxWidth = typeof process === undefined ? 1000 : process.stdout.columns;
+    //TODO use this to avoid terminal wrapping
+
+    var lines1 = s1.split('\n');
+    var lines2 = s2.split('\n');
+    while (lines1.length < lines2.length){ lines1.push(''); }
+    while (lines2.length < lines1.length){
+      if (pad2FromTop){ lines2.unshift(''); } else { lines2.push(''); }
+    }
+    var maxLines1Length = Math.max.apply(null, lines1.map( line => line.length ));
+    var lines1Width = maxLines1Length + 3;  // padding
+    lines1 = lines1.map( line => (line + ' '.repeat(lines1Width)).slice(0, lines1Width));
+
+    var outputLines = [];
+    for (var i = 0; i<lines1.length; i++){
+      outputLines.push(lines1[i] + lines2[i]);
+    }
+    return outputLines.join('\n');
+  }
+
+  function stackDraw(stack, label){
+    if (Immutable.Iterable.isIterable(stack)){
+      stack = stack.toJS();
+    }
+    var lines = stack.map( v => ''+v );
+    var maxWidth = Math.max.apply(null, [label ? label.length : 0].concat(
+      lines.map( s => s.length )));
+    lines.push('-'.repeat(maxWidth));
+    lines = lines.map( s => ' '.repeat((maxWidth-s.length)/2)+s );
+    if (label){ lines.push(label); }
+    return lines.join('\n');
+  }
+
+  function envDraw(env){
+    return env.toString();
+  }
+
+  //TODO In order to get line/col numbers correct, we need to be diffing
+  //both content and linenums of ASTs. When content changes swap out the code,
+  //rewind the interpreter etc. but when only linenumbers change, we need to
+  //update the line numbers in all saved named functions. Unnamed functions
+  //should be held onto somewhere so their linenums can be changed too.
+  function dis(bytecode, counter, stack, env){
+    //TODO if there are jumps, add labels
+    var lines = bytecode.map( code => {
+      var instruction = bytecodeName(code[0]);
+      var arg = code[1] === null ? '' : ''+code[1];
+      var lineno = code[2] ? code[2].lineStart.toString() : '';
+      return [instruction, arg, lineno];
+    });
+    var maxInstructionLength = Math.max.apply(null, lines.map( line => line[0].length ));
+    var maxArgLength         = Math.max.apply(null, lines.map( line => line[1].length ));
+    var maxLineNumLength     = Math.max.apply(null, lines.map( line => line[1].length ));
+    var codeNum = 0;
+    var output = '';
+    var bytecodeLines = [];
+    for (var line of lines){
+      var s = ((codeNum === counter ? '--> ' : '    ') +
+               ('            '+line[2]).slice(-maxLineNumLength)     + '  ' +
+               ('            '+line[0]).slice(-maxInstructionLength) + '  ' +
+               ('            '+line[1]).slice(-maxArgLength));
+      bytecodeLines.push(s);
+      codeNum++;
+    }
+    output = bytecodeLines.join('\n');
+    if(stack){
+      output = horzCat(output, stackDraw(stack, 'valueStack'), true);
+    }
+    if(env){
+      output = horzCat(output, envDraw(env), true);
+    }
+    console.log(output);
+  }
+
+  function bytecoderun(s, makeEnv){
+    if (makeEnv === undefined){
+      makeEnv = function() {
+        return new Environment.fromObjects(
+          [{'+': function(a, b){ return a + b; }}]);
+      };
+    }
+    (typeof window === 'undefined' ? global : window).program = s; // so parse errors print bad source
+    var ast = parse(s);
+    console.log('source:', s);
+    //console.log('AST:', parse.justContent(ast));
+    var bytecode = compile(ast);
+    //console.log('bytecode:');
+    dis(bytecode);
+    console.log('compile result:', runBytecode(bytecode, makeEnv(), true));
+    console.log('eval result:', compile.evaluate(ast, makeEnv()));
+  }
+  //bytecoderun('1');
+  bytecoderun('(do (define a 1) a)');
 
   bytecoderun.bytecoderun = bytecoderun;
 

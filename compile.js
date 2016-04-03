@@ -14,8 +14,7 @@
     StoreNew       : 9,   // arg is variable name, saves TOS
     Store          : 10,  // arg is variable name, saves TOS
     Return         : 11,  // done with this bytecode
-    Yield          : 12,  // done for now, please continue when callback is true
-    CloneTop       : 13,  // push on another of the top of the stack
+    CloneTop       : 12,  // push on another of the top of the stack
   };
 
   function build(ast){
@@ -31,47 +30,105 @@
       return new Invocation(ast);
     } else {
       if (ast.type === 'number'){ return new NumberLiteral(ast); }
-      if (ast.type === 'word'){ return new Lookup(ast); }
       if (ast.type === 'string'){ return new StringLiteral(ast); }
+      if (ast.type === 'word'){ return new Lookup(ast); }
     }
-    throw Error('wtf is this?'+ast);
+    throw Error('what even is this? '+ast);
+  }
+
+  function lineInfo(ast){
+    if (ast === undefined){ return undefined; }
+    return {lineStart : ast.lineStart,
+            lineEnd   : ast.lineEnd,
+            colStart  : ast.colStart,
+            colEnd    : ast.colEnd};
   }
 
   function Null(ast){
     // Special because ast isn't required
+    this.ast = ast;
     if (ast && (ast.length !== 2 || ast[0].content !== '(' || ast[1].content !== ')')){
       throw Error("huh? doesn't look like a null node:", ast);
     }
   }
   Null.prototype.eval = function(env){ return null; };
-  Null.prototype.compile = function(){ return [[BC.LoadConstant, null]]; };
+  Null.prototype.compile = function(){ return [[BC.LoadConstant, null, lineInfo(this.ast)]]; };
 
-  function NumberLiteral(ast){
-    this.number = ast.content;
+  function Begin(ast){
+    if (ast[0].content !== 'begin' && ast[0].content !== 'do'){ err('freak out', ast); }
+    if (ast.length < 2){ err('do expressions with no statements not yet implemented', ast); }
+    this.expressions = ast.slice(1).map( a => build(a) );
   }
-  NumberLiteral.prototype.eval = function(env){ return this.number; };
-  NumberLiteral.prototype.compile = function(){
-    return [[BC.LoadConstant, this.number]];
+  Begin.prototype.eval = function(env){ return this.expressions.map( expr => expr.eval(env)).pop(); };
+  Begin.prototype.compile = function(){
+    var code = [];
+    for (var expr of this.expressions){
+      code = [].concat(code, expr.compile(), [[BC.Pop, null, lineInfo(expr.ast)]]);
+    }
+    code.pop();  // don't need pop for last expression
+    return code;
   };
 
   function Define(ast){
-    if (ast[0] !== 'define'){ err('freak out', ast); }
-    if (ast.length < 2){ throw err('define requires ast least two args', ast); }
-    if (ast.length > 3){ throw err('define takes two arguments at most', ast); }
+    if (ast[0].content !== 'define'){ err('freak out', ast); }
+    if (ast.length < 2){ err('define requires ast least two args', ast); }
+    if (ast.length > 3){ err('define takes two arguments at most', ast); }
     if (ast[1].type !== 'word'){ err('first argument to define should be a name', ast); }
     this.name = ast[1].content;
-    this.body = ast.length === 3 ? build(ast[2].content) : undefined;
+    this.body = ast.length === 3 ? build(ast[2]) : undefined;
   }
   Define.prototype.eval = function(env){
     return env.define(this.name, this.body === undefined ? undefined : this.body.eval(env));
   };
   Define.prototype.compile = function(){
     var bodyCode = this.body ? this.body.compile(this.body) : new NullNode().compile();
-    return [].concat(bodyCode, [[BC.StoreNew, this.name]]);
+    return [].concat(bodyCode, [[BC.StoreNew, this.name, lineInfo(this.ast)]]);
   };
 
+
+  function NumberLiteral(ast){
+    this.ast = ast;
+    this.number = ast.content;
+  }
+  NumberLiteral.prototype.eval = function(env){ return this.number; };
+  NumberLiteral.prototype.compile = function(){
+    return [[BC.LoadConstant, this.number, lineInfo(this.ast)]];
+  };
+
+  function StringLiteral(ast){
+    this.ast = ast;
+    this.string = ast.content;
+  }
+  StringLiteral.prototype.eval = function(env){ return this.string; };
+  StringLiteral.prototype.compile = function(){
+    return [[BC.LoadConstant, this.string, lineInfo(this.ast)]];
+  };
+
+  function Lookup(ast){
+    this.ast = ast;
+    this.name = ast.content;
+  }
+  Lookup.prototype.eval = function(env){ return env.lookup(this.name); };
+  Lookup.prototype.compile = function(){
+    return [[BC.NameLookup, this.name, lineInfo(this.ast)]];
+  };
+
+  function err(msg, ast){
+    e = Error(msg);
+    e.ast = ast;
+    var program = (typeof window === 'undefined' ? global : window).program;
+    if (program){
+      console.log(program.split('\n').slice(ast.lineStart-1, ast.lineEnd));
+    }
+    throw e;
+  }
+
+
+
   function compile(ast){
-    return build(ast).compile();
+    var code = build(ast).compile();
+    Object.freeze(code);
+    return code;
   }
   function evaluate(ast, env){
     return build(ast).eval(env);

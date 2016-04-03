@@ -76,17 +76,21 @@
         throw new Error("forgot to close something?");
       }
     } while (cur.type === 'comment');
-    if (cur.content === '(') {
+    if (cur.type === 'lparen') {
       var form = [];
       while (true) {
         var f = innerParse(tokens);
-        if (f === ')') {
-            return form;
+        if (f.type === 'rparen') {
+          form.lineStart = form[0].lineStart;
+          form.lineEnd = f.lineEnd;
+          form.colStart = form[0].colStart;
+          form.colEnd = f.colEnd;
+          return form;
         }
         form.push(f);
       }
-    } else if (cur.content === ')') {
-      return ')';
+    } else if (cur.type === 'rparen') {
+      return cur;
     } else if (/^[+-]?\d*[.]?\d+$/.test(cur.content)) {
       cur.type = 'number';
       cur.content = parseFloat(cur.content);

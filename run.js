@@ -340,7 +340,7 @@
     return env;
   };
   Environment.prototype.toString = function(){
-    var s = '<Environment: ';
+    var s = '<Environment\n';
     for (var i = this.scopes.length - 1; i>=0; i--){
       s = s + JSON.stringify(this.scopes[i].hasOwnProperty('data') ?
                              Object.keys(this.scopes[i].data.toJS()) :
@@ -352,7 +352,7 @@
       s += this.runner;
       s = s + "\n";
     }
-    s = s + '>';
+    s = s.slice(0, -1) + '>';
     return s;
   };
 
