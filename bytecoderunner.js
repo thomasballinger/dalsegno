@@ -84,6 +84,16 @@
           envStack = envStack.push(newEnv);
         }
         break;
+      case BC.Jump:
+        counter += arg;
+        break;
+      case BC.JumpIfNot:
+        var cond = valueStack.peek();
+        valueStack = valueStack.pop();
+        if (!cond) {
+          counter += arg;
+        }
+        break;
       default:
         throw Error('unrecognized bytecode: '+bytecodeName(bc));
     }
@@ -173,6 +183,35 @@
     return env.toString();
   }
 
+  function arrowsDraw(arrows){
+    // ordering by length is a heuristic for less overlapping, not perfect though
+    var byLength = Object.keys(arrows).map( a => [arrows[a], parseInt(a), parseInt(a)+arrows[a]+1] );
+    byLength.sort();
+    var lastLine = Math.max.apply(null, [].concat(byLength.map( x => x[1]),
+                                                  byLength.map( x => x[2])));
+    var lines = Array.apply(null, Array(lastLine)).map( () => '  ' );
+    for (var x of byLength){
+      var dist=x[0],start=x[1],end=x[2];
+      var top = Math.min(start, start+dist+1);
+      var bottom = Math.max(start, start+dist+1);
+      var maxConnectorWidth = Math.max.apply(null, lines.slice(top, bottom).map(
+        line => line.length ));
+      var extraDashes = Math.max(maxConnectorWidth - 2, 0);
+      for (var i=top; i<=bottom; i++){
+        lines[i] = ('|' + lines[i] + '  ').slice(0, extraDashes + 3);
+      }
+      lines[start] = '┌--' + '-'.repeat(extraDashes);
+      lines[end] = '└' + '-'.repeat(extraDashes) + '->';
+    }
+
+    //left-pad all lines
+    var maxWidth = Math.max.apply(null, lines.map( line => line.length ));
+    for (var i=0; i<lines.length; i++){
+      lines[i] = (' '.repeat(maxWidth)+lines[i]).slice(-(maxWidth));
+    }
+    return lines.join('\n');
+  }
+
   //TODO In order to get line/col numbers correct, we need to be diffing
   //both content and linenums of ASTs. When content changes swap out the code,
   //rewind the interpreter etc. but when only linenumbers change, we need to
@@ -181,6 +220,12 @@
   function dis(bytecode, counter, stack, env, source){
     //TODO if there are jumps, add labels
     var termWidth = typeof process === undefined ? 1000 : process.stdout.columns;
+    var arrows = {};
+    bytecode.forEach( (code, i) => {
+      if (bytecodeName(code[0]).indexOf('Jump') != -1){
+        arrows[i] = code[1];
+      }
+    });
     var lines = bytecode.map( code => {
       var instruction = bytecodeName(code[0]);
       var arg = code[1] === null ? '' : ''+code[1];
@@ -202,6 +247,9 @@
       codeNum++;
     }
     output = bytecodeLines.join('\n');
+    if(arrows){
+      output = horzCat(arrowsDraw(arrows), output);
+    }
     if(stack){
       output = horzCat(output, stackDraw(stack, 'valueStack'), true);
     }
@@ -235,7 +283,15 @@
   //bytecoderun('(do (define a 1) a)');
   //bytecoderun('(+ a 1)');
   //bytecoderun('(do (define a 2) (+ a 1))');
-  bytecoderun('(do\n (define a 2)\n (+ a 1))');
+  //bytecoderun('(do\n (define a 2)\n (+ a 1))');
+  bytecoderun(`
+(do
+  (define a 1)
+  (if a
+    (define r 3)
+    (define r 4))
+  r)`);
+  //console.log(arrowsDraw({9: 2, 11:1}));
 
   bytecoderun.bytecoderun = bytecoderun;
 

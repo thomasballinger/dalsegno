@@ -69,6 +69,31 @@
     return code;
   };
 
+  function If(ast){
+    if (ast[0].content !== 'if'){ err('freak out', ast); }
+    if (ast.length < 3){ err('Empty if body', ast); }
+    if (ast.length > 4){ err('To many bodies for if', ast); }
+    this.ast = ast;
+    this.condition = build(ast[1]);
+    this.ifBody = build(ast[2]);
+    this.elseBody = ast[3] ? build(ast[3]) : new Null();
+  }
+  If.prototype.eval = function(env){
+    if (this.condition.eval(env)){
+      return this.ifBody.eval(env);
+    } else {
+      return this.elseBody.eval(env);
+    }
+  };
+  If.prototype.compile = function(env){
+    var condition = this.condition.compile();
+    var ifBody = this.ifBody.compile();
+    var elseBody = this.elseBody === undefined ? [] : this.elseBody.compile();
+    var skipFalse = this.elseBody === undefined ? [] : [[BC.Jump, elseBody.length]];
+    return [].concat(condition, [[BC.JumpIfNot, ifBody.length+skipFalse.length]],
+      ifBody, skipFalse, elseBody);
+  };
+
   function Define(ast){
     if (ast[0].content !== 'define'){ err('freak out', ast); }
     if (ast.length < 2){ err('define requires ast least two args', ast); }
