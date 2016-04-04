@@ -23,7 +23,7 @@
       if (ast[0].content === 'begin'){  return new Begin(ast); }
       if (ast[0].content === 'do'){     return new Begin(ast); }
       if (ast[0].content === 'if'){     return new If(ast); }
-      if (ast[0].content === 'set!'){   return new Set(ast); }
+      if (ast[0].content === 'set!'){   return new SetBang(ast); }
       if (ast[0].content === 'define'){ return new Define(ast); }
       if (ast[0].content === 'defn'){   return new Defn(ast); }
       if (ast[0].content === 'lambda'){ return new Lambda(ast); }
@@ -94,9 +94,27 @@
       ifBody, skipFalse, elseBody);
   };
 
+  function SetBang(ast){
+    if (ast[0].content !== 'set!'){ err('freak out', ast); }
+    if (ast.length !== 3){ err('set! requires ast two args', ast); }
+    if (ast[1].type !== 'word'){ err('first argument to set! should be a name', ast); }
+    this.ast = ast;
+    this.name = ast[1].content;
+    this.body = build(ast[2]);
+  }
+  SetBang.prototype.eval = function(env){
+    var value = this.body.eval(env);
+    env.set(this.name, value);
+    return value;
+  };
+  SetBang.prototype.compile = function(){
+    var body = this.body.compile(this.ast);
+    return [].concat(body, [[BC.Store, this.name, lineInfo(this.ast)]]);
+  };
+
   function Define(ast){
     if (ast[0].content !== 'define'){ err('freak out', ast); }
-    if (ast.length < 2){ err('define requires ast least two args', ast); }
+    if (ast.length < 2){ err('define requires ast least one arg', ast); }
     if (ast.length > 3){ err('define takes two arguments at most', ast); }
     if (ast[1].type !== 'word'){ err('first argument to define should be a name', ast); }
     this.name = ast[1].content;

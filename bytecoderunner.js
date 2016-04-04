@@ -47,6 +47,9 @@
       case BC.StoreNew:
         env.define(arg, valueStack.peek());
         break;
+      case BC.Store:
+        env.set(arg, valueStack.peek());
+        break;
       case BC.Pop:
         if (arg !== null){ throw Error('Pop arg should be null, was '+arg); }
         valueStack = valueStack.pop();
@@ -247,7 +250,7 @@
       codeNum++;
     }
     output = bytecodeLines.join('\n');
-    if(arrows){
+    if(Object.keys(arrows).length){
       output = horzCat(arrowsDraw(arrows), output);
     }
     if(stack){
@@ -284,13 +287,15 @@
   //bytecoderun('(+ a 1)');
   //bytecoderun('(do (define a 2) (+ a 1))');
   //bytecoderun('(do\n (define a 2)\n (+ a 1))');
-  bytecoderun(`
+  /*bytecoderun(`
 (do
   (define a 1)
   (if a
     (define r 3)
     (define r 4))
   r)`);
+  */
+  bytecoderun('(do (define a 1) (set! a 2) a)');
   //console.log(arrowsDraw({9: 2, 11:1}));
 
   bytecoderun.bytecoderun = bytecoderun;
