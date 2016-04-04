@@ -39,7 +39,8 @@
     var bytecode = bytecodeStack.peek();
     var counter = counterStack.peek();
     if (bytecode.length <= counter){
-        throw Error('counter went off the end of bytecode: missing return?');
+      console.log('counterStack:', counterStack);
+      throw Error('counter ('+counter+') went off the end of bytecode: missing return?');
     }
     var done = false;
     var x = bytecode[counter];
@@ -112,10 +113,13 @@
           }
           var scope = {};
           args.forEach((x, i) => scope[func.params[i]] = x);
+          console.log('build scope:', scope);
           var newEnv = env.newWithScope(scope);
           bytecodeStack = bytecodeStack.push(func.code);
-          // off the top (-1) because counter++ on return
-          counterStack = counterStack.push(-1);
+          // off the top (-1) because counter++ at end of this tick
+          counter = -1;
+          counterStack = counterStack.push(counter);
+          console.log('counterStack:', counterStack);
           envStack = envStack.push(newEnv);
         }
         break;
@@ -213,14 +217,15 @@
     return outputLines.join('\n');
   }
 
-  function format(values, cutoff, align){
+  function format(values, cutoff, align, atLeast){
+    cutoff = cutoff || 40;
     if (align === undefined) { align = 'center'; }
+    if (atLeast === undefined){ atLeast = 0; }
     if (values.length === 0){
       return [];
     }
-    cutoff = cutoff || 40;
     var lines = values.map(pprint);
-    var maxWidth = Math.max.apply(null, lines.map( s => s.length ));
+    var maxWidth = Math.max(Math.max.apply(null, lines.map( s => s.length )), atLeast);
     maxWidth = Math.min(cutoff, maxWidth);
     lines = lines.map( s => {
       if (s.length > maxWidth){
@@ -246,7 +251,7 @@
     if (Immutable.Iterable.isIterable(stack)){
       stack = stack.toJS();
     }
-    var lines = format(stack);
+    var lines = format(stack, undefined, undefined, label.length);
     var maxWidth = Math.max(label.length, Math.max.apply(null, lines.map( line => line.length )));
     lines.push('-'.repeat(maxWidth));
     lines.push(' '.repeat((maxWidth-label.length)/2)+label);
@@ -365,7 +370,13 @@
   r)`);
   */
   //bytecoderun('(do (define a 1) (set! a 2) a)');
-  bytecoderun('(do (define f (lambda x (+ x 1))) f)');
+  //bytecoderun('(do (define f (lambda x (+ x 1))) f)');
+  bytecoderun(
+`(do
+  (define f
+    (lambda x
+      (+ x 1)))
+  (f 3))`);
   //console.log(arrowsDraw({9: 2, 11:1}));
 
   bytecoderun.bytecoderun = bytecoderun;

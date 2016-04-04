@@ -165,7 +165,14 @@
     if (typeof func === 'function'){
       return func.apply(null, argValues);
     } else {
-      return func.run(argValues);
+      if (this.args.length !== func.params.length){
+          throw Error('Function called with wrong arity! Takes ' +
+                       func.params.length + ' args, given ' + this.args.length);
+      }
+      var scope = {};
+      this.args.forEach( (_, i) => { scope[func.params[i]] = argValues[i]; });
+      var invocationEnv = func.env.newWithScope(scope);
+      return build(func.body).eval(invocationEnv);
     }
   };
   Invocation.prototype.compile = function() {
