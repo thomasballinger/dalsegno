@@ -343,6 +343,9 @@
     var env = new Environment(this.scopes.concat([new Scope(Immutable.Map(scope))]), this.runner);
     return env;
   };
+  Environment.prototype.makeLambda = function(body, params, name, env){
+    return new parse.Function(body, params, env, name);
+  };
   Environment.prototype.toString = function(){
     var s = '<Environment\n';
     for (var i = this.scopes.length - 1; i>=0; i--){

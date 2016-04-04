@@ -119,6 +119,9 @@
     this.params = params;  // list of tokens with linenos
     this.env = env;
   }
+  Function.prototype.toString = function(){
+    return 'λ('+this.params+'): '+justContent(this.body);
+  };
   Function.prototype.diff = function(other){
     return  (JSON.stringify(justContent(this.body)) !== JSON.stringify(justContent(other.body)) ||
              JSON.stringify(justContent(this.params)) !== JSON.stringify(justContent(other.params)));

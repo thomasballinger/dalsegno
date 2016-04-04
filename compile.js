@@ -90,7 +90,7 @@
     var ifBody = this.ifBody.compile();
     var elseBody = this.elseBody === undefined ? [] : this.elseBody.compile();
     var skipFalse = this.elseBody === undefined ? [] : [[BC.Jump, elseBody.length]];
-    return [].concat(condition, [[BC.JumpIfNot, ifBody.length+skipFalse.length]],
+    return [].concat(condition, [[BC.JumpIfNot, ifBody.length+skipFalse.length, lineInfo(this.ast[0])]],
       ifBody, skipFalse, elseBody);
   };
 
@@ -121,11 +121,36 @@
     this.body = ast.length === 3 ? build(ast[2]) : undefined;
   }
   Define.prototype.eval = function(env){
-    return env.define(this.name, this.body === undefined ? undefined : this.body.eval(env));
+    var value = this.body === undefined ? undefined : this.body.eval(env);
+    env.define(this.name, value);
+    return value;
   };
   Define.prototype.compile = function(){
-    var bodyCode = this.body ? this.body.compile(this.body) : new NullNode().compile();
+    var bodyCode = this.body ? this.body.compile(this.body) : new Null().compile();
     return [].concat(bodyCode, [[BC.StoreNew, this.name, lineInfo(this.ast)]]);
+  };
+
+  function Lambda(ast){
+    if (ast[0].content !== 'lambda'){ err('freak out', ast); }
+    if (ast.length < 2){ err('lambda needs body', ast); }
+    ast.slice(1, -1).forEach( x => {
+      if (x.type !== 'word'){ err('just one body please!', ast); }
+    });
+    this.ast = ast;
+    this.params = ast.slice(1, -1).map( x => x.content );
+    this.bodyAST = ast[ast.length-1];
+    this.body = build(ast[ast.length-1]);
+  }
+  Lambda.prototype.eval = function(env){
+    return env.makeLambda(this.bodyAST, this.params, null, env);
+  };
+  Lambda.prototype.compile = function(env){
+    var code = this.body.compile();
+    code.push([BC.Return, null]);
+    return [
+      [BC.Push, code, lineInfo(this.bodyAST)],
+      [BC.Push, this.params, lineInfo(this.ast)],
+      [BC.BuildFunction, null, lineInfo(this.ast)]];
   };
 
   function Invocation(ast){
@@ -187,7 +212,7 @@
   };
 
   function err(msg, ast){
-    e = Error(msg);
+    var e = Error(msg);
     e.ast = ast;
     var program = (typeof window === 'undefined' ? global : window).program;
     if (program){

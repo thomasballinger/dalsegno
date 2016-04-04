@@ -19,6 +19,20 @@
   var BC = compile.BC;
   var Immutable = require('./Immutable.js');
 
+  function CompiledFunctionObject(params, code, env, name) {
+    this.params = params;
+    this.code = code;
+    this.env = env;
+    this.name = name;
+  }
+  CompiledFunctionObject.prototype.toString = function(){
+    return 'λ('+this.params+'): '+pprint(this.code);
+  };
+
+  //TODO Firm up undefined vs null: Null exists in this language, undefined
+  //does not (so its presence indicates a bug in the language implementation)
+  //In bytecodes when it doesn't matter what's used (arg isn't used) we use
+  //null because that's less likely to occur accidentally
 
   function runBytecodeOneStep(counterStack, bytecodeStack, envStack, valueStack){
     var env = envStack.peek();
@@ -50,6 +64,10 @@
       case BC.Store:
         env.set(arg, valueStack.peek());
         break;
+      case BC.Push:
+        if (arg === null){ throw Error('Push arg should not be null but was'); }
+        valueStack = valueStack.push(arg);
+        break;
       case BC.Pop:
         if (arg !== null){ throw Error('Pop arg should be null, was '+arg); }
         valueStack = valueStack.pop();
@@ -60,6 +78,20 @@
       case BC.FunctionLookup:
         //TODO use funs on runner for this
         valueStack = valueStack.push(env.lookup(arg));
+        break;
+      case BC.BuildFunction:
+        var name = arg;
+        var params = valueStack.peek();
+        valueStack = valueStack.pop();
+        var code = valueStack.peek();
+        valueStack = valueStack.pop();
+        var funcObj;
+        if (arg === null){ // lambda function
+          funcObj = new CompiledFunctionObject(params, code, env, undefined);
+        } else {
+          funcObj = new CompiledFunctionObject(params, code, env, arg);
+        }
+        valueStack = valueStack.push(funcObj);
         break;
       case BC.FunctionCall:
         var args = [];
@@ -133,6 +165,34 @@
     return Object.keys(BC)[index];
   }
 
+  function pprint(v){
+    if (v === undefined){
+      return '';
+    } else if (v === null){
+      return 'NULL (how did that get in?)';
+    } else if (typeof v === 'string'){
+      return v;
+    } else if (typeof v === 'function'){
+      if (v.name){ return ''+(v.origFunc ? v.origFunc : v); }
+      return 'anon JS function';
+    } else if (v.constructor.name === 'Function'){
+      console.log(v);
+      throw Error("TODO write a nice display function for Function objects");
+    } else if (v.constructor.name === 'CompiledFunctionObject'){
+      return 'Lambda';
+    } else if (Array.isArray(v) && v.length && Array.isArray(v[0]) &&
+               v[0].length > 1 && Number.isInteger(v[0][0])){
+      // Looks like some bytecode
+      return 'BC:'+v.map( code => [code[0], code[1]]);
+    } else if (Array.isArray(v) && v.length === 0){
+      return '[]';
+    } else if (Array.isArray(v) && v.length === 1){
+      return ''+v+',';
+    } else {
+      return ''+v;
+    }
+  }
+
   function horzCat(s1, s2, pad2FromTop){
     pad2FromTop = pad2FromTop || false;
 
@@ -153,32 +213,43 @@
     return outputLines.join('\n');
   }
 
-  function stackDraw(stack, label, cutoff){
-    cutoff = cutoff || (label ? Math.max(label.length, 40) : 40);
-    if (Immutable.Iterable.isIterable(stack)){
-      stack = stack.toJS();
+  function format(values, cutoff, align){
+    if (align === undefined) { align = 'center'; }
+    if (values.length === 0){
+      return [];
     }
-    function pprint(v){
-      if (typeof v === 'function'){
-        if (v.name){ return ''+(v.origFunc ? v.origFunc : v); }
-        return 'anon native function';
-      } else {
-        return ''+v;
-      }
-    }
-    var lines = stack.map(pprint);
-    var maxWidth = Math.max.apply(null, [label ? label.length : 0].concat(
-      lines.map( s => s.length )));
+    cutoff = cutoff || 40;
+    var lines = values.map(pprint);
+    var maxWidth = Math.max.apply(null, lines.map( s => s.length ));
     maxWidth = Math.min(cutoff, maxWidth);
-    lines.push('-'.repeat(maxWidth));
-    if (label){ lines.push(label); }
     lines = lines.map( s => {
       if (s.length > maxWidth){
         return s.slice(0, maxWidth-3) + '...';
       } else {
-        return ' '.repeat((maxWidth-s.length)/2)+s;
+        if (align === 'center'){
+          return ' '.repeat((maxWidth-s.length)/2) + s;
+        } else if (align === 'right'){
+          return ' '.repeat(maxWidth-s.length) + s;
+        } else if (align === 'left'){
+          return s + ' '.repeat(maxWidth-s.length);
+        } else {
+          throw Error('bad align arg:', align);
+        }
       }
     });
+    return lines;
+  }
+
+  function stackDraw(stack, cutoff){
+    var label = 'valueStack';
+    cutoff = cutoff || 40;
+    if (Immutable.Iterable.isIterable(stack)){
+      stack = stack.toJS();
+    }
+    var lines = format(stack);
+    var maxWidth = Math.max(label.length, Math.max.apply(null, lines.map( line => line.length )));
+    lines.push('-'.repeat(maxWidth));
+    lines.push(' '.repeat((maxWidth-label.length)/2)+label);
     return lines.join('\n');
   }
 
@@ -221,7 +292,6 @@
   //update the line numbers in all saved named functions. Unnamed functions
   //should be held onto somewhere so their linenums can be changed too.
   function dis(bytecode, counter, stack, env, source){
-    //TODO if there are jumps, add labels
     var termWidth = typeof process === undefined ? 1000 : process.stdout.columns;
     var arrows = {};
     bytecode.forEach( (code, i) => {
@@ -229,32 +299,31 @@
         arrows[i] = code[1];
       }
     });
+    var args = bytecode.map( code => code[1]);
     var lines = bytecode.map( code => {
       var instruction = bytecodeName(code[0]);
-      var arg = code[1] === null ? '' : ''+code[1];
       var lineno = code[2] ? code[2].lineStart.toString() : '';
-      return [instruction, arg, lineno];
+      return [instruction, lineno];
     });
     var maxInstructionLength = Math.max.apply(null, lines.map( line => line[0].length ));
-    var maxArgLength         = Math.max.apply(null, lines.map( line => line[1].length ));
     var maxLineNumLength     = Math.max.apply(null, lines.map( line => line[1].length ));
     var codeNum = 0;
     var output = '';
     var bytecodeLines = [];
     for (var line of lines){
       var s = ((codeNum === counter ? '--> ' : '    ') +
-               ('            '+line[2]).slice(-maxLineNumLength)     + '  ' +
-               ('            '+line[0]).slice(-maxInstructionLength) + '  ' +
-               ('            '+line[1]).slice(-maxArgLength));
+               ('            '+line[1]).slice(-maxLineNumLength)     + '  ' +
+               ('            '+line[0]).slice(-maxInstructionLength));
       bytecodeLines.push(s);
       codeNum++;
     }
     output = bytecodeLines.join('\n');
+    output = horzCat(output, format(args.map( v => v === null ? undefined : v ), 10, 'left').join('\n'));
     if(Object.keys(arrows).length){
       output = horzCat(arrowsDraw(arrows), output);
     }
     if(stack){
-      output = horzCat(output, stackDraw(stack, 'valueStack'), true);
+      output = horzCat(output, stackDraw(stack), true);
     }
     if(env){
       output = horzCat(output, envDraw(env), true);
@@ -279,8 +348,8 @@
     //console.log('AST:', parse.justContent(ast));
     var bytecode = compile(ast);
     //console.log('bytecode:');
-    console.log('compile result:', runBytecode(bytecode, makeEnv(), s));
-    console.log('eval result:', compile.evaluate(ast, makeEnv()));
+    console.log('compile result:', ''+runBytecode(bytecode, makeEnv(), s));
+    console.log('eval result:', ''+compile.evaluate(ast, makeEnv()));
   }
   //bytecoderun('1');
   //bytecoderun('(do (define a 1) a)');
@@ -295,7 +364,8 @@
     (define r 4))
   r)`);
   */
-  bytecoderun('(do (define a 1) (set! a 2) a)');
+  //bytecoderun('(do (define a 1) (set! a 2) a)');
+  bytecoderun('(do (define f (lambda x (+ x 1))) f)');
   //console.log(arrowsDraw({9: 2, 11:1}));
 
   bytecoderun.bytecoderun = bytecoderun;
