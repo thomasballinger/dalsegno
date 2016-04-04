@@ -128,7 +128,7 @@ describe("Environments", function(){
       var env = new Environment.fromObjects([{a:1}, {a:2}, {}], runner);
       assert.deepEqual(env.lookup('a'), 2);
       assert.deepEqual(env.lookup('b'), new run.NamedFunctionPlaceholder('b', runner));
-      assert.throws(function(){ env.lookup('c'); }, /not found in environment/);
+      assert.throws(function(){ env.lookup('c'); }, /not found in/);
       assert.deepEqual(env.retrieveFunction('b'), 'something');
     });
     it('should retrieve actual functions', function(){

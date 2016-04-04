@@ -113,13 +113,11 @@
           }
           var scope = {};
           args.forEach((x, i) => scope[func.params[i]] = x);
-          console.log('build scope:', scope);
           var newEnv = env.newWithScope(scope);
           bytecodeStack = bytecodeStack.push(func.code);
           // off the top (-1) because counter++ at end of this tick
           counter = -1;
           counterStack = counterStack.push(counter);
-          console.log('counterStack:', counterStack);
           envStack = envStack.push(newEnv);
         }
         break;
@@ -183,7 +181,7 @@
       console.log(v);
       throw Error("TODO write a nice display function for Function objects");
     } else if (v.constructor.name === 'CompiledFunctionObject'){
-      return 'Lambda';
+      return ''+v;
     } else if (Array.isArray(v) && v.length && Array.isArray(v[0]) &&
                v[0].length > 1 && Number.isInteger(v[0][0])){
       // Looks like some bytecode
@@ -340,7 +338,7 @@
     console.log(output);
   }
 
-  function bytecoderun(s, makeEnv){
+  function runAndVisualize(s, makeEnv){
     if (makeEnv === undefined){
       makeEnv = function() {
         return new Environment.fromObjects(
@@ -354,32 +352,35 @@
     var bytecode = compile(ast);
     //console.log('bytecode:');
     console.log('compile result:', ''+runBytecode(bytecode, makeEnv(), s));
-    console.log('eval result:', ''+compile.evaluate(ast, makeEnv()));
+    console.log('eval result:', ''+compile.evaluateAST(ast, makeEnv()));
   }
-  //bytecoderun('1');
-  //bytecoderun('(do (define a 1) a)');
-  //bytecoderun('(+ a 1)');
-  //bytecoderun('(do (define a 2) (+ a 1))');
-  //bytecoderun('(do\n (define a 2)\n (+ a 1))');
-  /*bytecoderun(`
-(do
-  (define a 1)
-  (if a
-    (define r 3)
-    (define r 4))
-  r)`);
-  */
-  //bytecoderun('(do (define a 1) (set! a 2) a)');
-  //bytecoderun('(do (define f (lambda x (+ x 1))) f)');
-  bytecoderun(
+
+  function evaluate(s, env){
+    var ast = parse(s);
+    var result = compile.evaluateAST(ast, env);
+    return result;
+  }
+
+  function bytecoderun(s, env){
+    var ast = parse(s);
+    var bytecode = compile(ast);
+    var result = runBytecode(bytecode, env);
+    return result;
+  }
+
+  /*
+  runAndVisualize(
 `(do
   (define f
     (lambda x
       (+ x 1)))
   (f 3))`);
-  //console.log(arrowsDraw({9: 2, 11:1}));
+  */
 
   bytecoderun.bytecoderun = bytecoderun;
+  bytecoderun.compile = compile;
+  bytecoderun.evaluate = evaluate;
+  bytecoderun.Environment = Environment;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

@@ -235,12 +235,12 @@
     Object.freeze(code);
     return code;
   }
-  function evaluate(ast, env){
+  function evaluateAST(ast, env){
     return build(ast).eval(env);
   }
 
   compile.compile = compile;
-  compile.evaluate = evaluate;
+  compile.evaluateAST = evaluateAST;
   compile.BC = BC;
 
   if (typeof exports !== 'undefined') {
