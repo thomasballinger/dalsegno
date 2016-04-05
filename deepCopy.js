@@ -93,6 +93,15 @@
       },
       populate: function(obj, copy, memo){}
     },
+    'NamedCompiledFunctionPlaceholder': {
+      canCopy: function(obj){
+        return obj.constructor.name === 'NamedCompiledFunctionPlaceholder';
+      },
+      create: function(obj){
+        return new obj.constructor(obj.name);
+      },
+      populate: function(obj, copy, memo){}
+    },
     'Function': {
       canCopy: function(obj){
         return obj.constructor.name === 'Function';
@@ -127,6 +136,35 @@
           }
         }
       }
+    },
+    'CompiledFunctionObject': {
+      canCopy: function(obj){
+        return obj.constructor.name === 'CompiledFunctionObject';
+      },
+      create: function(obj){
+        return new obj.constructor(null, null, null, null);
+      },
+      populate: function(obj, copy, memo){
+        for (var property of Object.keys(obj)){
+          if (property === 'name'){
+            copy.name = obj.name; // string
+          } else if (property === 'code'){
+            // shallow copy should be ok bc bytecode is frozen
+            copy.code = obj.code;
+          } else if (property === 'params'){
+            // list of strings that shouldn't change
+            copy.params = obj.params;
+          } else if (property === 'env'){
+            copy.env = innerDeepCopy(obj.env, memo);
+          } else if (property ===  '__obj_id'){
+            // nop
+          } else {
+            console.log(obj);
+            throw Error("deepCopying unknown property "+property+" on "+obj);
+          }
+        }
+      }
+
     },
     'EvalObject': {
       canCopy: function(obj){
@@ -163,30 +201,28 @@
         return new obj.constructor();
       },
       populate: function(obj, copy, memo){
-        for (var property in obj){
-          if (obj.hasOwnProperty(property)){
-            if (property === 'scopes'){
-              copy.scopes = [];
-              for (var i = 0; i < obj.scopes.length; i++){
-                if (obj.scopes[i] === undefined){
-                  throw Error("Scopes probably shouldn't be undefined");
-                } else if (obj.scopes[i].constructor === Object){
-                  throw Error('Environment should not have simple objects as scopes');
-                } else if (obj.scopes[i].constructor.name === 'Scope') {
-                  var scope = obj.scopes[i].copy(); // this should be cheap
-                } else {
-                  // window and other non-object literals
-                  var scope = obj.scopes[i];
-                }
-                copy.scopes.push(scope);
+        for (var property of Object.keys(obj)){
+          if (property === 'scopes'){
+            copy.scopes = [];
+            for (var i = 0; i < obj.scopes.length; i++){
+              if (obj.scopes[i] === undefined){
+                throw Error("Scopes probably shouldn't be undefined");
+              } else if (obj.scopes[i].constructor === Object){
+                throw Error('Environment should not have simple objects as scopes');
+              } else if (obj.scopes[i].constructor.name === 'Scope') {
+                var scope = obj.scopes[i].copy(); // this should be cheap
+              } else {
+                // window and other non-object literals
+                var scope = obj.scopes[i];
               }
-            } else if (property === 'runner'){
-              copy.runner = obj.runner;
-            } else if (property ===  '__obj_id'){
-              // nop
-            } else {
-              throw Error("deepCopying unknown property "+property+" on "+obj);
+              copy.scopes.push(scope);
             }
+          } else if (property === 'runner'){
+            copy.runner = obj.runner;
+          } else if (property ===  '__obj_id'){
+            // nop
+          } else {
+            throw Error("deepCopying unknown property "+property+" on "+obj);
           }
         }
       }

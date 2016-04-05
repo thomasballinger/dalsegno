@@ -213,7 +213,9 @@
   function evalGen(ast, env){
     // Returns an iterable which will evaluate this ast
     if (ast.type === 'number'){
-        return new NumberLiteral(ast);
+      return new NumberLiteral(ast);
+    } else if (ast.type === 'string'){
+      return new StringLiteral(ast);
     }
 
     if (ast.type === 'word'){

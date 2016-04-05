@@ -20,11 +20,7 @@
         if(inString){
           if (chr === '"'){
             word += chr;
-                                          // TODO for compatibility, once
-                                          // refactor done should make this
-                                          // word.slice(1, -1) and fix
-                                          // appropriate tests;
-            tokens.push({type: 'string', content: word.slice(0),
+            tokens.push({type: 'string', content: word.slice(1, -1),
                          linesStart: lineno, lineEnd: lineno,
                          colStart: col-word.length, colEnd: col});
             inString = false;
@@ -121,7 +117,7 @@
       }
     } else if (cur.type === 'rparen') {
       return cur;
-    } else if (/^[+-]?\d*[.]?\d+$/.test(cur.content)) {
+    } else if (cur.type === 'word' && /^[+-]?\d*[.]?\d+$/.test(cur.content)) {
       cur.type = 'number';
       cur.content = parseFloat(cur.content);
       return cur;

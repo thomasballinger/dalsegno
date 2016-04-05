@@ -26,7 +26,8 @@
   CompiledFunctionObject.prototype.toString = function(){
     return 'λ('+this.params+'): '+pprint(this.code);
   };
-  function CompiledFunctionPlaceholder(name){
+
+  function NamedCompiledFunctionPlaceholder(name){
     this.name = name;
   }
 
@@ -97,7 +98,7 @@
         } else {  // defn named function
           funcObj = new CompiledFunctionObject(params, code, env, arg);
           env.setFunction(arg, funcObj);
-          valueStack = valueStack.push(new CompiledFunctionPlaceholder(arg));
+          valueStack = valueStack.push(new NamedCompiledFunctionPlaceholder(arg));
         }
         break;
       case BC.FunctionCall:
@@ -113,6 +114,13 @@
           var result = func.apply(null, args);
           valueStack = valueStack.push(result);
         } else {
+          if (func.name !== null){
+            if (func.constructor.name !== 'NamedCompiledFunctionPlaceholder'){
+              console.log(func);
+              throw Error('Full named function (instead of placeholder) found on the stack:'+func);
+            }
+            func = env.retrieveFunction(func.name);
+          }
           if (func.params.length !== arg){
             throw Error('Function called with wrong arity! Takes ' +
               func.params.length + ' args, given ' + args.length);
@@ -121,13 +129,6 @@
           args.forEach((x, i) => scope[func.params[i]] = x);
           var newEnv = env.newWithScope(scope);
 
-          if (func.name !== null){
-            if (func.constructor.name !== 'NamedFunctionPlaceholder'){
-              console.log(func);
-              throw Error('Full named function (instead of placeholder) found on the stack:'+func);
-            }
-            func = env.retrieveFunction(func.name);
-          }
           bytecodeStack = bytecodeStack.push(func.code);
           // off the top (-1) because counter++ at end of this tick
           counter = -1;
@@ -412,6 +413,7 @@
   bcexec.evaluate = evaluate;
   bcexec.buildContext = buildContext;
   bcexec.execBytecodeOneStep = execBytecodeOneStep;
+  bcexec.dis = dis;
   //TODO add functions needed by bcrun
 
   if (typeof exports !== 'undefined') {
