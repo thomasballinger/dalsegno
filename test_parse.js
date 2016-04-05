@@ -22,11 +22,12 @@ describe('parse', function(){
       assert.deepEqual(jc(tokenize('(+ (thing 1 2) (other 3 4))')),
                    ['(', '+', '(', 'thing', '1', '2', ')', '(', 'other', '3', '4', ')', ')']);
     });
-    /*
-    it('should tokenize several words in quotes as one token', function(){
-      assert.deepEqual(tokenize('"asdf asdf asdf"'), ['"asfd asdf asdf"']);
+    it('should tokenize strings without quotes', function(){
+      assert.deepEqual(jc(tokenize('"asdf"')), ['"asdf"']);
     });
-    */
+    it('should tokenize several words in quotes as one token', function(){
+      assert.deepEqual(jc(tokenize('"asdf asdf asdf"')), ['"asdf asdf asdf"']);
+    });
   });
   describe('parse', function(){
     it('should parse nested forms', function(){
