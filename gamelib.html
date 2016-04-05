@@ -214,6 +214,7 @@ function getParameterByName(name) {
 
 <script src="deepCopy.js"></script>
 <script src="parse.js"></script>
+<script src="Environment.js"></script>
 <script src="run.js"></script>
 <script src="builtins.js"></script>
 <script src="MouseTracker.js"></script>
@@ -231,8 +232,8 @@ function getParameterByName(name) {
   var keyboardTracker = new KeyboardTracker('canvas');
   var drawHelpers = new DrawHelpers(lazyCanvasCtx, document.getElementById('canvas'));
   var envBuilder = function(){
-    return new run.Environment([
-    window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, keyboardTracker, new run.Scope(builtins), new run.Scope(stdlib), new run.Scope()]);
+    return new Environment([
+    window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, keyboardTracker, new Environment.Scope(builtins), new Environment.Scope(stdlib), new Environment.Scope()]);
   };
   var runner = new run.Runner({});
   runner.setEnvBuilder(envBuilder);
