@@ -10,17 +10,43 @@
     var lines = s.split('\n');
     var tokens = [];
     var word;
+    var inString = false;
     for (var lineno=1; lineno<=lines.length; lineno++){
       var line = lines[lineno-1];
 
       word = '';
       for (var col=1; col<=line.length; col++){
         var chr = line[col-1];
+        if(inString){
+          if (chr === '"'){
+            word += chr;
+                                          // TODO for compatibility, once
+                                          // refactor done should make this
+                                          // word.slice(1, -1) and fix
+                                          // appropriate tests;
+            tokens.push({type: 'string', content: word.slice(0),
+                         linesStart: lineno, lineEnd: lineno,
+                         colStart: col-word.length, colEnd: col});
+            inString = false;
+            word = '';
+          } else {
+            word += chr;
+          }
+          continue;
+        }
+        if(chr === '"' && word === ''){
+          inString = true;
+          word += chr;
+          continue;
+        }
         if(chr === ';'){
           tokens.push({type: 'comment', content: line.slice(col-1),
                        lineStart: lineno, lineEnd: lineno,
                        colStart: col, colEnd: line.length});
           break;
+        }
+        if(chr === '"'){
+          inString = true;
         }
         if(/\s|[()]/.test(chr)){
           if (word){
@@ -38,6 +64,10 @@
           word += chr;
           continue;
         }
+      }
+      if (inString){
+        // unclosed string
+        throw Error("unclosed string literal!");
       }
       if (word){
           // some -1's because we're off the edge of the line
