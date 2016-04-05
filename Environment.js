@@ -23,7 +23,8 @@
         throw Error('Environment constructed with non-scope args!');
       }
     }
-    if (runner && runner.constructor.name !== 'Runner'){
+    if (runner && runner.constructor.name !== 'Runner' &&
+        runner.constructor.name !== 'BCRunner'){
       throw Error("Environment constructed with bad runner argument: ", runner);
     }
     this.scopes = scopes;

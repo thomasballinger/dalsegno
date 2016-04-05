@@ -35,7 +35,10 @@
   //In bytecodes when it doesn't matter what's used (arg isn't used) we use
   //null because that's less likely to occur accidentally
 
-  function runBytecodeOneStep(counterStack, bytecodeStack, envStack, valueStack){
+  function execBytecodeOneStep(counterStack, bytecodeStack, envStack, valueStack){
+    if (counterStack.count() === 0){
+      throw Error('bad context');
+    }
     var env = envStack.peek();
     var bytecode = bytecodeStack.peek();
     var counter = counterStack.peek();
@@ -149,23 +152,38 @@
     return [counterStack, bytecodeStack, envStack, valueStack, done];
   }
 
-  function runBytecode(bytecode, env, source){
-    source = source || false;
+  function buildContext(bytecode, env){
     bytecode = [].concat(bytecode, [[BC.Return, null, undefined]]);
     var counterStack  = Immutable.Stack([0]);
     var bytecodeStack = Immutable.Stack([bytecode]);
     var envStack      = Immutable.Stack([env]);
-
     var valueStack    = Immutable.Stack([]);
+
+    return [counterStack, bytecodeStack, envStack, valueStack];
+  }
+
+  function execBytecode(bytecode, env, source){
+    source = source || false;
+    var context = buildContext(bytecode, env);
     var finished;
+
+    var counterStack, bytecodeStack, envStack, valueStack;
     do {
-      if (source && counterStack.count() && bytecodeStack.count()){
-        dis(bytecodeStack.peek(), counterStack.peek(), valueStack, envStack.peek(), source);
+      if (source){
+        counterStack = context[0];
+        bytecodeStack = context[1];
+        envStack = context[2];
+        valueStack = context[3];
+        if (counterStack.count() && bytecodeStack.count()){
+          dis(bytecodeStack.peek(), counterStack.peek(), valueStack, envStack.peek(), source);
+        }
       }
-      var x = runBytecodeOneStep(counterStack, bytecodeStack, envStack, valueStack);
-      counterStack=x[0];bytecodeStack=x[1];envStack=x[2];valueStack=x[3];
+      var x = execBytecodeOneStep.apply(null, context);
+      context = x.slice(0, 4);
       finished=x[4];
     } while (!finished);
+
+    valueStack = context[3];
     if (valueStack.count() !== 1){
         throw Error('final stack is of wrong length '+valueStack.count()+': '+valueStack);
     }
@@ -349,7 +367,7 @@
     console.log(output);
   }
 
-  function runAndVisualize(s, makeEnv){
+  function execAndVisualize(s, makeEnv){
     if (makeEnv === undefined){
       makeEnv = function() {
         return new Environment.fromObjects(
@@ -362,7 +380,7 @@
     //console.log('AST:', parse.justContent(ast));
     var bytecode = compile(ast);
     //console.log('bytecode:');
-    console.log('compile result:', ''+runBytecode(bytecode, makeEnv(), s));
+    console.log('compile result:', ''+execBytecode(bytecode, makeEnv(), s));
     console.log('eval result:', ''+compile.evaluateAST(ast, makeEnv()));
   }
 
@@ -372,15 +390,15 @@
     return result;
   }
 
-  function bytecoderun(s, env){
+  function bcexec(s, env){
     var ast = parse(s);
     var bytecode = compile(ast);
-    var result = runBytecode(bytecode, env);
+    var result = execBytecode(bytecode, env);
     return result;
   }
 
   function example(){
-    runAndVisualize(
+    execAndVisualize(
 `(do
   (if 1
     (define a 1)
@@ -388,16 +406,19 @@
   4)`);
   }
 
-  bytecoderun.bytecoderun = bytecoderun;
-  bytecoderun.compile = compile;
-  bytecoderun.evaluate = evaluate;
-  bytecoderun.Environment = Environment;
+  bcexec.bcexec = bcexec;
+  bcexec.execBytecode = execBytecode;
+  bcexec.compile = compile;
+  bcexec.evaluate = evaluate;
+  bcexec.buildContext = buildContext;
+  bcexec.execBytecodeOneStep = execBytecodeOneStep;
+  //TODO add functions needed by bcrun
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = bytecoderun;
+      exports = module.exports = bcexec;
     }
   } else {
-    window.bytecoderun = bytecoderun;
+    window.bcexec = bcexec;
   }
 })();
