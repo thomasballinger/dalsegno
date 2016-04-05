@@ -2,41 +2,22 @@
 var chai = require('chai');
 var assert = chai.assert;
 
-var Immutable = require('./Immutable')
+var Immutable = require('./Immutable');
 var tokenize = require('./parse.js').tokenize;
 var parse = require('./parse.js');
 var jc = parse.justContent;
 var run = require('./run');
-var Environment = run.Environment;
+var Environment = require('./Environment.js');
+var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
 var evalGen = run.evalGen;
 var Runner = run.Runner;
-var Scope = run.Scope;
+var Scope = Environment.Scope;
 
 // environment with just an arity-2 sum function for testing
 var justSumScope = new Scope(Immutable.Map({'+': function(a, b){return a + b}}));
 var justSum = new Environment([new Scope(Immutable.Map({'+': function(a, b){return a + b}}))]);
 
-describe('Evaluation Iterators', function(){
-  describe('evalGen', function(){
-    it('should return an evaluation object', function(){
-      var e = evalGen({content: 1, type: 'number'});
-      assert(e.isEvalGen);
-      assert.equal(jc(e.ast), 1);
-      var e = evalGen(parse('(+ 1 2)'), justSum);
-      assert(e.isEvalGen);
-      assert.deepEqual(jc(e.ast), ['+', 1, 2]);
-    });
-  });
-  describe('Invocation', function(){
-    it('should be iterable', function(){
-      var e = evalGen(parse('(+ 1 2)'), justSum);
-      assert.deepEqual(e.next(), {value: null, finished: false});
-      assert.deepEqual(e.next(), {value: null, finished: false});
-      assert.deepEqual(e.next(), {value: null, finished: false});
-      assert.deepEqual(e.next(), {value: 3, finished: true});
-      assert.deepEqual(e.next(), {value: 3, finished: true});
-    });
-  });
+describe('Evaluation', function(){
   describe('Lambda', function(){
     it('should work', function(){
       assert.deepEqual(run('((lambda 1))'), 1);
@@ -127,7 +108,7 @@ describe("Environments", function(){
       var runner = new Runner({'b': 'something'});
       var env = new Environment.fromObjects([{a:1}, {a:2}, {}], runner);
       assert.deepEqual(env.lookup('a'), 2);
-      assert.deepEqual(env.lookup('b'), new run.NamedFunctionPlaceholder('b', runner));
+      assert.deepEqual(env.lookup('b'), new NamedFunctionPlaceholder('b', runner));
       assert.throws(function(){ env.lookup('c'); }, /not found in/);
       assert.deepEqual(env.retrieveFunction('b'), 'something');
     });
@@ -135,7 +116,7 @@ describe("Environments", function(){
       var runner = new Runner({'b': 'something'});
       var env = new Environment.fromObjects([{a:1}, {a:2}, {}]);
       env.runner = runner;
-      assert.deepEqual(env.lookup('b'), new run.NamedFunctionPlaceholder('b', runner));
+      assert.deepEqual(env.lookup('b'), new NamedFunctionPlaceholder('b', runner));
       assert.deepEqual(env.retrieveFunction('b'), 'something');
       assert.deepEqual(env.lookup('a'), 2);
     });

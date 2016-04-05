@@ -4,10 +4,11 @@
 ;(function() {
   'use strict';
 
+  var require;
   if (typeof window === 'undefined') {
-    var require = module.require;
+    require = module.require;
   } else {
-    var require = function(name){
+    require = function(name){
       var realname = name.match(/(\w+)[.]?j?s?$/)[1];
       return window[realname];
     };
@@ -16,8 +17,9 @@
   var builtins = require('./builtins.js');
   var run = require('./run');
   var Immutable = require('./Immutable');
+  var Environment = require('./Environment');
 
-  var env = new run.Environment([new run.Scope(builtins), new run.Scope()], null);
+  var env = new Environment([new Environment.Scope(builtins), new Environment.Scope()], null);
 
   // Use lambdas so snapshots aren't tracked of them
   // Don't create any funs here! They won't work.

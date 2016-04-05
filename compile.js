@@ -130,6 +130,30 @@
     return [].concat(bodyCode, [[BC.StoreNew, this.name, lineInfo(this.ast)]]);
   };
 
+  function Defn(ast){
+    if (ast[0].content !== 'defn'){ err('freak out', ast); }
+    if (ast.length < 3){ err('defn needs ast least three args', ast); }
+    if (ast[1].type !== 'word'){ err('first arg to defn should be a name', ast); }
+    ast.slice(2, -1).map( (n)=>{ if (n.type !== 'word'){ err('params!', ast);} });
+    this.ast = ast;
+    this.name = ast[1].content;
+    this.params = ast.slice(2,-1).map( n => n.content );
+    this.body = build(ast[ast.length-1]);
+  }
+  Defn.prototype.eval = function(env){
+      return env.makeEvalNamedFunction(this.params, this.body, env);
+  };
+  Defn.prototype.compile = function(){
+    var code = this.body.compile();
+    code.push([BC.Return, null, lineInfo(this.body.ast)]);
+    return [
+        [BC.Push, code, lineInfo(this.ast)],
+        [BC.Push, this.params, lineInfo(this.ast)],
+        [BC.BuildFunction, this.name, lineInfo(this.ast)],
+        [BC.StoreNew, this.name, lineInfo(this.ast)]
+    ];
+  };
+
   function Lambda(ast){
     if (ast[0].content !== 'lambda'){ err('freak out', ast); }
     if (ast.length < 2){ err('lambda needs body', ast); }
@@ -142,7 +166,7 @@
     this.body = build(ast[ast.length-1]);
   }
   Lambda.prototype.eval = function(env){
-    return env.makeLambda(this.bodyAST, this.params, null, env);
+    return env.makeEvalLambda(this.bodyAST, this.params, null);
   };
   Lambda.prototype.compile = function(env){
     var code = this.body.compile();
