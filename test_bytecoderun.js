@@ -2,9 +2,9 @@
 var chai = require('chai');
 var assert = chai.assert;
 
-var bytecoderun = require('./bytecoderun');
-var evaluate = bytecoderun.evaluate;
-var Environment = bytecoderun.Environment;
+var bcrun = require('./bcrun');
+var evaluate = bcrun.evaluate;
+var Environment = bcrun.Environment;
 
 function checkCompileAgainstEval(s, makeEnv){
   if (makeEnv === undefined){
@@ -14,7 +14,7 @@ function checkCompileAgainstEval(s, makeEnv){
     };
   }
   var evalResult = evaluate(s, makeEnv());
-  var compileResult = bytecoderun(s, makeEnv());
+  var compileResult = bcrun(s, makeEnv());
   assert.deepEqual(evalResult, compileResult);
 }
 

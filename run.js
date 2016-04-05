@@ -30,8 +30,6 @@
   }
 
   Runner.prototype = new BaseEval();
-  //TODO instead of using an envBuilder, pass in an env the runner
-  //can make a copy of to be the original
   Runner.prototype.setEnvBuilder = function(callback){
     if (callback === undefined){
       callback = function(){ return new Environment(); };

@@ -178,9 +178,12 @@
   };
 
   function Invocation(ast){
-    if (ast[0].type !== 'word'){ err('function calls cannot start with expressions', ast); }
+    if (ast[0].type === 'word'){
+      this.head = new FunctionLookup(ast[0]);
+    } else {
+      this.head = build(ast[0]);
+    }
     this.ast = ast;
-    this.head = new FunctionLookup(ast[0]);
     this.args = ast.slice(1).map( a => build(a) );
   }
   Invocation.prototype.eval = function(env){
@@ -272,6 +275,6 @@
       exports = module.exports = compile;
     }
   } else {
-    window.bytecoderun = compile;
+    window.compile = compile;
   }
 })();
