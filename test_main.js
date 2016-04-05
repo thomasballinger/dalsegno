@@ -7,14 +7,14 @@ var assert = chai.assert;
 var tokenize = require('./parse.js').tokenize;
 var parse = require('./parse.js').parse;
 var run = require('./run');
-var Environment = run.Environment;
+var Environment = require('./Environment');
 var evalGen = run.evalGen;
 var Runner = run.Runner;
 var builtins = require('./builtins.js');
 var stdlib = require('./stdlib.js');
 
 var buildEnv = function(){
-  return new run.Environment.fromObjects([builtins, stdlib, {}]);
+  return new Environment.fromObjects([builtins, stdlib, {}]);
 };
 
 describe('integration', function(){
@@ -48,7 +48,7 @@ describe('integration', function(){
 
 describe('interactive features', function(){
   it('updates functions', function(){
-    var env = new run.Environment.fromObjects([builtins, stdlib, {}]);
+    var env = new Environment.fromObjects([builtins, stdlib, {}]);
     var runner = new run.Runner({});
   });
   it('deepcopies closed-over state', function(){

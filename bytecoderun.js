@@ -12,9 +12,7 @@
   }
   var parse = require('./parse.js');
   var deepCopy = require('./deepCopy.js');
-  var run = require('./run.js');
-  var Environment = run.Environment;
-  var Scope = run.Scope;
+  var Environment = require('./Environment.js');
   var compile = require('./compile.js');
   var BC = compile.BC;
   var Immutable = require('./Immutable.js');
@@ -28,6 +26,9 @@
   CompiledFunctionObject.prototype.toString = function(){
     return 'λ('+this.params+'): '+pprint(this.code);
   };
+  function CompiledFunctionPlaceholder(name){
+    this.name = name;
+  }
 
   //TODO Firm up undefined vs null: Null exists in this language, undefined
   //does not (so its presence indicates a bug in the language implementation)
@@ -77,7 +78,7 @@
         valueStack = valueStack.push(env.lookup(arg));
         break;
       case BC.FunctionLookup:
-        //TODO use funs on runner for this
+        // works the same as function(
         valueStack = valueStack.push(env.lookup(arg));
         break;
       case BC.BuildFunction:
@@ -87,12 +88,14 @@
         var code = valueStack.peek();
         valueStack = valueStack.pop();
         var funcObj;
-        if (arg === null){ // lambda function
-          funcObj = new CompiledFunctionObject(params, code, env, undefined);
-        } else {
+        if (arg === null){  // lambda function
+          funcObj = new CompiledFunctionObject(params, code, env, null);
+          valueStack = valueStack.push(funcObj);
+        } else {  // defn named function
           funcObj = new CompiledFunctionObject(params, code, env, arg);
+          env.setFunction(arg, funcObj);
+          valueStack = valueStack.push(new CompiledFunctionPlaceholder(arg));
         }
-        valueStack = valueStack.push(funcObj);
         break;
       case BC.FunctionCall:
         var args = [];
@@ -114,6 +117,14 @@
           var scope = {};
           args.forEach((x, i) => scope[func.params[i]] = x);
           var newEnv = env.newWithScope(scope);
+
+          if (func.name !== null){
+            if (func.constructor.name !== 'NamedFunctionPlaceholder'){
+              console.log(func);
+              throw Error('Full named function (instead of placeholder) found on the stack:'+func);
+            }
+            func = env.retrieveFunction(func.name);
+          }
           bytecodeStack = bytecodeStack.push(func.code);
           // off the top (-1) because counter++ at end of this tick
           counter = -1;
@@ -368,14 +379,14 @@
     return result;
   }
 
-  /*
-  runAndVisualize(
+  function example(){
+    runAndVisualize(
 `(do
-  (define f
-    (lambda x
-      (+ x 1)))
-  (f 3))`);
-  */
+  (if 1
+    (define a 1)
+    (define b 2))
+  4)`);
+  }
 
   bytecoderun.bytecoderun = bytecoderun;
   bytecoderun.compile = compile;

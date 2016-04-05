@@ -3,11 +3,11 @@ var chai = require('chai');
 var assert = chai.assert;
 
 var run = require('./run');
-var Environment = run.Environment;
+var Environment = require('./Environment.js');
 var stdlib = require('./stdlib');
 var builtins = require('./builtins');
 
-var env = new Environment([new run.Scope(builtins), new run.Scope(stdlib)]);
+var env = new Environment([new Environment.Scope(builtins), new Environment.Scope(stdlib)]);
 
 describe('stdlib', function(){
   describe('reduce', function(){
