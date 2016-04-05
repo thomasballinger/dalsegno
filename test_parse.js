@@ -13,26 +13,26 @@ describe('parse', function(){
       assert.deepEqual(jc(tokenize('+')), ['+']);
       assert.deepEqual(jc(tokenize('1.2')), ['1.2']);
       assert.deepEqual(jc(tokenize('2')), ['2']);
-      assert.deepEqual(jc(tokenize('"asdf"')), ['"asdf"']);
+      assert.deepEqual(jc(tokenize('"asdf"')), ['asdf']);
     });
     it('should tokenize nested structures', function(){
-      assert.deepEqual(jc(tokenize('("asdf")')), ["(", '"asdf"', ")"]);
+      assert.deepEqual(jc(tokenize('("asdf")')), ["(", 'asdf', ")"]);
       assert.deepEqual(jc(tokenize('(+ 1 2)')), ["(", "+", "1", "2", ")"]);
       assert.deepEqual(jc(tokenize('(+ (thing 1 2))')), ["(", "+", "(", "thing", "1", "2", ")", ")"]);
       assert.deepEqual(jc(tokenize('(+ (thing 1 2) (other 3 4))')),
                    ['(', '+', '(', 'thing', '1', '2', ')', '(', 'other', '3', '4', ')', ')']);
     });
     it('should tokenize strings without quotes', function(){
-      assert.deepEqual(jc(tokenize('"asdf"')), ['"asdf"']);
+      assert.deepEqual(jc(tokenize('"asdf"')), ['asdf']);
     });
     it('should tokenize several words in quotes as one token', function(){
-      assert.deepEqual(jc(tokenize('"asdf asdf asdf"')), ['"asdf asdf asdf"']);
+      assert.deepEqual(jc(tokenize('"asdf asdf asdf"')), ['asdf asdf asdf']);
     });
   });
   describe('parse', function(){
     it('should parse nested forms', function(){
       assert.deepEqual(jc(parse('(+ (thing 1 2) (other 3 "4"))')),
-                       ['+', ['thing', 1, 2], ['other', 3, '"4"']]);
+                       ['+', ['thing', 1, 2], ['other', 3, '4']]);
     });
     it('should parse newlines right', function(){
       var s = `

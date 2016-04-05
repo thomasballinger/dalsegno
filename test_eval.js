@@ -72,7 +72,7 @@ var evaluationTests = function(run, Runner){
     describe('run', function(){
       it("should run code that doesn't contain defns", function(){
         assert.deepEqual(run('1'), 1);
-        assert.deepEqual(run('"a"'), "a");
+        assert.deepEqual(run('"a"'), 'a');
         assert.deepEqual(run('(+ 1 2)', justSum), 3);
       });
     });
@@ -133,7 +133,10 @@ var evaluationTests = function(run, Runner){
           assert.throws(function(){ runner.value(); }, /Runner doesn't allow named functions/);
           runner.funs = {};
           runner.value();
-          assert.deepEqual(jc(runner.funs.foo.body), 1);
+          if (runner.funs.foo.body){
+            // currently CompiledFunctionObjects don't have ast bodies
+            assert.deepEqual(jc(runner.funs.foo.body), 1);
+          }
           assert.deepEqual(runner.funs.foo.name, 'foo');
           assert.deepEqual(runner.funs.foo.env.scopes,
                            tmpEnv.scopes);
