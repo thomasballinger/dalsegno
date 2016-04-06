@@ -42,9 +42,9 @@
     if (this.funs === null){
       console.log('warning: maybe you wanted to set up a function dictionary on the runner before running user code?');
     }
-    var ast = parse(s);
-    this.oldFunctions = parse.findFunctions(ast);
-    var bytecode = bcexec.compile(ast);
+    this.ast = parse(s);
+    this.oldFunctionASTs = parse.findFunctions(this.ast);
+    var bytecode = bcexec.compile(this.ast);
     this.context = new bcexec.Context(bytecode, this.envBuilder());
   };
   //TODO shim for testing
@@ -53,9 +53,9 @@
   };
   //TODO shim for testing, get rid of this
   BCRunner.prototype.loadCode = function(s, env){
-    var ast = parse(s);
+    this.ast = parse(s);
     // don't know why we skip finding old functions here
-    var bytecode = bcexec.compile(ast);
+    var bytecode = bcexec.compile(this.ast);
     this.context = new bcexec.Context(bytecode, env);
   };
   BCRunner.prototype.copy = function(){
@@ -65,7 +65,59 @@
             context: copy[0]};
 
   };
-  BCRunner.prototype.update = function(s){ throw Error("not implemented yet"); };
+  BCRunner.prototype.update = function(s){
+    var newAst = parse(s);
+    var functionASTs = parse.findFunctions(newAst);
+    if (this.ast !== undefined &&
+        JSON.stringify(parse.justContent(newAst)) ===
+        JSON.stringify(parse.justContent(this.ast)) && !this.finished){
+      return;
+    }
+
+    // the AST changed. We might stay where we are, we might restore.
+    this.ast = newAst;
+
+    var diff = parse.diffFunctions(this.oldFunctionASTs, functionASTs);
+    this.oldFunctionASTs = functionASTs;
+    if (Object.keys(diff).length === 0){
+      // Must have been top level AST that changed because no function
+      // differences were found. Total reset!
+      this.ast = parse(s);
+      var bytecode = bcexec.compile(this.ast);
+      this.context = new bcexec.Context(bytecode, this.envBuilder());
+      console.log('Total reset!');
+      return;
+    } else {
+      console.log('functions changed: ', Object.keys(diff));
+    }
+    var earliestTime = -1;
+    var earliestGen;
+    for (var funcName in diff){
+      console.log('change detected in function '+funcName);
+      console.log('last run at tick '+this.getState(funcName).counter);
+      if (this.getState(funcName).counter >= earliestTime){
+        earliestGen = funcName;
+        earliestTime = this.getState(funcName).counter;
+      }
+    }
+    if (earliestGen === undefined){
+      // The only funtions that were changed were functions that had
+      // never been run so those changes will take effect on their own!
+      return;
+    }
+    this.restoreState(earliestGen);
+
+    // For each defn form in the current code
+    for (funcName in functionASTs){
+      // if there's a saved compiled function for that
+      // (in the ones we just got from a save)
+      if (funcName in this.funs){
+        this.funs[funcName].code = compile(functionASTs[funcName].body);
+        this.funs[funcName].params = functionASTs[funcName].params;
+      }
+    }
+    this.values = [];
+  };
 
   /** Code will be run with no defns allowed */
   BCRunner.prototype.runLibraryCode = function(s, env){
@@ -78,8 +130,8 @@
     //TODO use an interface for this instead
     env.runner = this;
 
-    var ast = parse(s);
-    var bytecode = bcexec.compile(ast);
+    this.ast = parse(s);
+    var bytecode = bcexec.compile(this.ast);
     this.context = new bcexec.Context(bytecode, env);
     return this.value();
   };
@@ -97,13 +149,19 @@
     this.savedStates[name] = this.copy();
   };
   BCRunner.prototype.restoreState = function(name){
+    console.log('restoring from', name);
+    // copied in one deepCopy call because their
+    // object webs are intertwined; functions share environments
+    // also on the context.envStack.
     var state = deepCopy(this.savedStates[name]);
+    console.log('old context:\n', this.context.pprint());
     this.counter = state.counter;
-    this.context = state.context;
-    this.funs = state.funs;
+    this.context = state.context;  // deepcopied because this mutates
+    console.log('new context:\n', this.context.pprint());
+    this.funs = state.funs;  // copied so we can update these
   };
   BCRunner.prototype.getState = function(name){
-    if (name in this.savedState){
+    if (name in this.savedStates){
       return this.savedStates[name];
     } else {
       throw Error("What is this for?");

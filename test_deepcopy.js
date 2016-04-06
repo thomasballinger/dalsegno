@@ -53,6 +53,30 @@ describe('copyable execution trees', function(){
       assert.strictEqual(a, deepCopy(a));
     });
 
+    describe('bytecode specific', function(){
+      describe('runnner', function(){
+        it.only('can be resumed after being cloned', function(){
+          var tmpEnv = new Environment.fromObjects([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
+          var tmpEnvBuilder = function(){return tmpEnv;};
+          var runner = new bcrun.BCRunner({});
+          runner.setEnvBuilder(tmpEnvBuilder);
+
+          runner.loadUserCode('(begin (defn foo 1) (foo))');
+          assert.equal(false, runner.runABit(100));
+          console.log('foo:', runner.getState('foo'));
+          assert.equal(runner.getState('foo').context.counterStack.peek(), 6);
+          runner.update('(begin (defn foo 2) (foo))');
+          /*
+          assert.deepEqual(jc(runner.getState('foo').delegate.env.runner.funs.foo.body), 2);
+          assert.deepEqual(jc(runner.funs['foo'].body), 2);
+          assert.deepEqual(jc(runner.delegate.env.runner.funs['foo'].body), 2);
+          assert.equal(2, runner.value());
+          assert.deepEqual(jc(runner.getState('foo').delegate.env.runner.funs.foo.body), 2);
+          */
+        });
+      });
+    });
+
     //TODO write analogous tests for bytecode implementation
     describe('genEval specific', function(){
       describe('genEval objects', function(){

@@ -145,6 +145,8 @@
         return new obj.constructor(null, null, null, null);
       },
       populate: function(obj, copy, memo){
+        // Although swapping out properties of a CompiledFunctionObject
+        // happens regularly, most properties themselves don't change.
         for (var property of Object.keys(obj)){
           if (property === 'name'){
             copy.name = obj.name; // string
@@ -284,6 +286,7 @@
     if (copied){
       return copy;
     }
+    console.log(x);
     throw Error("Can't deep copy "+typeof x + " " + x.constructor + " "+x);
   }
 
