@@ -47,7 +47,7 @@
     });
   };
 
-  Environment.prototype.lookup = function(key, ast){
+  Environment.prototype.lookup = function(key, ast, defaultValue){
     for (var i = this.scopes.length - 1; i >= 0; i--){
       var val;
       if (this.scopes[i].constructor === Scope){
@@ -68,6 +68,9 @@
     }
     if (this.runner && this.runner.functionExists(key)){
       return new NamedFunctionPlaceholder(key);
+    }
+    if (defaultValue !== undefined){
+      return defaultValue;
     }
     var e = Error("Name '"+key+"' not found in "+this);
     e.ast = ast;
