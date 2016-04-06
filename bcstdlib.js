@@ -15,7 +15,7 @@
   }
 
   var builtins = require('./builtins.js');
-  var run = require('./bcrun');
+  var bcrun = require('./bcrun');
   var Environment = require('./Environment');
   var stdlibcode = require('./stdlibcode');
 
@@ -24,7 +24,7 @@
   // Use lambdas so snapshots aren't tracked of them
   // Don't create any funs here! They won't work.
 
-  stdlibcode.forEach( code => run(code, env));
+  stdlibcode.forEach( code => bcrun(code, env));
 
   var stdlib = env.scopes[1].data;
 

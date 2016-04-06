@@ -143,7 +143,7 @@
   //TODO temp ship for compatibility with evalGen in tests
   BCRunner.prototype.next = BCRunner.prototype.runOneStep;
 
-  function run(s, env){
+  function bcrun(s, env){
     var runner = new BCRunner(null);
     return runner.runLibraryCode(s, env);
   }
@@ -158,15 +158,15 @@
     return runner.value();
   }
 
-  run.run = run;
-  run.BCRunner = BCRunner;
-  run.runWithDefn = runWithDefn;
+  bcrun.bcrun = bcrun;
+  bcrun.BCRunner = BCRunner;
+  bcrun.runWithDefn = runWithDefn;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = run;
+      exports = module.exports = bcrun;
     }
   } else {
-    window.run = run;
+    window.bcrun = bcrun;
   }
 })();
