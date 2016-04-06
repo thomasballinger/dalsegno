@@ -127,7 +127,7 @@
           }
           var scope = {};
           args.forEach((x, i) => scope[func.params[i]] = x);
-          var newEnv = func.env.newWithScope(scope);
+          var newEnv = func.env.newWithScope(scope, env.runner);
 
           bytecodeStack = bytecodeStack.push(func.code);
           // off the top (-1) because counter++ at end of this tick
