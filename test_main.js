@@ -29,7 +29,7 @@ var tests = function(run, Runner, stdlib){
       it('and retrieve', function(){
         run.runWithDefn("(do (defn foo 1) (foo))", buildEnv);
       });
-      it.only('global functions', function(){
+      it('global functions', function(){
         run.runWithDefn("\n"+
             "(do                                   \n"+
             "  (defn foo x (do x x))               \n"+

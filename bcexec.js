@@ -176,7 +176,7 @@
         envStack = context[2];
         valueStack = context[3];
         if (counterStack.count() && bytecodeStack.count()){
-          dis(bytecodeStack.peek(), counterStack.peek(), valueStack, envStack.peek(), source);
+          dis(bytecodeStack.peek(), counterStack, valueStack, envStack.peek(), source);
         }
       }
       var x = execBytecodeOneStep.apply(null, context);
@@ -327,7 +327,7 @@
   //rewind the interpreter etc. but when only linenumbers change, we need to
   //update the line numbers in all saved named functions. Unnamed functions
   //should be held onto somewhere so their linenums can be changed too.
-  function dis(bytecode, counter, stack, env, source){
+  function dis(bytecode, counterStack, stack, env, source){
     var termWidth = typeof process === undefined ? 1000 : process.stdout.columns;
     var arrows = {};
     bytecode.forEach( (code, i) => {
@@ -347,7 +347,7 @@
     var output = '';
     var bytecodeLines = [];
     for (var line of lines){
-      var s = ((codeNum === counter ? '--> ' : '    ') +
+      var s = ((codeNum === counterStack.peek() ? '--> ' : '    ') +
                ('            '+line[1]).slice(-maxLineNumLength)     + '  ' +
                ('            '+line[0]).slice(-maxInstructionLength));
       bytecodeLines.push(s);
@@ -361,9 +361,13 @@
     if(stack){
       output = horzCat(output, stackDraw(stack), true);
     }
+    var counters = counterStack.toJS();
+    counters.reverse();
+    var envAndPCStack = 'PC stack:\n'+counters+'\n';
     if(env){
-      output = horzCat(output, envDraw(env), true, 40);
+      envAndPCStack += envDraw(env);
     }
+    output = horzCat(output, envAndPCStack, true, 30);
     if(source){
       var sourceLines = [];
       source = source.split('\n').forEach( (s, i) => sourceLines.push((i+1+' ').slice(0, 2)+s) );
