@@ -69,7 +69,7 @@ describe('compiler and evaluator', ()=>{
         "  (define foo (lambda x (+ x 1)))     \n"+
         "  (define main (lambda (do            \n"+
         "    (foo 1)                           \n"+
-        "    (map foo (list 1 2 3)))))         \n"+
+        "    (map foo (list 1 2 3 4)))))       \n"+
         "  (main))";
         checkCompileAgainstEval(s, buildEnv);
       });
