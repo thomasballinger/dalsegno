@@ -115,6 +115,7 @@
       throw Error("Can't look up function because environment doesn't have a runner");
     }
     if (this.runner.funs === null){
+      console.log(this.runner);
       throw Error("Runner doesn't allow named functions");
     }
     if (this.runner.funs[name] === undefined){
@@ -123,15 +124,18 @@
     this.runner.saveState(name);
     return this.runner.getFunction(name);
   };
-  Environment.prototype.newWithScope = function(scope){
+  Environment.prototype.newWithScope = function(scope, runner){
     if (scope === undefined){
       throw Error('Supply a scope!');
+    }
+    if (runner === undefined){
+      runner = this.runner;
     }
     if (Object.keys(scope)[0] === 'undefined'){
       debugger;
       throw Error('wtf');
     }
-    var env = new Environment(this.scopes.concat([new Scope(Immutable.Map(scope))]), this.runner);
+    var env = new Environment(this.scopes.concat([new Scope(Immutable.Map(scope))]), runner);
     return env;
   };
   Environment.prototype.makeEvalLambda = function(body, params, name){

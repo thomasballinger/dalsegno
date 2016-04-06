@@ -143,9 +143,11 @@
     return runner.runLibraryCode(s, env);
   }
 
-  function runWithDefn(s, envBuilder){
+  function runWithDefn(s, envBuilder, debug){
     var runner = new BCRunner({});
-    runner.debug = s;
+    if (debug){
+      runner.debug = s;
+    }
     runner.setEnvBuilder(envBuilder);
     runner.loadUserCode(s);
     return runner.value();
