@@ -127,7 +127,7 @@
           }
           var scope = {};
           args.forEach((x, i) => scope[func.params[i]] = x);
-          var newEnv = env.newWithScope(scope);
+          var newEnv = func.env.newWithScope(scope);
 
           bytecodeStack = bytecodeStack.push(func.code);
           // off the top (-1) because counter++ at end of this tick
@@ -208,8 +208,6 @@
       if (v.name){ return (''+(v.origFunc ? v.origFunc : v)).replace(/\n/g, '⏎'); }
       return 'anon JS function';
     } else if (v.constructor.name === 'Function'){
-      //console.log(v);
-      //throw Error("");
       return '☠ uncompiled function!'+v;
     } else if (v.constructor.name === 'CompiledFunctionObject'){
       return ''+v;

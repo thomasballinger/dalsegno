@@ -38,12 +38,20 @@ describe('compiler and evaluator', ()=>{
       checkCompileAgainstEval('(do (define a 1) (set! a 2) a)');
       checkCompileAgainstEval('(do (define f (lambda x (+ x 1))) (f 2))');
     });
+    it('should do closures', ()=>{
+      checkCompileAgainstEval(`(do
+  (define one
+    ((lambda (do
+      (define a 1)
+      (lambda a)))))
+  (one)
+      )`, undefined);
+    });
     describe("big functions with builtins", function(){
       var buildEnv = function(){
         return new Environment.fromObjects([builtins, {}]);
       };
-
-      it('like recursive map should work', () => {
+      it('defining recursive map should work', () => {
         var s = "(do\n"+
         "  (define map\n"+
         "    ((lambda\n"+
@@ -63,7 +71,7 @@ describe('compiler and evaluator', ()=>{
         "    (foo 1)                           \n"+
         "    (map foo (list 1 2 3)))))         \n"+
         "  (main))";
-        checkCompileAgainstEval(s, buildEnv, true);
+        checkCompileAgainstEval(s, buildEnv);
       });
     });
   });
