@@ -326,7 +326,7 @@
   function dis(context, source){
     var bytecode = context.bytecodeStack.peek();
     var counterStack = context.counterStack;
-    var valueStack = context.valueStack;
+    var stack = context.valueStack;
     var env = context.envStack.peek();
 
     //var termWidth = typeof process === undefined ? 1000 : process.stdout.columns;
