@@ -55,6 +55,9 @@
     this.oldFunctions = parse.findFunctions(this.ast);
     this.delegate = evalGen(this.ast, this.envBuilder());
   };
+  Runner.prototype.currentEnv = function(){
+    return this.delegate.env;
+  };
   Runner.prototype.loadCode = function(s, env){
     this.ast = parse(s);
     this.delegate = evalGen(this.ast, env);

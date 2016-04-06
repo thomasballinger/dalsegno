@@ -31,88 +31,104 @@
     this.name = name;
   }
 
+  function Context(bytecode, env){
+    bytecode = [].concat(bytecode, [[BC.Return, null, undefined]]);
+    this.counterStack  = Immutable.Stack([0]);
+    this.bytecodeStack = Immutable.Stack([bytecode]);
+    this.envStack      = Immutable.Stack([env]);
+    this.valueStack    = Immutable.Stack([]);
+    this.done          = false;
+  }
+  Context.fromStacks = function(counterStack, bytecodeStack, envStack, valueStack, done){
+    this.counterStack  = counterStack;
+    this.bytecodeStack = bytecodeStack;
+    this.envStack      = envStack;
+    this.valueStack    = valueStack;
+    this.done          = done;
+  };
+
   //TODO Firm up undefined vs null: Null exists in this language, undefined
   //does not (so its presence indicates a bug in the language implementation)
   //In bytecodes when it doesn't matter what's used (arg isn't used) we use
   //null because that's less likely to occur accidentally
 
-  function execBytecodeOneStep(counterStack, bytecodeStack, envStack, valueStack){
-    if (counterStack.count() === 0){
+  /** Mutates a context by one bytecode */
+  function execBytecodeOneStep(c){
+    if (c.counterStack.count() === 0){
       throw Error('bad context');
     }
-    var env = envStack.peek();
-    var bytecode = bytecodeStack.peek();
-    var counter = counterStack.peek();
+    var env = c.envStack.peek();
+    var bytecode = c.bytecodeStack.peek();
+    var counter = c.counterStack.peek();
     if (bytecode.length <= counter){
-      console.log('counterStack:', counterStack);
+      console.log('counterStack:', c.counterStack);
       throw Error('counter ('+counter+') went off the end of bytecode: missing return?');
     }
-    var done = false;
     var x = bytecode[counter];
     var bc=x[0], arg=x[1];
     switch (bc){
       case BC.LoadConstant:
-        valueStack = valueStack.push(arg);
+        c.valueStack = c.valueStack.push(arg);
         break;
       case BC.Return:
-        bytecodeStack = bytecodeStack.pop();
-        counterStack = counterStack.pop();
-        envStack = envStack.pop();
-        if (bytecodeStack.count() === 0){
-          done = true;
+        c.bytecodeStack = c.bytecodeStack.pop();
+        c.counterStack = c.counterStack.pop();
+        c.envStack = c.envStack.pop();
+        if (c.bytecodeStack.count() === 0){
+          c.done = true;
         } else {
-          counter = counterStack.peek();
+          counter = c.counterStack.peek();
         }
         break;
       case BC.StoreNew:
-        env.define(arg, valueStack.peek());
+        env.define(arg, c.valueStack.peek());
         break;
       case BC.Store:
-        env.set(arg, valueStack.peek());
+        env.set(arg, c.valueStack.peek());
         break;
       case BC.Push:
         if (arg === null){ throw Error('Push arg should not be null but was'); }
-        valueStack = valueStack.push(arg);
+        c.valueStack = c.valueStack.push(arg);
         break;
       case BC.Pop:
         if (arg !== null){ throw Error('Pop arg should be null, was '+arg); }
-        valueStack = valueStack.pop();
+        c.valueStack = c.valueStack.pop();
         break;
       case BC.NameLookup:
-        valueStack = valueStack.push(env.lookup(arg));
+        c.valueStack = c.valueStack.push(env.lookup(arg));
         break;
       case BC.FunctionLookup:
         // works the same as function(
-        valueStack = valueStack.push(env.lookup(arg));
+        c.valueStack = c.valueStack.push(env.lookup(arg));
         break;
       case BC.BuildFunction:
         var name = arg;
-        var params = valueStack.peek();
-        valueStack = valueStack.pop();
-        var code = valueStack.peek();
-        valueStack = valueStack.pop();
+        var params = c.valueStack.peek();
+        c.valueStack = c.valueStack.pop();
+        var code = c.valueStack.peek();
+        c.valueStack = c.valueStack.pop();
         var funcObj;
         if (arg === null){  // lambda function
           funcObj = new CompiledFunctionObject(params, code, env, null);
-          valueStack = valueStack.push(funcObj);
+          c.valueStack = c.valueStack.push(funcObj);
         } else {  // defn named function
           funcObj = new CompiledFunctionObject(params, code, env, arg);
           env.setFunction(arg, funcObj);
-          valueStack = valueStack.push(new NamedCompiledFunctionPlaceholder(arg));
+          c.valueStack = c.valueStack.push(new NamedCompiledFunctionPlaceholder(arg));
         }
         break;
       case BC.FunctionCall:
         var args = [];
         for (var i=0; i<arg; i++){
-          args.push(valueStack.peek());
-          valueStack = valueStack.pop();
+          args.push(c.valueStack.peek());
+          c.valueStack = c.valueStack.pop();
         }
         args.reverse();
-        var func = valueStack.peek();
-        valueStack = valueStack.pop();
+        var func = c.valueStack.peek();
+        c.valueStack = c.valueStack.pop();
         if (typeof func === 'function'){
           var result = func.apply(null, args);
-          valueStack = valueStack.push(result);
+          c.valueStack = c.valueStack.push(result);
         } else {
           if (func.name !== null){
             if (func.constructor.name !== 'NamedCompiledFunctionPlaceholder'){
@@ -129,19 +145,19 @@
           args.forEach((x, i) => scope[func.params[i]] = x);
           var newEnv = func.env.newWithScope(scope, env.runner);
 
-          bytecodeStack = bytecodeStack.push(func.code);
+          c.bytecodeStack = c.bytecodeStack.push(func.code);
           // off the top (-1) because counter++ at end of this tick
           counter = -1;
-          counterStack = counterStack.push(counter);
-          envStack = envStack.push(newEnv);
+          c.counterStack = c.counterStack.push(counter);
+          c.envStack = c.envStack.push(newEnv);
         }
         break;
       case BC.Jump:
         counter += arg;
         break;
       case BC.JumpIfNot:
-        var cond = valueStack.peek();
-        valueStack = valueStack.pop();
+        var cond = c.valueStack.peek();
+        c.valueStack = c.valueStack.pop();
         if (!cond) {
           counter += arg;
         }
@@ -149,46 +165,26 @@
       default:
         throw Error('unrecognized bytecode: '+bytecodeName(bc));
     }
-    counterStack = counterStack.pop().push(counter+1);
-    return [counterStack, bytecodeStack, envStack, valueStack, done];
-  }
-
-  function buildContext(bytecode, env){
-    bytecode = [].concat(bytecode, [[BC.Return, null, undefined]]);
-    var counterStack  = Immutable.Stack([0]);
-    var bytecodeStack = Immutable.Stack([bytecode]);
-    var envStack      = Immutable.Stack([env]);
-    var valueStack    = Immutable.Stack([]);
-
-    return [counterStack, bytecodeStack, envStack, valueStack];
+    c.counterStack = c.counterStack.pop().push(counter+1);
   }
 
   function execBytecode(bytecode, env, source){
     source = source || false;
-    var context = buildContext(bytecode, env);
-    var finished;
+    var context = new Context(bytecode, env);
 
-    var counterStack, bytecodeStack, envStack, valueStack;
     do {
-      if (source){
-        counterStack = context[0];
-        bytecodeStack = context[1];
-        envStack = context[2];
-        valueStack = context[3];
-        if (counterStack.count() && bytecodeStack.count()){
-          dis(bytecodeStack.peek(), counterStack, valueStack, envStack.peek(), source);
-        }
+      if (source && context.counterStack.count() &&
+          context.bytecodeStack.count()){
+        dis(context, source);
       }
-      var x = execBytecodeOneStep.apply(null, context);
-      context = x.slice(0, 4);
-      finished=x[4];
-    } while (!finished);
+      execBytecodeOneStep(context);
+    } while (!context.done);
 
-    valueStack = context[3];
-    if (valueStack.count() !== 1){
-        throw Error('final stack is of wrong length '+valueStack.count()+': '+valueStack);
+    if (context.valueStack.count() !== 1){
+        throw Error('final stack is of wrong length '+
+                    context.valueStack.count()+': '+context.valueStack);
     }
-    return valueStack.peek();
+    return context.valueStack.peek();
   }
 
   function bytecodeName(num){
@@ -327,8 +323,13 @@
   //rewind the interpreter etc. but when only linenumbers change, we need to
   //update the line numbers in all saved named functions. Unnamed functions
   //should be held onto somewhere so their linenums can be changed too.
-  function dis(bytecode, counterStack, stack, env, source){
-    var termWidth = typeof process === undefined ? 1000 : process.stdout.columns;
+  function dis(context, source){
+    var bytecode = context.bytecodeStack.peek();
+    var counterStack = context.counterStack;
+    var valueStack = context.valueStack;
+    var env = context.envStack.peek();
+
+    //var termWidth = typeof process === undefined ? 1000 : process.stdout.columns;
     var arrows = {};
     bytecode.forEach( (code, i) => {
       if (bytecodeName(code[0]).indexOf('Jump') != -1){
@@ -420,7 +421,7 @@
   bcexec.execBytecode = execBytecode;
   bcexec.compile = compile;
   bcexec.evaluate = evaluate;
-  bcexec.buildContext = buildContext;
+  bcexec.Context = Context;
   bcexec.execBytecodeOneStep = execBytecodeOneStep;
   bcexec.dis = dis;
   //TODO add functions needed by bcrun
