@@ -205,13 +205,16 @@
     } else if (typeof v === 'string'){
       return v;
     } else if (typeof v === 'function'){
-      if (v.name){ return ''+(v.origFunc ? v.origFunc : v); }
+      if (v.name){ return (''+(v.origFunc ? v.origFunc : v)).replace(/\n/g, '⏎'); }
       return 'anon JS function';
     } else if (v.constructor.name === 'Function'){
-      console.log(v);
-      throw Error("TODO write a nice display function for Function objects");
+      //console.log(v);
+      //throw Error("");
+      return '☠ uncompiled function!'+v;
     } else if (v.constructor.name === 'CompiledFunctionObject'){
       return ''+v;
+    } else if (v.constructor.name === 'NamedCompiledFunctionPlaceholder'){
+      return 'λ'+v.name+' placeholder';
     } else if (Array.isArray(v) && v.length && Array.isArray(v[0]) &&
                v[0].length > 1 && Number.isInteger(v[0][0])){
       // Looks like some bytecode
@@ -225,11 +228,13 @@
     }
   }
 
-  function horzCat(s1, s2, pad2FromTop){
+  function horzCat(s1, s2, pad2FromTop, limitRight){
+    limitRight = limitRight || 10000;
     pad2FromTop = pad2FromTop || false;
 
     var lines1 = s1.split('\n');
-    var lines2 = s2.split('\n');
+    var lines2 = s2.split('\n').map( line => line.length > limitRight ?
+                                             line.slice(0, limitRight-3)+'...' : line);
     while (lines1.length < lines2.length){ lines1.push(''); }
     while (lines2.length < lines1.length){
       if (pad2FromTop){ lines2.unshift(''); } else { lines2.push(''); }
@@ -359,10 +364,12 @@
       output = horzCat(output, stackDraw(stack), true);
     }
     if(env){
-      output = horzCat(output, envDraw(env), true);
+      output = horzCat(output, envDraw(env), true, 40);
     }
     if(source){
-      output = horzCat(output, source, true);
+      var sourceLines = [];
+      source = source.split('\n').forEach( (s, i) => sourceLines.push((i+1+' ').slice(0, 2)+s) );
+      output = horzCat(output, sourceLines.join('\n'), true);
     }
     console.log('-'.repeat(Math.max.apply(null, output.split('\n').map( l => l.length ))));
     console.log(output);
@@ -391,10 +398,10 @@
     return result;
   }
 
-  function bcexec(s, env){
+  function bcexec(s, env, debugSource){
     var ast = parse(s);
     var bytecode = compile(ast);
-    var result = execBytecode(bytecode, env);
+    var result = execBytecode(bytecode, env, debugSource);
     return result;
   }
 

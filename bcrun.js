@@ -50,7 +50,7 @@
     var bytecode = bcexec.compile(ast);
     this.context = bcexec.buildContext(bytecode, this.envBuilder());
   };
-  BCRunner.prototype.loadCode = function(s, env){ throw Error("not implemented yet"); };
+  BCRunner.prototype.loadCode = function(s, env){ throw Error("don't plan to implement this"); };
   BCRunner.prototype.copy = function(){
     var copy = deepCopy([this.context, this.funs]);
     return {counter: this.counter,
@@ -78,12 +78,32 @@
     return this.value();
   };
   /** Returns whether it is still running */
-  BCRunner.prototype.runABit = function(numIterations, errback){ throw Error("not implemented yet"); };
+  BCRunner.prototype.runABit = function(numIterations, errback){
+    numIterations = numIterations || 1;
+    var start = this.counter;
+    while(this.counter < start + numIterations && !this.runOneStep()){}
+    if (this.done){
+      console.log('finished!', this.value());
+    }
+    return !this.done;
+  };
   BCRunner.prototype.saveState = function(name){
     this.savedStates[name] = this.copy();
   };
-  BCRunner.prototype.restoreState = function(name){ throw Error("not implemented yet"); };
-  BCRunner.prototype.getState = function(name){ throw Error("not implemented yet"); };
+  BCRunner.prototype.restoreState = function(name){
+    var state = deepCopy(this.savedStates[name]);
+    this.counter = state.counter;
+    this.context = state.context;
+    this.funs = state.funs;
+  };
+  BCRunner.prototype.getState = function(name){
+    if (name in this.savedState){
+      return this.savedStates[name];
+    } else {
+      throw Error("What is this for?");
+    }
+    return [-2, null];
+  };
   BCRunner.prototype.functionExists = function(name){
     return ((this.funs !== null) && this.funs.hasOwnProperty(name));
   };
@@ -109,7 +129,8 @@
     if (this.debug){
       var counterStack=r[0], bytecodeStack=r[1], envStack=r[2], valueStack=r[3];
       if (counterStack.count() && bytecodeStack.count()){
-        bcexec.dis(bytecodeStack.peek(), counterStack.peek(), valueStack, envStack.peek());
+        bcexec.dis(bytecodeStack.peek(), counterStack.peek(), valueStack, envStack.peek(),
+                   typeof this.debug === 'string' ? this.debug : undefined);
       }
     }
     this.context = r.slice(0, 4);
@@ -124,6 +145,7 @@
 
   function runWithDefn(s, envBuilder){
     var runner = new BCRunner({});
+    runner.debug = s;
     runner.setEnvBuilder(envBuilder);
     runner.loadUserCode(s);
     return runner.value();

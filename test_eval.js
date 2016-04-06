@@ -158,8 +158,6 @@ var evaluationTests = function(run, Runner){
         assert.deepEqual(runner.functionExists('b'), false);
       });
     });
-
-
   };
 };
 
