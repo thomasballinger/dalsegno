@@ -48,7 +48,6 @@ var tests = function(run, Runner, stdlib){
       });
     });
 
-    /*
     describe('interactive features', function(){
       it('updates functions', function(){
         var env = new Environment.fromObjects([builtins, stdlib, {}]);
@@ -70,16 +69,15 @@ var tests = function(run, Runner, stdlib){
 
         runner.runABit(100);
 
-        var beforeRestore = runner.delegate.env.scopes[3].data.get('x');
+        var beforeRestore = runner.currentEnv().scopes[3].data.get('x');
 
         runner.delegate = save.delegate;
         runner.funs = save.funs;
         runner.runABit(100);
 
-        assert.isTrue(runner.delegate.env.scopes[3].data.get('x') < beforeRestore);
+        assert.isTrue(runner.currentEnv().scopes[3].data.get('x') < beforeRestore);
       });
     });
-    */
   };
 };
 

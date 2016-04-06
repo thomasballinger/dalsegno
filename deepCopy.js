@@ -164,7 +164,36 @@
           }
         }
       }
-
+    },
+    'Context': {
+      canCopy: function(obj){
+        return obj.constructor.name === 'Context';
+      },
+      create: function(obj){
+        return new obj.constructor.fromStacks(null, null, null, null, null);
+      },
+      populate: function(obj, copy, memo){
+        for (var property of Object.keys(obj)){
+          if (property === 'counterStack'){
+            copy.counterStack = obj.counterStack;
+          } else if (property === 'bytecodeStack'){
+            copy.bytecodeStack = obj.bytecodeStack;
+          } else if (property === 'envStack'){
+            var environments = obj.envStack.toJS();
+            copy.envStack = Immutable.Stack(innerDeepCopy(environments, memo));
+          } else if (property === 'valueStack'){
+            // entirely immutable values! except maybe some functions...
+            var values = obj.valueStack.toJS();
+            copy.valueStack = Immutable.Stack(innerDeepCopy(values, memo));
+          } else if (property === 'done'){
+            copy.done = obj.done;
+          } else if (property ===  '__obj_id'){
+            // nop
+          } else {
+            throw Error("deepCopying unknown property "+property+" on "+obj);
+          }
+        }
+      }
     },
     'EvalObject': {
       canCopy: function(obj){
