@@ -215,14 +215,12 @@ function getParameterByName(name) {
 <script src="deepCopy.js"></script>
 <script src="parse.js"></script>
 <script src="Environment.js"></script>
-<script src="compile.js"></script>
-<script src="bcexec.js"></script>
-<script src="bcrun.js"></script>
+<script src="run.js"></script>
 <script src="builtins.js"></script>
 <script src="MouseTracker.js"></script>
 <script src="KeyboardTracker.js"></script>
 <script src="stdlibcode.js"></script>
-<script src="bcstdlib.js"></script>
+<script src="stdlib.js"></script>
 <script src="LazyCanvasCtx.js"></script>
 <script src="DrawHelpers.js"></script>
 <script>
@@ -236,9 +234,9 @@ function getParameterByName(name) {
   var drawHelpers = new DrawHelpers(lazyCanvasCtx, document.getElementById('canvas'));
   var envBuilder = function(){
     return new Environment([
-    window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, keyboardTracker, new Environment.Scope(builtins), new Environment.Scope(bcstdlib), new Environment.Scope()]);
+    window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, keyboardTracker, new Environment.Scope(builtins), new Environment.Scope(stdlib), new Environment.Scope()]);
   };
-  var runner = new bcrun.BCRunner({});
+  var runner = new run.Runner({});
   runner.setEnvBuilder(envBuilder);
   var lastProgram = '';
 
