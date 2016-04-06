@@ -40,11 +40,22 @@
     this.done          = false;
   }
   Context.fromStacks = function(counterStack, bytecodeStack, envStack, valueStack, done){
-    this.counterStack  = counterStack;
-    this.bytecodeStack = bytecodeStack;
-    this.envStack      = envStack;
-    this.valueStack    = valueStack;
-    this.done          = done;
+    var c = new Context(null, null);
+    c.counterStack  = counterStack;
+    c.bytecodeStack = bytecodeStack;
+    c.envStack      = envStack;
+    c.valueStack    = valueStack;
+    c.done          = done;
+    return c;
+  };
+  Context.prototype.pprint = function(){
+    return {
+      counterStack: this.counterStack.toJS(),
+      bytecodeStack: this.bytecodeStack.toJS(),
+      envStack: this.envStack.toJS(),
+      valueStack: this.valueStack.toJS(),
+      done: this.done
+    };
   };
 
   //TODO Firm up undefined vs null: Null exists in this language, undefined
@@ -339,7 +350,7 @@
     var args = bytecode.map( code => code[1]);
     var lines = bytecode.map( code => {
       var instruction = bytecodeName(code[0]);
-      var lineno = code[2] ? code[2].lineStart.toString() : '';
+      var lineno = (code[2] && code[2].lineStart) ? code[2].lineStart.toString() : '';
       return [instruction, lineno];
     });
     var maxInstructionLength = Math.max.apply(null, lines.map( line => line[0].length ));

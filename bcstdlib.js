@@ -26,13 +26,13 @@
 
   stdlibcode.forEach( code => bcrun(code, env));
 
-  var stdlib = env.scopes[1].data;
+  var bcstdlib = env.scopes[1].data;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = stdlib;
+      exports = module.exports = bcstdlib;
     }
   } else {
-    window.stdlib = stdlib;
+    window.bcstdlib = bcstdlib;
   }
 })();
