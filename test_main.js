@@ -71,6 +71,13 @@ var tests = function(run, Runner, stdlib){
 
         var beforeRestore = runner.currentEnv().scopes[3].data.get('x');
 
+        if (runner === bcrun.BCRunner){
+          runner.context = save.context;
+        } else {
+          runner.delegate = save.delegate;
+        }
+        runner.funs = save.funs;
+
         runner.delegate = save.delegate;
         runner.funs = save.funs;
         runner.runABit(100);
