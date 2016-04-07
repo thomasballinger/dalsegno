@@ -36,9 +36,9 @@
       return new Invocation(ast, itp);
     } else {
       // these don't care about being in the tail position
-      if (ast.type === 'number'){ return new NumberLiteral(ast); }
-      if (ast.type === 'string'){ return new StringLiteral(ast); }
-      if (ast.type === 'word'){ return new Lookup(ast); }
+      if (ast.type === 'number'){ return new NumberLiteral(ast, itp); }
+      if (ast.type === 'string'){ return new StringLiteral(ast, itp); }
+      if (ast.type === 'word'){ return new Lookup(ast, itp); }
     }
     throw Error('what even is this? '+ast);
   }
@@ -67,7 +67,7 @@
     this.ast = ast;
     this.itp = itp;
     this.expressions = [].concat(ast.slice(1, -1).map( a => build(a, false) ),
-                                 ast.slice(-1   ).map( a => build(a, true ) ));
+                                 ast.slice(-1   ).map( a => build(a, this.itp ) ));
   }
   Begin.prototype.eval = function(env){ return this.expressions.map( expr => expr.eval(env)).pop(); };
   Begin.prototype.compile = function(){
@@ -110,6 +110,7 @@
     if (ast.length !== 3){ err('set! requires ast two args', ast); }
     if (ast[1].type !== 'word'){ err('first argument to set! should be a name', ast); }
     this.ast = ast;
+    this.itp = itp; // but this won't propagate
     this.name = ast[1].content;
     this.body = build(ast[2], false);
   }
@@ -129,7 +130,7 @@
     if (ast.length > 3){ err('define takes two arguments at most', ast); }
     if (ast[1].type !== 'word'){ err('first argument to define should be a name', ast); }
     this.ast = ast;
-    this.itp = false; // a definition can't be in tail position
+    this.itp = itp; // but this won't propagate
     this.name = ast[1].content;
     this.body = ast.length === 3 ? build(ast[2], false) : undefined;
   }
@@ -149,7 +150,7 @@
     if (ast[1].type !== 'word'){ err('first arg to defn should be a name', ast); }
     ast.slice(2, -1).map( (n)=>{ if (n.type !== 'word'){ err('params!', ast);} });
     this.ast = ast;
-    this.itp = false; // a definition can't be in tail position
+    this.itp = itp; // but this won't propagate
     this.name = ast[1].content;
     this.params = ast.slice(2,-1).map( n => n.content );
     // body of a function is always in tail position
@@ -177,8 +178,7 @@
       if (x.type !== 'word'){ err('just one body please!', ast); }
     });
     this.ast = ast;
-    // irrelevant to lambda
-    this.itp = itp;
+    this.itp = itp; // but this won't propagate
     this.params = ast.slice(1, -1).map( x => x.content );
     this.bodyAST = ast[ast.length-1];
     // function body is always in tail position
@@ -231,8 +231,9 @@
   };
 
 
-  function NumberLiteral(ast){
+  function NumberLiteral(ast, itp){
     this.ast = ast;
+    this.itp = itp; // but this won't propagate
     this.number = ast.content;
   }
   NumberLiteral.prototype.eval = function(env){ return this.number; };
@@ -240,8 +241,9 @@
     return [[BC.LoadConstant, this.number, lineInfo(this.ast)]];
   };
 
-  function StringLiteral(ast){
+  function StringLiteral(ast, itp){
     this.ast = ast;
+    this.itp = itp; // but this won't propagate
     this.string = ast.content;
   }
   StringLiteral.prototype.eval = function(env){ return this.string; };
@@ -249,8 +251,9 @@
     return [[BC.LoadConstant, this.string, lineInfo(this.ast)]];
   };
 
-  function Lookup(ast){
+  function Lookup(ast, itp){
     this.ast = ast;
+    this.itp = itp; // but this won't propagate
     this.name = ast.content;
   }
   Lookup.prototype.eval = function(env){ return env.lookup(this.name); };
@@ -258,8 +261,9 @@
     return [[BC.NameLookup, this.name, lineInfo(this.ast)]];
   };
 
-  function FunctionLookup(ast){
+  function FunctionLookup(ast, itp){
     this.ast = ast;
+    this.itp = itp; // but this won't propagate
     this.name = ast.content;
   }
   FunctionLookup.prototype.eval = function(env){ return env.lookup(this.name); };
@@ -291,6 +295,7 @@
   compile.compile = compile;
   compile.evaluateAST = evaluateAST;
   compile.BC = BC;
+  compile.build = build;
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

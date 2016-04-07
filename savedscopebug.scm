@@ -8,7 +8,7 @@
     (defn main (do
       (set! counter (+ counter 1))
       (if c
-          (do 
+          (do
 	    (set! c 0)
 	    (on-c)))
       (set! x (+ x vx))

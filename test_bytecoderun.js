@@ -1,8 +1,10 @@
 'use strict';
 var chai = require('chai');
 var assert = chai.assert;
+var fs = require('fs');
 
 var parse = require('./parse.js');
+var compile = require('./compile.js');
 var bcexec = require('./bcexec');
 var evaluate = bcexec.evaluate;
 var Environment = require('./Environment.js');
@@ -22,6 +24,27 @@ function checkCompileAgainstEval(s, makeEnv, debug){
   var compileResult = bcexec(s, makeEnv(), debug ? s : undefined);
   assert.deepEqual(evalResult, compileResult);
 }
+
+describe('compile', ()=>{
+  it('correctly identifies tail position', ()=>{
+    var program = fs.readFileSync('savedscopebug.scm', {encoding: 'utf8'});
+    var begin = compile.build(parse(program));
+    assert.equal(begin.expressions[0].itp, false);
+    assert.equal(begin.expressions[1].itp, true);
+    assert.equal(begin.expressions[0].body.itp, true);
+    assert.equal(begin.expressions[0].body.expressions[0].itp, false);
+    assert.equal(begin.expressions[0].body.expressions[4].itp, false);
+    assert.equal(begin.expressions[0].body.expressions[5].itp, true);
+    assert.equal(begin.expressions[0].body.expressions[4].body.itp, true);
+    //assert.equal(begin.expressions[0].body.expressions[4].body.expressions[0].itp, false);
+    assert.equal(begin.expressions[0].body.expressions[4].body.expressions[0].itp, false);
+    assert.equal(begin.expressions[0].body.expressions[4].body.expressions[1].itp, false);
+    assert.equal(begin.expressions[0].body.expressions[4].body.expressions[1].ifBody.itp, false);
+    var ifBody = begin.expressions[0].body.expressions[4].body.expressions[1].ifBody;
+    assert.equal(ifBody.expressions[0].itp, false);
+    assert.equal(ifBody.expressions[1].itp, false);
+  });
+});
 
 describe('compiler and evaluator', ()=>{
   describe('without runner', ()=>{
