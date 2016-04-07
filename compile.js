@@ -15,20 +15,27 @@
     Store          : 10,  // arg is variable name, saves TOS
     Return         : 11,  // done with this bytecode
     CloneTop       : 12,  // push on another of the top of the stack
+    FunctionTailCall : 13,
   };
 
-  function build(ast){
+  /** Construct a builder for an ast, with whether in tail position */
+  function build(ast, itp){
+    if (itp === undefined){
+      itp = true;
+    }
+
     if (Array.isArray(ast)){
-      if (ast[0].length === 0){         return new Null(ast); }
-      if (ast[0].content === 'begin'){  return new Begin(ast); }
-      if (ast[0].content === 'do'){     return new Begin(ast); }
-      if (ast[0].content === 'if'){     return new If(ast); }
-      if (ast[0].content === 'set!'){   return new SetBang(ast); }
-      if (ast[0].content === 'define'){ return new Define(ast); }
-      if (ast[0].content === 'defn'){   return new Defn(ast); }
-      if (ast[0].content === 'lambda'){ return new Lambda(ast); }
-      return new Invocation(ast);
+      if (ast[0].length === 0){         return new Null(ast, itp); }
+      if (ast[0].content === 'begin'){  return new Begin(ast, itp); }
+      if (ast[0].content === 'do'){     return new Begin(ast, itp); }
+      if (ast[0].content === 'if'){     return new If(ast, itp); }
+      if (ast[0].content === 'set!'){   return new SetBang(ast, itp); }
+      if (ast[0].content === 'define'){ return new Define(ast, itp); }
+      if (ast[0].content === 'defn'){   return new Defn(ast, itp); }
+      if (ast[0].content === 'lambda'){ return new Lambda(ast, itp); }
+      return new Invocation(ast, itp);
     } else {
+      // these don't care about being in the tail position
       if (ast.type === 'number'){ return new NumberLiteral(ast); }
       if (ast.type === 'string'){ return new StringLiteral(ast); }
       if (ast.type === 'word'){ return new Lookup(ast); }
@@ -54,10 +61,13 @@
   Null.prototype.eval = function(env){ return null; };
   Null.prototype.compile = function(){ return [[BC.LoadConstant, null, lineInfo(this.ast)]]; };
 
-  function Begin(ast){
+  function Begin(ast, itp){
     if (ast[0].content !== 'begin' && ast[0].content !== 'do'){ err('freak out', ast); }
     if (ast.length < 2){ err('do expressions with no statements not yet implemented', ast); }
-    this.expressions = ast.slice(1).map( a => build(a) );
+    this.ast = ast;
+    this.itp = itp;
+    this.expressions = [].concat(ast.slice(1, -1).map( a => build(a, false) ),
+                                 ast.slice(-1   ).map( a => build(a, true ) ));
   }
   Begin.prototype.eval = function(env){ return this.expressions.map( expr => expr.eval(env)).pop(); };
   Begin.prototype.compile = function(){
@@ -69,14 +79,15 @@
     return code;
   };
 
-  function If(ast){
+  function If(ast, itp){
     if (ast[0].content !== 'if'){ err('freak out', ast); }
     if (ast.length < 3){ err('Empty if body', ast); }
     if (ast.length > 4){ err('To many bodies for if', ast); }
     this.ast = ast;
-    this.condition = build(ast[1]);
-    this.ifBody = build(ast[2]);
-    this.elseBody = ast[3] ? build(ast[3]) : new Null();
+    this.itp = itp;
+    this.condition = build(ast[1], false);
+    this.ifBody = build(ast[2], itp);
+    this.elseBody = ast[3] ? build(ast[3], itp) : new Null();
   }
   If.prototype.eval = function(env){
     if (this.condition.eval(env)){
@@ -94,13 +105,13 @@
       ifBody, skipFalse, elseBody);
   };
 
-  function SetBang(ast){
+  function SetBang(ast, itp){
     if (ast[0].content !== 'set!'){ err('freak out', ast); }
     if (ast.length !== 3){ err('set! requires ast two args', ast); }
     if (ast[1].type !== 'word'){ err('first argument to set! should be a name', ast); }
     this.ast = ast;
     this.name = ast[1].content;
-    this.body = build(ast[2]);
+    this.body = build(ast[2], false);
   }
   SetBang.prototype.eval = function(env){
     var value = this.body.eval(env);
@@ -112,13 +123,15 @@
     return [].concat(body, [[BC.Store, this.name, lineInfo(this.ast)]]);
   };
 
-  function Define(ast){
+  function Define(ast, itp){
     if (ast[0].content !== 'define'){ err('freak out', ast); }
     if (ast.length < 2){ err('define requires ast least one arg', ast); }
     if (ast.length > 3){ err('define takes two arguments at most', ast); }
     if (ast[1].type !== 'word'){ err('first argument to define should be a name', ast); }
+    this.ast = ast;
+    this.itp = false; // a definition can't be in tail position
     this.name = ast[1].content;
-    this.body = ast.length === 3 ? build(ast[2]) : undefined;
+    this.body = ast.length === 3 ? build(ast[2], false) : undefined;
   }
   Define.prototype.eval = function(env){
     var value = this.body === undefined ? undefined : this.body.eval(env);
@@ -130,15 +143,18 @@
     return [].concat(bodyCode, [[BC.StoreNew, this.name, lineInfo(this.ast)]]);
   };
 
-  function Defn(ast){
+  function Defn(ast, itp){
     if (ast[0].content !== 'defn'){ err('freak out', ast); }
     if (ast.length < 3){ err('defn needs ast least three args', ast); }
     if (ast[1].type !== 'word'){ err('first arg to defn should be a name', ast); }
     ast.slice(2, -1).map( (n)=>{ if (n.type !== 'word'){ err('params!', ast);} });
     this.ast = ast;
+    this.itp = false; // a definition can't be in tail position
     this.name = ast[1].content;
     this.params = ast.slice(2,-1).map( n => n.content );
-    this.body = build(ast[ast.length-1]);
+    // body of a function is always in tail position
+    this.body = build(ast[ast.length-1], true);
+    this.bodyAST = ast[ast.length-1];
   }
   Defn.prototype.eval = function(env){
       return env.makeEvalNamedFunction(this.params, this.body, env);
@@ -154,16 +170,19 @@
     ];
   };
 
-  function Lambda(ast){
+  function Lambda(ast, itp){
     if (ast[0].content !== 'lambda'){ err('freak out', ast); }
     if (ast.length < 2){ err('lambda needs body', ast); }
     ast.slice(1, -1).forEach( x => {
       if (x.type !== 'word'){ err('just one body please!', ast); }
     });
     this.ast = ast;
+    // irrelevant to lambda
+    this.itp = itp;
     this.params = ast.slice(1, -1).map( x => x.content );
     this.bodyAST = ast[ast.length-1];
-    this.body = build(ast[ast.length-1]);
+    // function body is always in tail position
+    this.body = build(ast[ast.length-1], true);
   }
   Lambda.prototype.eval = function(env){
     return env.makeEvalLambda(this.bodyAST, this.params, null);
@@ -177,14 +196,15 @@
       [BC.BuildFunction, null, lineInfo(this.ast)]];
   };
 
-  function Invocation(ast){
+  function Invocation(ast, itp){
     if (ast[0].type === 'word'){
-      this.head = new FunctionLookup(ast[0]);
+      this.head = new FunctionLookup(ast[0], false);
     } else {
-      this.head = build(ast[0]);
+      this.head = build(ast[0], false);
     }
     this.ast = ast;
-    this.args = ast.slice(1).map( a => build(a) );
+    this.itp = itp;
+    this.args = ast.slice(1).map( a => build(a, false) );
   }
   Invocation.prototype.eval = function(env){
     var func = this.head.eval(env);
@@ -200,12 +220,14 @@
       this.args.forEach( (_, i) => { scope[func.params[i]] = argValues[i]; });
       var invocationEnv = func.env.newWithScope(scope);
       return build(func.body).eval(invocationEnv);
+      //TODO do TCO in interpreter as well
     }
   };
   Invocation.prototype.compile = function() {
     var loadfunc = this.head.compile();
     var loadargs = [].concat.apply([], this.args.map( x => x.compile()));
-    return [].concat(loadfunc, loadargs, [[BC.FunctionCall, this.args.length, lineInfo(this.ast)]]);
+    var CallBC = this.itp ? BC.FunctionTailCall : BC.FunctionCall;
+    return [].concat(loadfunc, loadargs, [[CallBC, this.args.length, lineInfo(this.ast)]]);
   };
 
 

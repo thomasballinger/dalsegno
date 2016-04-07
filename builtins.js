@@ -102,7 +102,13 @@
       }
       return arr.push(item);
     },
-    'prepend': function(item, arr){
+    'prepend': function(arr, item){
+      if (!Immutable.List.isList(arr)){
+        throw Error("prepend second arg is not a list: "+JSON.stringify(arr));
+      }
+      return arr.unshift(item);
+    },
+    'cons': function(item, arr){
       if (!Immutable.List.isList(arr)){
         throw Error("prepend second arg is not a list: "+JSON.stringify(arr));
       }

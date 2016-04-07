@@ -91,6 +91,13 @@
           counter = c.counterStack.peek();
         }
         break;
+      case BC.FunctionDone:
+        if (c.bytecodeStack.count() === 0){
+          c.done = true;
+        } else {
+          counter = c.counterStack.peek();
+        }
+        break;
       case BC.StoreNew:
         env.define(arg, c.valueStack.peek());
         break;
@@ -128,7 +135,12 @@
           c.valueStack = c.valueStack.push(new NamedCompiledFunctionPlaceholder(arg));
         }
         break;
+      case BC.FunctionTailCall:
+        // We're not personally responsible for preserving the environment
+        // if the function call is in the tail position
+        /* falls through */
       case BC.FunctionCall:
+
         var args = [];
         for (var i=0; i<arg; i++){
           args.push(c.valueStack.peek());
@@ -156,11 +168,19 @@
           args.forEach((x, i) => scope[func.params[i]] = x);
           var newEnv = func.env.newWithScope(scope, env.runner);
 
-          c.bytecodeStack = c.bytecodeStack.push(func.code);
           // off the top (-1) because counter++ at end of this tick
           counter = -1;
-          c.counterStack = c.counterStack.push(counter);
-          c.envStack = c.envStack.push(newEnv);
+          if (bc === BC.FunctionCall){
+            c.bytecodeStack = c.bytecodeStack.push(func.code);
+            c.counterStack = c.counterStack.push(counter);
+            c.envStack = c.envStack.push(newEnv);
+          } else if (bc === BC.FunctionTailCall){
+            // throw out current frame
+            // cut out the return bytecode if being called in the tail position
+            c.bytecodeStack = c.bytecodeStack.pop().push(func.code);
+            c.counterStack = c.counterStack.pop().push(counter);
+            c.envStack = c.envStack.pop().push(newEnv);
+          } else { throw Error('nonexhaustive match'); }
         }
         break;
       case BC.Jump:

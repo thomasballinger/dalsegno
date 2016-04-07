@@ -132,8 +132,7 @@
       runner = this.runner;
     }
     if (Object.keys(scope)[0] === 'undefined'){
-      debugger;
-      throw Error('wtf');
+      throw Error('huh?');
     }
     var env = new Environment(this.scopes.concat([new Scope(Immutable.Map(scope))]), runner);
     return env;
