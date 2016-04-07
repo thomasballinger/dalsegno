@@ -55,7 +55,7 @@ describe('copyable execution trees', function(){
 
     describe('bytecode specific', function(){
       describe('runnner', function(){
-        it.only('can be resumed after being cloned', function(){
+        it('can be resumed after being cloned', function(){
           var tmpEnv = new Environment.fromObjects([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
           var tmpEnvBuilder = function(){return tmpEnv;};
           var runner = new bcrun.BCRunner({});

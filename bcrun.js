@@ -112,7 +112,7 @@
       // if there's a saved compiled function for that
       // (in the ones we just got from a save)
       if (funcName in this.funs){
-        this.funs[funcName].code = compile(functionASTs[funcName].body);
+        this.funs[funcName].code = bcexec.compile(functionASTs[funcName].body);
         this.funs[funcName].params = functionASTs[funcName].params;
       }
     }

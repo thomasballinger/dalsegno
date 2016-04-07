@@ -10,14 +10,14 @@
     "(define filter (lambda func arr\n"+
     "  (reduce \n"+
     "    (lambda acc item (if (func item)\n"+
-    "                     (prepend item acc)\n"+
+    "                     (cons item acc)\n"+
     "                     acc))\n"+
     "    arr (list))))",
 
     "(define map (lambda func arr\n"+
     "  (if (= (length arr) 0)\n"+
     "      (list)\n"+
-    "      (prepend (func (first arr)) (map func (rest arr))))))",
+    "      (cons (func (first arr)) (map func (rest arr))))))",
   ];
 
   if (typeof exports !== 'undefined') {
