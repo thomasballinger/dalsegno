@@ -59,6 +59,12 @@
     this.context = new bcexec.Context(bytecode, env);
   };
   BCRunner.prototype.copy = function(){
+    //TODO Why do w have to make a copy of funs? Isn't is global
+    //to all snapshots? I guess the envs associated with each function
+    //need to be preserved but not the bodies?
+    //We're going to swap out the bytecode anyway, so no need to save that.
+    //It's really just the environments of each function that are important
+    //to save.
     var copy = deepCopy([this.context, this.funs]);
     return {counter: this.counter,
             funs: copy[1],

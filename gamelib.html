@@ -230,7 +230,7 @@ function getParameterByName(name) {
 
   var shouldReload = true; // on next tick, reload the program
   var currentlyRunning = false; // if not, change event needs to kick off runner
-  var lazyCanvasCtx = new LazyCanvasCtx('canvas', true);
+  var lazyCanvasCtx = new LazyCanvasCtx('canvas', true, true);
   var mouseTracker = new MouseTracker('canvas');
   var keyboardTracker = new KeyboardTracker('canvas');
   var drawHelpers = new DrawHelpers(lazyCanvasCtx, document.getElementById('canvas'));
@@ -242,6 +242,7 @@ function getParameterByName(name) {
   runner.setEnvBuilder(envBuilder);
   var lastProgram = '';
 
+  //TODO alter speed to try to get 30fps?
   var speed = 500;
 
   var errorbar = document.getElementById('errorbar');

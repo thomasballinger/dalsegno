@@ -1,14 +1,18 @@
 ;(function() {
   'use strict';
 
-  function LazyCanvasCtx(canvasId, lazy){
+  function LazyCanvasCtx(canvasId, lazy, showFPS){
     if (lazy === undefined){
       lazy = false;
     }
-    this.ctx = canvas.getContext('2d');
+    this.showFPS = showFPS || false;
+    // important to give this a name that isn't a property on a ctx (like this.canvas)
+    this.canvasElement = document.getElementById(canvasId);
+    this.ctx = this.canvasElement.getContext('2d');
     this.lazy = lazy;
     this.operations = [];
     this.testCtx = document.createElement('canvas').getContext('2d');
+    this.renderTimes = [];
 
     var self = this;
 
@@ -71,6 +75,14 @@
     }
   }
   LazyCanvasCtx.prototype.trigger = function(){
+    if (this.showFPS){
+      var t = new Date().getTime();
+      this.renderTimes.push(new Date().getTime());
+      while (this.renderTimes[0] < t-1000){
+        this.renderTimes.shift();
+      }
+    }
+
     var returnValue;
     try {
       while (this.operations.length){
@@ -80,6 +92,20 @@
     } catch (e) {
       this.operations = [];
       throw e;
+    }
+    if (this.showFPS){
+      var oldFont = this.ctx.font;
+      var oldFillStyle = this.ctx.fillStyle;
+      this.ctx.fillStyle = 'black';
+      this.ctx.fillRect(this.canvasElement.width-100, 0, 100, 25);
+      this.ctx.font = "20px sans-serif";
+      this.ctx.fillStyle = 'blue';
+      var fps = this.renderTimes.length ? this.renderTimes.length - 1 /
+                                          (t - this.renderTimes[0] )
+                                        : 0;
+      this.ctx.fillText("fps: "+this.renderTimes.length,this.canvasElement.width-100, 20);
+      this.ctx.font = oldFont;
+      this.ctx.fillStyle = oldFillStyle;
     }
     return returnValue;
   };

@@ -66,6 +66,7 @@
       create: function(obj){ return []; },
       populate: function(obj, copy, memo){
         for (var i = 0; i < obj.length; i++){
+          //console.log('copying element', i, 'of', obj, ':', obj[i]);
           copy.push(innerDeepCopy(obj[i], memo));
         }
       }
@@ -79,6 +80,7 @@
             if (property == '__obj_id'){
               // nop
             } else {
+              //console.log('copying property', property, 'of', obj, ':', obj[property]);
               copy[property] = innerDeepCopy(obj[property], memo);
             }
           }
@@ -106,6 +108,7 @@
       },
       populate: function(obj, copy, memo){
         for (var property in obj){
+          //console.log('copying property', property, 'of', obj, ':', obj[property]);
           if (obj.hasOwnProperty(property)){
             if (property === 'name'){
               copy.name = obj.name;
@@ -140,6 +143,7 @@
         // Although swapping out properties of a CompiledFunctionObject
         // happens regularly, most properties themselves don't change.
         for (var property of Object.keys(obj)){
+          //console.log('copying property', property, 'of', obj, ':', obj[property]);
           if (property === 'name'){
             copy.name = obj.name; // string
           } else if (property === 'code'){
@@ -168,17 +172,20 @@
       },
       populate: function(obj, copy, memo){
         for (var property of Object.keys(obj)){
+          //console.log('copying property', property, 'of', obj, ':', obj[property]);
           if (property === 'counterStack'){
             copy.counterStack = obj.counterStack;
           } else if (property === 'bytecodeStack'){
             copy.bytecodeStack = obj.bytecodeStack;
           } else if (property === 'envStack'){
-            var environments = obj.envStack.toJS();
+            var environments = obj.envStack.toArray();
             copy.envStack = Immutable.Stack(innerDeepCopy(environments, memo));
           } else if (property === 'valueStack'){
             // entirely immutable values! except maybe some functions...
-            var values = obj.valueStack.toJS();
-            copy.valueStack = Immutable.Stack(innerDeepCopy(values, memo));
+            //var values = obj.valueStack.toJS();
+            //copy.valueStack = Immutable.Stack(innerDeepCopy(values, memo));
+            //TODO Why did I think this had to be a deepcopy?
+            copy.valueStack = obj.valueStack;
           } else if (property === 'done'){
             copy.done = obj.done;
           } else if (property ===  '__obj_id'){
@@ -198,6 +205,7 @@
       },
       populate: function(obj, copy, memo){
         for (var property of Object.keys(obj)){
+          //console.log('copying property', property, 'of', obj, ':', obj[property]);
           if (property === 'scopes'){
             copy.scopes = [];
             for (var i = 0; i < obj.scopes.length; i++){
@@ -238,6 +246,7 @@
       return copy;
     }
 
+    //check for copier by name - a lot of copiers just check the constructor
     var copied = false;
     for (var name in copiers){
       var copier = copiers[name];
