@@ -88,6 +88,7 @@
       }
     },
     'NamedFunctionPlaceholder': {
+      byConstructorName: true,
       canCopy: function(obj){
         return obj.constructor.name === 'NamedFunctionPlaceholder';
       },
@@ -97,6 +98,7 @@
       populate: function(obj, copy, memo){}
     },
     'Function': {
+      byConstructorName: true,
       canCopy: function(obj){
         return obj.constructor.name === 'Function';
       },
@@ -133,6 +135,7 @@
       }
     },
     'CompiledFunctionObject': {
+      byConstructorName: true,
       canCopy: function(obj){
         return obj.constructor.name === 'CompiledFunctionObject';
       },
@@ -164,6 +167,7 @@
       }
     },
     'Context': {
+      byConstructorName: true,
       canCopy: function(obj){
         return obj.constructor.name === 'Context';
       },
@@ -197,6 +201,7 @@
       }
     },
     'Environment': {
+      byConstructorName: true,
       canCopy: function(obj){
         return obj.constructor.name === 'Environment';
       },
@@ -232,6 +237,10 @@
       }
     }
   };
+  var copiersByConstructorName = {};
+  Object.keys(copiers)
+    .filter( name => copiers[name].byConstructorName )
+    .forEach( name => copiersByConstructorName[name] = copiers[name]);
 
   function innerDeepCopy(x, memo){
     if (memo === undefined){
@@ -246,22 +255,35 @@
       return copy;
     }
 
-    //check for copier by name - a lot of copiers just check the constructor
-    var copied = false;
-    for (var name in copiers){
-      var copier = copiers[name];
-      if (!copier.canCopy(x)){ continue; }
-      copy = copier.create(x);
-      memo[id] = copy;
-      copier.populate(x, copy, memo);
-      copied = true;
-      break;
+    var constructor = x.constructor;
+    var copier;
+    if (constructor === Array){
+      copier = copiers.Array;
+    } else if (constructor === Object){
+      copier = copiers.Object;
+    } else {
+      var constructorName = constructor.name;
+      copier = copiersByConstructorName[constructorName];
+      if (copier === undefined){
+        console.log('looking for copier manually');
+        for (var name in copiers){
+          var candidateCopier = copiers[name];
+          if (copier.canCopy(x)){
+            copier = candidateCopier;
+            break;
+          }
+        }
+        if (copier === undefined){
+          console.log(x);
+          throw Error("Can't deep copy "+typeof x + " " + x.constructor + " "+x);
+        }
+      }
     }
-    if (copied){
-      return copy;
-    }
-    console.log(x);
-    throw Error("Can't deep copy "+typeof x + " " + x.constructor + " "+x);
+
+    copy = copier.create(x);
+    memo[id] = copy;
+    copier.populate(x, copy, memo);
+    return copy;
   }
 
   function deepCopy(x){
