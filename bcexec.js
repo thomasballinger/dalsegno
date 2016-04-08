@@ -193,7 +193,6 @@
             c.envStack = c.envStack.push(newEnv);
           } else if (bc === BC.FunctionTailCall){
             // throw out current frame
-            // cut out the return bytecode if being called in the tail position
             c.bytecodeStack = c.bytecodeStack.pop().push(func.code);
             c.counterStack = c.counterStack.pop().push(counter);
             c.envStack = c.envStack.pop().push(newEnv);

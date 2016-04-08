@@ -66,6 +66,15 @@
 
   };
   BCRunner.prototype.update = function(s){
+    //TODO consider all four combinations:
+    //
+    //
+    //
+    //  update to FunctionCall      upate to FunctionTailCall
+    //
+    //
+    //
+    //
     var newAst = parse(s);
     var functionASTs = parse.findFunctions(newAst);
     //TODO is it cheaper to diff the asts directly, or to compile the
@@ -85,7 +94,10 @@
       // Must have been top level AST that changed because no function
       // differences were found. Total reset!
       this.ast = parse(s);
-      var bytecode = bcexec.compile(this.ast);
+      //TODO abstract out the next line - adding the return manually is
+      //error-prone
+      // add return because functions
+      var bytecode = bcexec.compile(this.ast, true);
       this.context = new bcexec.Context(bytecode, this.envBuilder());
       console.log('Total reset!');
       return;
@@ -114,7 +126,10 @@
       // if there's a saved compiled function for that
       // (in the ones we just got from a save)
       if (funcName in this.funs){
-        this.funs[funcName].code = bcexec.compile(functionASTs[funcName].body);
+        //TODO too many functions being updated here!
+        //Also why are there two code paths in update that recompile functions?
+        console.log('updating code for', funcName);
+        this.funs[funcName].code = bcexec.compile(functionASTs[funcName].body, true);
         this.funs[funcName].params = parse.justContent(functionASTs[funcName].params);
       }
     }
@@ -157,11 +172,8 @@
     // object webs are intertwined; functions share environments
     // also on the context.envStack.
     var state = deepCopy(this.savedStates[name]);
-    console.log('old context:\n', this.context.pprint());
     this.counter = state.counter;
     this.context = state.context;  // deepcopied because this mutates
-    console.log('new context:\n', this.context.pprint());
-    bcexec.dis(this.context);
     this.funs = state.funs;  // copied so we can update these
   };
   BCRunner.prototype.getState = function(name){
