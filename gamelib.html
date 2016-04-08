@@ -88,7 +88,7 @@
     (define y 300)
     (define vx 1)
     (define vy 1)
-    (display "game" "started")
+    (display "game started")
     (define world (init-world))
     (defn nearby obj
       (< (dist x y (first (first obj)) (nth 1 (first obj))) 300))
