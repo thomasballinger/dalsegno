@@ -1,6 +1,4 @@
-// lispy functions or JavaScript ones that call lispy ones
-// This will load once, so
-//
+// lispy functions that can be run a step at a time
 ;(function() {
   'use strict';
 

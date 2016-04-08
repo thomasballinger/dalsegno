@@ -7,10 +7,11 @@
 ;(function() {
   'use strict';
 
+  var require;
   if (typeof window === 'undefined') {
-    var require = module.require;
+    require = module.require;
   } else {
-    var require = function(name){
+    require = function(name){
       var realname = name.match(/(\w+)[.]?j?s?$/)[1];
       return window[realname];
     };
@@ -54,7 +55,7 @@
   var immutableCopier = {
     name: 'Immutable',
     canCopy: function(obj){
-      return Immutable.Iterable.isIterable(obj)
+      return Immutable.Iterable.isIterable(obj);
     },
     create: function(obj){ return obj; },
     populate: function(obj){ return; }
@@ -87,15 +88,6 @@
     'NamedFunctionPlaceholder': {
       canCopy: function(obj){
         return obj.constructor.name === 'NamedFunctionPlaceholder';
-      },
-      create: function(obj){
-        return new obj.constructor(obj.name);
-      },
-      populate: function(obj, copy, memo){}
-    },
-    'NamedCompiledFunctionPlaceholder': {
-      canCopy: function(obj){
-        return obj.constructor.name === 'NamedCompiledFunctionPlaceholder';
       },
       create: function(obj){
         return new obj.constructor(obj.name);
@@ -197,33 +189,6 @@
         }
       }
     },
-    'EvalObject': {
-      canCopy: function(obj){
-        return obj.isEvalGen === true;
-      },
-      create: function(obj){
-        return new obj.constructor(null, null);
-      },
-      populate: function(obj, copy, memo){
-        for (var property in obj){
-          if (obj.hasOwnProperty(property)){
-            if (property === 'ast'){
-              copy.ast = obj.ast;
-            } else if (property === 'delegate'){
-              copy.delegate = innerDeepCopy(obj.delegate, memo);
-            } else if (property === 'values'){
-              copy.values = innerDeepCopy(obj.values, memo);
-            } else if (property === 'env'){
-              copy.env = innerDeepCopy(obj.env, memo);
-            } else if (property ===  '__obj_id'){
-              // nop
-            } else {
-              throw Error("deepCopying unknown property "+property+" on "+obj);
-            }
-          }
-        }
-      }
-    },
     'Environment': {
       canCopy: function(obj){
         return obj.constructor.name === 'Environment';
@@ -293,6 +258,7 @@
   function deepCopy(x){
     var memo = {};
     var copy = innerDeepCopy(x, memo);
+    // This would be cleaner but it's also slower
     //objectId.deleteIds();
     return copy;
   }

@@ -63,6 +63,7 @@
     this.ctx.strokeStyle = color;
   };
   DrawHelpers.prototype.render = function(){
+    //TODO put a fps limit here? Wait for animation frame or something?
     this.ctx.trigger();
   };
 

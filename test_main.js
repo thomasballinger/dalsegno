@@ -6,11 +6,9 @@ var assert = chai.assert;
 
 var tokenize = require('./parse.js').tokenize;
 var parse = require('./parse.js').parse;
-var evalgenrun = require('./run');
 var bcrun = require('./bcrun');
 var Environment = require('./Environment');
 var builtins = require('./builtins.js');
-var stdlib = require('./stdlib.js');
 var bcstdlib = require('./bcstdlib.js');
 
 var tests = function(run, Runner, stdlib){
@@ -88,6 +86,4 @@ var tests = function(run, Runner, stdlib){
   };
 };
 
-describe('main with evalgen', tests(evalgenrun, evalgenrun.Runner, stdlib));
 describe('main with bytcode', tests(bcrun, bcrun.BCRunner, bcstdlib));
-

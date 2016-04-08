@@ -3,10 +3,8 @@ var chai = require('chai');
 var assert = chai.assert;
 
 var Environment = require('./Environment.js');
-var stdlib = require('./stdlib.js');
 var bcstdlib = require('./bcstdlib.js');
 var builtins = require('./builtins');
-var evalgenrun = require('./run');
 var bcrun = require('./bcrun');
 
 
@@ -37,6 +35,5 @@ describe('stdlib', function(){
       });
     };
   };
-  describe('with evalgen', tests(evalgenrun, stdlib));
   describe('with bytcode', tests(bcrun, bcstdlib));
 });

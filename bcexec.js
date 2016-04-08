@@ -13,6 +13,7 @@
   var parse = require('./parse.js');
   var deepCopy = require('./deepCopy.js');
   var Environment = require('./Environment.js');
+  var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
   var compile = require('./compile.js');
   var compileFunctionBody = compile.compileFunctionBody;
   var BC = compile.BC;
@@ -27,10 +28,6 @@
   CompiledFunctionObject.prototype.toString = function(){
     return 'λ('+this.params+'): '+pprint(this.code);
   };
-
-  function NamedCompiledFunctionPlaceholder(name){
-    this.name = name;
-  }
 
   function Context(bytecode, env){
     bytecode = [].concat(bytecode, [[BC.Return, null, undefined]]);
@@ -133,7 +130,7 @@
         } else {  // defn named function
           funcObj = new CompiledFunctionObject(params, code, env, arg);
           env.setFunction(arg, funcObj);
-          c.valueStack = c.valueStack.push(new NamedCompiledFunctionPlaceholder(arg));
+          c.valueStack = c.valueStack.push(new NamedFunctionPlaceholder(arg));
         }
         break;
       case BC.FunctionTailCall:
@@ -159,7 +156,7 @@
           c.valueStack = c.valueStack.push(result);
         } else {
           if (func.name !== null){
-            if (func.constructor.name !== 'NamedCompiledFunctionPlaceholder'){
+            if (func.constructor.name !== 'NamedFunctionPlaceholder'){
               console.log(func);
               throw Error('Full named function (instead of placeholder) found on the stack:'+func);
             }
@@ -254,8 +251,6 @@
     } else if (v.constructor.name === 'Function'){
       return '☠ uncompiled function!'+v;
     } else if (v.constructor.name === 'CompiledFunctionObject'){
-      return ''+v;
-    } else if (v.constructor.name === 'NamedCompiledFunctionPlaceholder'){
       return 'λ'+v.name+' placeholder';
     } else if (Array.isArray(v) && v.length && Array.isArray(v[0]) &&
                v[0].length > 1 && Number.isInteger(v[0][0])){

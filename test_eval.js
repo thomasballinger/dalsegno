@@ -6,7 +6,6 @@ var Immutable = require('./Immutable');
 var tokenize = require('./parse.js').tokenize;
 var parse = require('./parse.js');
 var jc = parse.justContent;
-var evalgenrun = require('./run');
 var bcrun = require('./bcrun');
 var Environment = require('./Environment.js');
 var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
@@ -161,6 +160,5 @@ var evaluationTests = function(run, Runner){
   };
 };
 
-describe('Evaluation with evalgen', evaluationTests(evalgenrun, evalgenrun.Runner));
 describe('Evaluation with bytcode', evaluationTests(bcrun, bcrun.BCRunner));
 
