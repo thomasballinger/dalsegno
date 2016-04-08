@@ -286,17 +286,23 @@
 
   function compile(ast, asFunction){
     var code = build(ast).compile();
-    if (asFunction){
-      code.push([BC.Return, null, lineInfo(ast)]);
-    }
     Object.freeze(code);
     return code;
   }
+
+  function compileFunctionBody(ast){
+    var code = build(ast).compile();
+    code.push([BC.Return, null, lineInfo(ast)]);
+    Object.freeze(code);
+    return code;
+  }
+
   function evaluateAST(ast, env){
     return build(ast).eval(env);
   }
 
   compile.compile = compile;
+  compile.compileFunctionBody = compileFunctionBody;
   compile.evaluateAST = evaluateAST;
   compile.BC = BC;
   compile.build = build;

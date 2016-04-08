@@ -66,19 +66,8 @@
 
   };
   BCRunner.prototype.update = function(s){
-    //TODO consider all four combinations:
-    //
-    //
-    //
-    //  update to FunctionCall      upate to FunctionTailCall
-    //
-    //
-    //
-    //
     var newAst = parse(s);
     var functionASTs = parse.findFunctions(newAst);
-    //TODO is it cheaper to diff the asts directly, or to compile the
-    //new ones and compared that to compiled old ones?
     if (this.ast !== undefined &&
         JSON.stringify(parse.justContent(newAst)) ===
         JSON.stringify(parse.justContent(this.ast)) && !this.finished){
@@ -86,18 +75,16 @@
     }
 
     // the AST changed. We might stay where we are, we might restore.
+    // We're definitely going to swap the code for at least one function.
     this.ast = newAst;
 
     var diff = parse.diffFunctions(this.oldFunctionASTs, functionASTs);
     this.oldFunctionASTs = functionASTs;
     if (Object.keys(diff).length === 0){
-      // Must have been top level AST that changed because no function
-      // differences were found. Total reset!
+      // Since no named functions have changed, this must have been a
+      // top-level (global scope) AST change. Do a total reset!
       this.ast = parse(s);
-      //TODO abstract out the next line - adding the return manually is
-      //error-prone
-      // add return because functions
-      var bytecode = bcexec.compile(this.ast, true);
+      var bytecode = bcexec.compile(this.ast);
       this.context = new bcexec.Context(bytecode, this.envBuilder());
       console.log('Total reset!');
       return;
@@ -123,20 +110,22 @@
 
     // For each defn form in the current code
     for (funcName in functionASTs){
-      // if there's a saved compiled function for that
-      // (in the ones we just got from a save)
+      // if there's a saved compiled function for it
       if (funcName in this.funs){
-        //TODO too many functions being updated here!
-        //Also why are there two code paths in update that recompile functions?
-        console.log('updating code for', funcName);
-        this.funs[funcName].code = bcexec.compile(functionASTs[funcName].body, true);
-        this.funs[funcName].params = parse.justContent(functionASTs[funcName].params);
+        // then update it with the new code!
+        if (funcName in diff){
+          console.log('updating code for', funcName);
+          this.funs[funcName].code = bcexec.compileFunctionBody(functionASTs[funcName].body);
+          this.funs[funcName].params = parse.justContent(functionASTs[funcName].params);
+        } else {
+          console.log('updating linenumbers for', funcName);
+          this.funs[funcName].code = bcexec.compileFunctionBody(functionASTs[funcName].body);
+        }
       }
     }
-    this.values = [];
   };
 
-  /** Code will be run with no defns allowed */
+  /** Run code with no defns allowed */
   BCRunner.prototype.runLibraryCode = function(s, env){
     if (this.funs !== null){
       throw Error("Library code can only be run with a runner not allowing defns");
