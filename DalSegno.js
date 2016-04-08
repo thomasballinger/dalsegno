@@ -1,5 +1,5 @@
-// This module only makes sense in the browser
-// (potential TODO: move things out of here)
+// This module only works in the browser
+// (potential TODO: move things out of here so they can be tested with node)
 ;(function() {
   'use strict';
 
@@ -33,6 +33,7 @@
     "LazyCanvasCtx.js",
     "DrawHelpers.js",
   ];
+  //TODO these should be loaded in layers, reflecting dependencies!
 
   function loadScripts(path, callback){
     if (window.DalSegnoScriptLoaderStatus){
@@ -62,18 +63,18 @@
           console.log('now that everything is loaded, running callback');
           callback(DalSegno);
         } else {
-          console.log('not done yet, but got', s)
+          console.log('not done yet, but got', s);
         }
       };
       document.body.appendChild(el);
     });
   }
 
-  function setUpDalSegno(editorId, canvasId, errorBarId, initialId){
+  function setUpDalSegno(editorId, canvasId, errorBarId, initialId, callback){
     loadScripts('./', function(DalSegno){
       var embed = new DalSegno(editorId, canvasId, errorBarId, initialId);
       window.a = embed;
-      embed.go();
+      callback(embed);
     });
   }
   function makeDalSegno(){
@@ -178,7 +179,6 @@
       this.editor.getSession().setTabSize(2);
       this.editor.getSession().setUseSoftTabs(true);
       this.editor.$blockScrolling = Infinity;
-      document.getElementById(this.editorId).style.fontSize='16px';
 
       var editorContainer = document.getElementById(this.editorId);
       editorContainer.classList.remove('is-hidden');
@@ -202,9 +202,11 @@
     DalSegno.prototype.initGraphics = function(){
       if (!this.canvasId){ throw Error('No canvas id provided'); }
       if (!document.getElementById(this.canvasId)){ throw Error("can't find canvas from id"); }
+      this.canvas = document.getElementById(this.canvasId);
+      this.canvas.width = this.canvas.clientWidth;
+      this.canvas.height = this.canvas.clientHeight;
       this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, true);
       this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
-      this.canvas = document.getElementById(this.canvasId);
     };
     DalSegno.prototype.envBuilder = function(){
       return new Environment([].concat(
