@@ -127,6 +127,7 @@
   }
 
   function justContent(ast){
+    if (ast === undefined){ return undefined; }
     if (Array.isArray(ast)){
       return ast.map(justContent);
     }

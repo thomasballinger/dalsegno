@@ -76,7 +76,7 @@
       throw Error('counter ('+counter+') went off the end of bytecode: missing return?');
     }
     var x = bytecode[counter];
-    var bc=x[0], arg=x[1];
+    var bc=x[0], arg=x[1], ast=x[2];
     switch (bc){
       case BC.LoadConstant:
         c.valueStack = c.valueStack.push(arg);
@@ -113,11 +113,11 @@
         c.valueStack = c.valueStack.pop();
         break;
       case BC.NameLookup:
-        c.valueStack = c.valueStack.push(env.lookup(arg));
+        c.valueStack = c.valueStack.push(env.lookup(arg, ast));
         break;
       case BC.FunctionLookup:
         // works the same as function(
-        c.valueStack = c.valueStack.push(env.lookup(arg));
+        c.valueStack = c.valueStack.push(env.lookup(arg, ast));
         break;
       case BC.BuildFunction:
         var name = arg;
@@ -142,6 +142,10 @@
       case BC.FunctionCall:
 
         var args = [];
+        if (c.valueStack.count() < arg+1){
+          dis(c);
+          throw Error("Not enough values on stack for args and function!");
+        }
         for (var i=0; i<arg; i++){
           args.push(c.valueStack.peek());
           c.valueStack = c.valueStack.pop();
@@ -158,7 +162,20 @@
               console.log(func);
               throw Error('Full named function (instead of placeholder) found on the stack:'+func);
             }
+
+            // It's important that this happens while the function object
+            // and its arguments are still on the stack.
+            c.valueStack = c.valueStack.push(func);
+            for (var i=0; i<arg; i++){
+              c.valueStack = c.valueStack.push(args[i]);
+            }
+            // call retrieveFunction now so this is the context that gets saved
             func = env.retrieveFunction(func.name);
+            // now take them back off
+            for (var i=0; i<arg+1; i++){
+              c.valueStack = c.valueStack.pop();
+            }
+
           }
           if (func.params.length !== arg){
             throw Error('Function called with wrong arity! Takes ' +
