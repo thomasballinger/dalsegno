@@ -132,16 +132,17 @@ both in the browser and node:
 
 Ideas for improvements
 
+* make pausable for reasonable embedding in other pages
+* pause on lose focus (would this solve crashes?)
 * highlight source code for errors
-* use immutable data structures for cheaper copies
-* compile to bytecode for way less copying
+* record high scores with JS interop
 * test and document keypress handler (keyPressed key from KeyboardTracker)
 * methods for drawing and loading external assets by url
 * more parse-time errors (function call arity, literal validity
   currently happen at runtime)
 * vary speed in runner to achieve constant fps
 * button to restore source to last parsable state
-* buttons for step evaluation
+* buttons for step evaluation and highlighting source
 * inline documentation viewer
 * prettier error message display
 * write a virtual machine instead of using generators
