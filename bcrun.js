@@ -68,6 +68,8 @@
   BCRunner.prototype.update = function(s){
     var newAst = parse(s);
     var functionASTs = parse.findFunctions(newAst);
+    //TODO is it cheaper to diff the asts directly, or to compile the
+    //new ones and compared that to compiled old ones?
     if (this.ast !== undefined &&
         JSON.stringify(parse.justContent(newAst)) ===
         JSON.stringify(parse.justContent(this.ast)) && !this.finished){
@@ -113,7 +115,7 @@
       // (in the ones we just got from a save)
       if (funcName in this.funs){
         this.funs[funcName].code = bcexec.compile(functionASTs[funcName].body);
-        this.funs[funcName].params = functionASTs[funcName].params;
+        this.funs[funcName].params = parse.justContent(functionASTs[funcName].params);
       }
     }
     this.values = [];
@@ -159,6 +161,7 @@
     this.counter = state.counter;
     this.context = state.context;  // deepcopied because this mutates
     console.log('new context:\n', this.context.pprint());
+    bcexec.dis(this.context);
     this.funs = state.funs;  // copied so we can update these
   };
   BCRunner.prototype.getState = function(name){
