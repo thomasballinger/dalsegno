@@ -40,6 +40,7 @@
       if (ast.type === 'string'){ return new StringLiteral(ast, itp); }
       if (ast.type === 'word'){ return new Lookup(ast, itp); }
     }
+    console.log(ast);
     throw Error('what even is this? '+ast);
   }
 
@@ -189,7 +190,7 @@
   };
   Lambda.prototype.compile = function(env){
     var code = this.body.compile();
-    code.push([BC.Return, null]);
+    code.push([BC.Return, null, this.ast]);
     return [
       [BC.Push, code, lineInfo(this.bodyAST)],
       [BC.Push, this.params, lineInfo(this.ast)],
@@ -283,8 +284,11 @@
 
 
 
-  function compile(ast){
+  function compile(ast, asFunction){
     var code = build(ast).compile();
+    if (asFunction){
+      code.push([BC.Return, null, lineInfo(ast)]);
+    }
     Object.freeze(code);
     return code;
   }
