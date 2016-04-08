@@ -14,6 +14,7 @@
   var deepCopy = require('./deepCopy.js');
   var Environment = require('./Environment.js');
   var compile = require('./compile.js');
+  var compileFunctionBody = compile.compileFunctionBody;
   var BC = compile.BC;
   var Immutable = require('./Immutable.js');
 
@@ -467,6 +468,7 @@
   bcexec.bcexec = bcexec;
   bcexec.execBytecode = execBytecode;
   bcexec.compile = compile;
+  bcexec.compileFunctionBody = compileFunctionBody;
   bcexec.evaluate = evaluate;
   bcexec.Context = Context;
   bcexec.execBytecodeOneStep = execBytecodeOneStep;
