@@ -14,6 +14,7 @@ describe('parse', function(){
       assert.deepEqual(jc(tokenize('1.2')), ['1.2']);
       assert.deepEqual(jc(tokenize('2')), ['2']);
       assert.deepEqual(jc(tokenize('"asdf"')), ['asdf']);
+      assert.deepEqual(jc(tokenize('"asdf"\n"asdf"')), ['asdf', '\n', 'asdf']);
     });
     it('should tokenize nested structures', function(){
       assert.deepEqual(jc(tokenize('("asdf")')), ["(", 'asdf', ")"]);
@@ -32,7 +33,7 @@ describe('parse', function(){
   describe('parse', function(){
     it('should parse nested forms', function(){
       assert.deepEqual(jc(parse('(+ (thing 1 2) (other 3 "4"))')),
-                       ['+', ['thing', 1, 2], ['other', 3, '4']]);
+                       [['+', ['thing', 1, 2], ['other', 3, '4']]]);
     });
     it('should parse newlines right', function(){
       var s = `
@@ -42,10 +43,10 @@ describe('parse', function(){
                    (list (randint 200) (randint 200))
                    (list (randint -5 6) (randint -5 6))))
                (range 10)))`;
-      assert.equal(jc(parse(s)).length, 3);
+      assert.equal(jc(parse(s))[0].length, 3);
     });
     it('should return throw an error when parse fails', function(){
-      assert.deepEqual(jc(parse('(+ 1 2)')), ['+', 1, 2]);
+      assert.deepEqual(jc(parse('(+ 1 2)')), [['+', 1, 2]]);
       assert.throw(function(){parse('(+ 1 2');}, Error);
       assert.throw(function(){parse('+ 1 2)');}, Error);
     });

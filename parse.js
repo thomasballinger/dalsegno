@@ -72,6 +72,9 @@
                        colStart: col-word.length-1, colEnd: col-1});
           word = '';
       }
+      tokens.push({type: 'newline', content: '\n',
+                   lineStart: lineno, lineEnd: lineno+1,
+                   colStart: col, colEnd: 0});
     }
     if (word){
         // lots of -1's because we're off the edge of the program
@@ -79,6 +82,9 @@
                      lineStart: lineno-1, lineEnd: lineno-1,
                      colStart: col-word.length-1, colEnd: col-1});
     }
+    // initial and final newlines are not required
+    while (tokens && tokens[tokens.length - 1].type === 'newline'){ tokens.pop(); }
+    while (tokens && tokens[0].type === 'newline'){ tokens.shift(); }
 
     return tokens;
   }
@@ -87,11 +93,38 @@
     if (typeof s === 'string') {
       s = tokenize(s);
     }
-    var result = innerParse(s);
+    var programExpressions = [];
+    maybeConsumeNewlines(s);
+    while (true){
+      var expression = innerParse(s);
+      programExpressions.push(expression);
+      if (s.length === 0){ break; }
+      consumeNewline(s);
+      maybeConsumeNewlines(s);
+      if (s.length === 0){ break; }
+    }
     if (s.length !== 0) {
       throw new Error("Didn't finish parse, leftover: "+justContent(s));
     }
-    return result;
+    return programExpressions;
+  }
+
+  function consumeNewline(s){
+    var cur = s.shift();
+    if (cur.type === 'newline'){
+      return;
+    }
+    throw Error("expected newline between expressions");
+  }
+
+  function maybeConsumeNewlines(s){
+    while (s.length > 0){
+      var cur = s.shift();
+      if (cur.type !== 'newline'){
+        s.unshift(cur);
+        break;
+      }
+    }
   }
 
   function innerParse(tokens) {
@@ -99,9 +132,9 @@
     do {
       cur = tokens.shift();
       if (cur === undefined) {
-        throw new Error("forgot to close something?");
+        throw Error("forgot to close something?");
       }
-    } while (cur.type === 'comment');
+    } while (cur.type === 'comment' || cur.type === 'newline');
     if (cur.type === 'lparen') {
       var form = [];
       while (true) {

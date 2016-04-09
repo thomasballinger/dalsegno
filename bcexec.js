@@ -16,6 +16,7 @@
   var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
   var compile = require('./compile.js');
   var compileFunctionBody = compile.compileFunctionBody;
+  var compileProgram = compile.compileProgram;
   var BC = compile.BC;
   var Immutable = require('./Immutable.js');
 
@@ -432,7 +433,7 @@
     var ast = parse(s);
     console.log('source:', s);
     //console.log('AST:', parse.justContent(ast));
-    var bytecode = compile(ast);
+    var bytecode = compileProgram(ast);
     //console.log('bytecode:');
     console.log('compile result:', ''+execBytecode(bytecode, makeEnv(), s));
     console.log('eval result:', ''+compile.evaluateAST(ast, makeEnv()));
@@ -446,7 +447,7 @@
 
   function bcexec(s, env, debugSource){
     var ast = parse(s);
-    var bytecode = compile(ast);
+    var bytecode = compileProgram(ast);
     var result = execBytecode(bytecode, env, debugSource);
     return result;
   }
@@ -462,8 +463,8 @@
 
   bcexec.bcexec = bcexec;
   bcexec.execBytecode = execBytecode;
-  bcexec.compile = compile;
   bcexec.compileFunctionBody = compileFunctionBody;
+  bcexec.compileProgram = compileProgram;
   bcexec.evaluate = evaluate;
   bcexec.Context = Context;
   bcexec.execBytecodeOneStep = execBytecodeOneStep;

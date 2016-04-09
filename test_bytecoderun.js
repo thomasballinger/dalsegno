@@ -28,7 +28,7 @@ function checkCompileAgainstEval(s, makeEnv, debug){
 describe('compile', ()=>{
   it('correctly identifies tail position', ()=>{
     var program = fs.readFileSync('savedscopebug.scm', {encoding: 'utf8'});
-    var begin = compile.build(parse(program));
+    var begin = compile.build(parse(program)[0]);
     assert.equal(begin.expressions[0].itp, false);
     assert.equal(begin.expressions[1].itp, true);
     assert.equal(begin.expressions[0].body.itp, true);
@@ -63,6 +63,9 @@ describe('compiler and evaluator', ()=>{
           r)`);
       checkCompileAgainstEval('(do (define a 1) (set! a 2) a)');
       checkCompileAgainstEval('(do (define f (lambda x (+ x 1))) (f 2))');
+    });
+    it('give the same results for syntax changes', ()=>{
+      checkCompileAgainstEval('(define a 1)\n(set! a 2)\na');
     });
     it('should do closures', ()=>{
       checkCompileAgainstEval(`(do
@@ -99,7 +102,7 @@ describe('compiler and evaluator', ()=>{
         checkCompileAgainstEval(s, buildEnv);
       });
       it('should be tail call optimized', function(){
-        var bytecode = bcexec.compile(parse(s));
+        var bytecode = bcexec.compileProgram(parse(s));
         var context = new bcexec.Context(bytecode, buildEnv());
         do {
           assert(context.counterStack.count() < 5, 'stack size does not exceed 5 frames');

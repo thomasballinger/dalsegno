@@ -44,7 +44,7 @@
     }
     this.ast = parse(s);
     this.oldFunctionASTs = parse.findFunctions(this.ast);
-    var bytecode = bcexec.compile(this.ast);
+    var bytecode = bcexec.compileProgram(this.ast);
     this.context = new bcexec.Context(bytecode, this.envBuilder());
   };
   //TODO shim for testing
@@ -55,7 +55,7 @@
   BCRunner.prototype.loadCode = function(s, env){
     this.ast = parse(s);
     // don't know why we skip finding old functions here
-    var bytecode = bcexec.compile(this.ast);
+    var bytecode = bcexec.compileProgram(this.ast);
     this.context = new bcexec.Context(bytecode, env);
   };
   BCRunner.prototype.copy = function(){
@@ -90,7 +90,7 @@
       // Since no named functions have changed, this must have been a
       // top-level (global scope) AST change. Do a total reset!
       this.ast = parse(s);
-      var bytecode = bcexec.compile(this.ast);
+      var bytecode = bcexec.compileProgram(this.ast);
       this.context = new bcexec.Context(bytecode, this.envBuilder());
       console.log('Total reset!');
       return;
@@ -143,7 +143,7 @@
     env.runner = this;
 
     this.ast = parse(s);
-    var bytecode = bcexec.compile(this.ast);
+    var bytecode = bcexec.compileProgram(this.ast);
     this.context = new bcexec.Context(bytecode, env);
     return this.value();
   };

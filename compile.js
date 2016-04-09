@@ -18,6 +18,11 @@
     FunctionTailCall : 13,
   };
 
+  /** Construct a program builder for a list of expressions */
+  function buildProgram(ast){
+    return new Program(ast);
+  }
+
   /** Construct a builder for an ast, with whether in tail position */
   function build(ast, itp){
     if (itp === undefined){
@@ -61,6 +66,22 @@
   }
   Null.prototype.eval = function(env){ return null; };
   Null.prototype.compile = function(){ return [[BC.LoadConstant, null, lineInfo(this.ast)]]; };
+
+  function Program(ast){
+    if (!Array.isArray(ast)){ throw Error("Program consists of a list of expressions"); }
+    this.ast = ast;
+    this.expressions = [].concat(ast.slice(0, -1).map( a => build(a, false) ),
+                                 ast.slice(-1   ).map( a => build(a, this.itp ) ));
+  }
+  Program.prototype.eval = function(env){ return this.expressions.map( expr => expr.eval(env)).pop(); };
+  Program.prototype.compile = function(){
+    var code = [];
+    for (var expr of this.expressions){
+      code = [].concat(code, expr.compile(), [[BC.Pop, null, lineInfo(expr.ast)]]);
+    }
+    code.pop();  // don't need pop for last expression
+    return code;
+  };
 
   function Begin(ast, itp){
     if (ast[0].content !== 'begin' && ast[0].content !== 'do'){ err('freak out', ast); }
@@ -176,7 +197,10 @@
     if (ast[0].content !== 'lambda'){ err('freak out', ast); }
     if (ast.length < 2){ err('lambda needs body', ast); }
     ast.slice(1, -1).forEach( x => {
-      if (x.type !== 'word'){ err('just one body please!', ast); }
+      if (x.type !== 'word'){
+        console.log(ast);
+        err('just one body please!', ast);
+      }
     });
     this.ast = ast;
     this.itp = itp; // but this won't propagate
@@ -282,10 +306,12 @@
     throw e;
   }
 
+  function compile(){
+    throw Error("Deprecated; use compileProgram or compileFunctionBody");
+  }
 
-
-  function compile(ast, asFunction){
-    var code = build(ast).compile();
+  function compileProgram(ast){
+    var code = buildProgram(ast).compile();
     Object.freeze(code);
     return code;
   }
@@ -298,10 +324,10 @@
   }
 
   function evaluateAST(ast, env){
-    return build(ast).eval(env);
+    return buildProgram(ast).eval(env);
   }
 
-  compile.compile = compile;
+  compile.compileProgram = compileProgram;
   compile.compileFunctionBody = compileFunctionBody;
   compile.evaluateAST = evaluateAST;
   compile.BC = BC;
