@@ -4,12 +4,12 @@
 <title>live code reloading</title>
 <link rel="stylesheet" href="dalsegno.css">
 <style>
-#embed {
+#embed1, #embed2 {
   position: relative;
   width: 900px;
   height: 400px;
 }
-#editor {
+#editor, #editor2 {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -17,7 +17,7 @@
   width: 500px;
   font-size: 8px;
 }
-#canvas {
+#canvas, #canvas2 {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -162,16 +162,29 @@
 <script src="DrawHelpers.js"></script>
 <script src="DalSegno.js" type="text/javascript" charset="utf-8"></script>
 
-<div id="embed">
+<div id="embed1">
   <div id="editor" class="editor is-hidden"></div>
   <canvas id="canvas" width="1" height="1"></canvas>
   <div id="errorbar"></div>
 </div>
 
+<h2> Multiple per page </h2>
+
+<div id="embed2">
+  <div id="editor2" class="editor is-hidden">(+ 2 3)</div>
+  <canvas id="canvas2" width="1" height="1"></canvas>
+  <div id="errorbar2"></div>
+</div>
+
+
 <script>
 var embed = new DalSegno('editor', 'canvas', 'errorbar', 'space-program')
 embed.speed = 600;  // how many ticks to run at a time, default is 500
 document.getElementById(embed.editorId).style.fontSize='10px';
+
+var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'space-program')
+embed2.speed = 600;  // how many ticks to run at a time, default is 500
+document.getElementById(embed2.editorId).style.fontSize='10px';
 </script>
 
 </body>

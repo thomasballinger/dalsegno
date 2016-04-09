@@ -107,7 +107,7 @@
   };
   DalSegno.prototype.onChange = function(e){
     var s = this.editor.getValue();
-    if (!parse.safelyParses(s, e => errback(e))){
+    if (!parse.safelyParses(s, e => this.errback(e))){
       this.lastProgram = '';
       this.currentlyRunning = false;
       return;
@@ -168,8 +168,8 @@
     this.clearError();
   };
   DalSegno.prototype.initTrackers = function(){
-    this.mouseTracker = new MouseTracker('canvas');
-    this.keyboardTracker = new KeyboardTracker('canvas');
+    this.mouseTracker = new MouseTracker(this.canvasId);
+    this.keyboardTracker = new KeyboardTracker(this.canvasId);
   };
   DalSegno.prototype.initGraphics = function(){
     if (!this.canvasId){ throw Error('No canvas id provided'); }

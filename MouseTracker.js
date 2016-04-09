@@ -2,14 +2,17 @@
   'use strict';
 
   function MouseTracker(canvasId){
+    var self = this;
     this.canvas = document.getElementById(canvasId);
     var mouse = this.mouse = {x: 0, y: 0};
     var mousedown = this.mousedown = [false];
 
     this.canvas.addEventListener('mousemove', function(e){
-      var rect = canvas.getBoundingClientRect();
+      var rect = self.canvas.getBoundingClientRect();
+      console.log(rect.top);
       mouse.x = e.clientX - rect.left;
       mouse.y = e.clientY - rect.top;
+      console.log(mouse);
     }, false);
     this.canvas.addEventListener('mousedown', function(e){
       mousedown[0] = true;
