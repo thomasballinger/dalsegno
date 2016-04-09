@@ -6,7 +6,7 @@
 <style>
 #embed {
   position: relative;
-  width: 800px;
+  width: 900px;
   height: 400px;
 }
 #editor {
@@ -14,7 +14,7 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: 300px;
+  width: 500px;
   font-size: 8px;
 }
 #canvas {
@@ -22,31 +22,13 @@
   top: 0;
   bottom: 0;
   right: 0;
-  width: 500px;
+  width: 400px;
   height: 400px;
 }
 </style>
 </head>
 <body>
 <h1>Embedding Dal Segno</h1>
-
-<script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-<script src="Immutable.js" type="text/javascript" charset="utf-8"></script>
-<script src="DalSegno.js" type="text/javascript" charset="utf-8"></script>
-
-<script>
-setUpDalSegno('editor', 'canvas', 'errorbar', 'space-program', function(embed){
-  embed.style
-  document.getElementById(embed.editorId).style.fontSize='10px';
-  embed.go();
-});
-</script>
-
-<div id="embed">
-  <div id="editor" class="editor is-hidden"></div>
-  <canvas id="canvas" width="1" height="1"></canvas>
-  <div id="errorbar"></div>
-</div>
 
 <div id="space-program" class="is-hidden">; That headlight looks a little underpowered!
 ; Try changing the last two arguments to draw-black
@@ -161,5 +143,35 @@ setUpDalSegno('editor', 'canvas', 'errorbar', 'space-program', function(embed){
     (wait-for-click)
     (play-forever)))
   (play-forever))</div>
+
+<script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="Immutable.js" type="text/javascript" charset="utf-8"></script>
+<script src="deepCopy.js"></script>
+<script src="parse.js"></script>
+<script src="Environment.js"></script>
+<script src="compile.js"></script>
+<script src="bcexec.js"></script>
+<script src="bcrun.js"></script>
+<script src="builtins.js"></script>
+<script src="MouseTracker.js"></script>
+<script src="KeyboardTracker.js"></script>
+<script src="stdlibcode.js"></script>
+<script src="bcstdlib.js"></script>
+<script src="LazyCanvasCtx.js"></script>
+<script src="DrawHelpers.js"></script>
+<script src="DalSegno.js" type="text/javascript" charset="utf-8"></script>
+
+<div id="embed">
+  <div id="editor" class="editor is-hidden"></div>
+  <canvas id="canvas" width="1" height="1"></canvas>
+  <div id="errorbar"></div>
+</div>
+
+<script>
+var embed = new DalSegno('editor', 'canvas', 'errorbar', 'space-program')
+embed.speed = 600;  // how many ticks to run at a time, default is 500
+document.getElementById(embed.editorId).style.fontSize='10px';
+</script>
+
 </body>
 </html>
