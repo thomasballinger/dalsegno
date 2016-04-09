@@ -149,7 +149,7 @@
   };
   /** Returns whether it is still running */
   BCRunner.prototype.runABit = function(numIterations, errback){
-    if (this.context.done){ return this.context.done; }
+    if (this.context.done){ return !this.context.done; }
     numIterations = numIterations || 1;
     var start = this.counter;
     while(this.counter < start + numIterations && !this.runOneStep()){}

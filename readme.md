@@ -132,8 +132,6 @@ both in the browser and node:
 
 Ideas for improvements
 
-* make pausable for reasonable embedding in other pages
-* pause on lose focus (would this solve crashes?)
 * highlight source code for errors
 * record high scores with JS interop
 * test and document keypress handler (keyPressed key from KeyboardTracker)

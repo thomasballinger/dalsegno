@@ -59,11 +59,12 @@
     this.initTrackers();
     this.initGraphics();
 
+    this.initWindowWatcher();
     this.setMouseinToPlay();
   }
   DalSegno.activeWidget = undefined;
+  DalSegno.windowWatcherSet = false;
   DalSegno.prototype.go = function(){
-    console.log('go called');
     if (this.currentlyRunning && DalSegno.activeWidget === this){ return; }
     DalSegno.activeWidget = this;
     this.currentlyRunning = true;
@@ -86,7 +87,8 @@
     ctx.textAlign = "center";
     ctx.fillText('Mouse over canvas', canvas.width/2, canvas.height/2 - 30);
     ctx.fillText('or edit program', canvas.width/2, canvas.height/2);
-    ctx.fillText('to resume.', canvas.width/2, canvas.height/2 + 30);
+    var text = this.currentlyRunning ? 'to resume.' : 'to start';
+    ctx.fillText(text, canvas.width/2, canvas.height/2 + 30);
 
     ctx.fillStyle = origFillStyle;
     ctx.fontStyle = origFontStyle;
@@ -102,16 +104,13 @@
     this.lastClearAndHideAndGo = clearAndHideAndGo;
   };
   DalSegno.prototype.runABit = function(){
-    console.log('runABit');
     var s = this.editor.getValue();
     if (this.shouldReload){
-      console.log('apparently should reload');
       this.clearError();
       this.shouldReload = false;
       if (parse.safelyParses(s, e => this.errback(e))){
         this.runner.update(s);
         this.currentlyRunning = this.runner.runABit(1, e => this.errback(e));
-        console.log('safely parsed, trying to run');
       } else {
         this.currentlyRunning = false;
         return;
@@ -127,6 +126,14 @@
     } else {
       this.setMouseinToPlay();
     }
+  };
+  DalSegno.prototype.initWindowWatcher = function(){
+    if (DalSegno.windowWatcherSet){ return; }
+    window.addEventListener('blur', function(){
+      console.log('tab seems inactive!');
+      DalSegno.activeWidget = undefined;
+    });
+    DalSegno.windowWatcherSet = true;
   };
   DalSegno.prototype.onChange = function(e){
     DalSegno.activeWidget = this;
