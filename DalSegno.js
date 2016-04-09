@@ -48,11 +48,42 @@
     this.initEditor();
     this.initTrackers();
     this.initGraphics();
+
+    this.setClickToPlay();
   }
   DalSegno.prototype.go = function(){
     if (this.currentlyRunning){ return; }
     this.currentlyRunning = true;
     this.runABit();
+  };
+  DalSegno.prototype.setClickToPlay = function(){
+    console.log('setting up handler');
+    var self = this;
+    var ctx = this.canvas.getContext("2d");
+    var origFillStyle = ctx.fillStyle;
+    var origFontStyle = ctx.fontStyle;
+    var origTextBaseline = ctx.textBaseline;
+    var origTextAlign = ctx.textAlign;
+
+    ctx.font="30px Arial";
+    ctx.fillStyle = 'black';
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = "center";
+    ctx.fillText('Click canvas', canvas.width/2, canvas.height/2 - 30);
+    ctx.fillText('or edit program', canvas.width/2, canvas.height/2);
+    ctx.fillText('to start.', canvas.width/2, canvas.height/2 + 30);
+
+    ctx.fillStyle = origFillStyle;
+    ctx.fontStyle = origFontStyle;
+    ctx.textBaseline = origTextBaseline;
+    ctx.textAlign = origTextAlign;
+    function clearAndHideAndGo(){
+      console.log('running handler');
+      ctx.clearRect(0, 0, 10000, 10000);
+      self.canvas.removeEventListener('click', clearAndHideAndGo);
+      self.go();
+    }
+    this.canvas.addEventListener('click', clearAndHideAndGo);
   };
   DalSegno.prototype.runABit = function(){
     var s = this.editor.getValue();
@@ -126,10 +157,9 @@
 
     var initialContent = '(display (+ 1 1))';
     if (this.initialProgramId){
-      console.log('trying to read from ', this.initialProgramId);
       initialContent = document.getElementById(this.initialProgramId).textContent;
     }
-    this.editor.setValue(initialContent);
+    this.editor.setValue(initialContent, -1);
 
     this.editor.getSession().on('change', e => this.onChange(e));
 
