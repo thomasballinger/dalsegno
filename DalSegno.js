@@ -49,15 +49,16 @@
     this.initTrackers();
     this.initGraphics();
 
-    this.setClickToPlay();
+    this.setMouseInToPlay();
   }
+  DalSegno.activeWidget = undefined;
   DalSegno.prototype.go = function(){
-    if (this.currentlyRunning){ return; }
+    if (this.currentlyRunning && DalSegno.activeWidget === this){ return; }
+    DalSegno.activeWidget = this;
     this.currentlyRunning = true;
     this.runABit();
   };
-  DalSegno.prototype.setClickToPlay = function(){
-    console.log('setting up handler');
+  DalSegno.prototype.setMouseInToPlay = function(){
     var self = this;
     var ctx = this.canvas.getContext("2d");
     var origFillStyle = ctx.fillStyle;
@@ -65,25 +66,28 @@
     var origTextBaseline = ctx.textBaseline;
     var origTextAlign = ctx.textAlign;
 
+    this.savedImage = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    ctx.fillStyle = 'gray';
+    ctx.fillRect(canvas.width/2 - 140, canvas.height/2 - 50, 280, 100);
     ctx.font="30px Arial";
     ctx.fillStyle = 'black';
     ctx.textBaseline = 'middle';
     ctx.textAlign = "center";
-    ctx.fillText('Click canvas', canvas.width/2, canvas.height/2 - 30);
+    ctx.fillText('Mouse over canvas', canvas.width/2, canvas.height/2 - 30);
     ctx.fillText('or edit program', canvas.width/2, canvas.height/2);
-    ctx.fillText('to start.', canvas.width/2, canvas.height/2 + 30);
+    ctx.fillText('to resume.', canvas.width/2, canvas.height/2 + 30);
 
     ctx.fillStyle = origFillStyle;
     ctx.fontStyle = origFontStyle;
     ctx.textBaseline = origTextBaseline;
     ctx.textAlign = origTextAlign;
     function clearAndHideAndGo(){
-      console.log('running handler');
       ctx.clearRect(0, 0, 10000, 10000);
-      self.canvas.removeEventListener('click', clearAndHideAndGo);
+      self.canvas.removeEventListener('mouseenter', clearAndHideAndGo);
+      ctx.putImageData(self.savedImage, 0, 0);
       self.go();
     }
-    this.canvas.addEventListener('click', clearAndHideAndGo);
+    this.canvas.addEventListener('mouseenter', clearAndHideAndGo);
   };
   DalSegno.prototype.runABit = function(){
     var s = this.editor.getValue();
@@ -98,11 +102,15 @@
         return;
       }
     }
-    if (this.currentlyRunning) {
-      this.currentlyRunning = this.runner.runABit(this.speed, e => this.errback(e) );
-      if (this.currentlyRunning) {
-        setTimeout( () => this.runABit(), 0);
+    if (DalSegno.activeWidget === this) {
+      if (this.currentlyRunning){
+        this.currentlyRunning = this.runner.runABit(this.speed, e => this.errback(e) );
+        if (this.currentlyRunning) {
+          setTimeout( () => this.runABit(), 0);
+        }
       }
+    } else {
+      this.setMouseInToPlay();
     }
   };
   DalSegno.prototype.onChange = function(e){

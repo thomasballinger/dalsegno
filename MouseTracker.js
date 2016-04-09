@@ -9,10 +9,8 @@
 
     this.canvas.addEventListener('mousemove', function(e){
       var rect = self.canvas.getBoundingClientRect();
-      console.log(rect.top);
       mouse.x = e.clientX - rect.left;
       mouse.y = e.clientY - rect.top;
-      console.log(mouse);
     }, false);
     this.canvas.addEventListener('mousedown', function(e){
       mousedown[0] = true;
