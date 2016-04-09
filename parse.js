@@ -89,7 +89,7 @@
     }
     var result = innerParse(s);
     if (s.length !== 0) {
-      throw new Error("Didn't finish parse of "+justContent(s));
+      throw new Error("Didn't finish parse, leftover: "+justContent(s));
     }
     return result;
   }

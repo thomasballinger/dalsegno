@@ -160,6 +160,7 @@
 <script src="bcstdlib.js"></script>
 <script src="LazyCanvasCtx.js"></script>
 <script src="DrawHelpers.js"></script>
+<script src="examples/golf.js"></script>
 <script src="DalSegno.js" type="text/javascript" charset="utf-8"></script>
 
 <div id="embed1">
@@ -182,7 +183,7 @@ var embed = new DalSegno('editor', 'canvas', 'errorbar', 'space-program')
 embed.speed = 600;  // how many ticks to run at a time, default is 500
 document.getElementById(embed.editorId).style.fontSize='10px';
 
-var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'space-program')
+var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', window.golfProgram)
 embed2.speed = 600;  // how many ticks to run at a time, default is 500
 document.getElementById(embed2.editorId).style.fontSize='10px';
 </script>

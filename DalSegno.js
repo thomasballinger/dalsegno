@@ -31,16 +31,26 @@
 
   //TODO Was this better as a closure? It feels weird as an object.
   function DalSegno(editorId, canvasId, errorBarId, initialProgramId){
-    this.shouldReload = true;
-    this.currentlyRunning = false;
-    this.lastProgram = '';
-    this.speed = 500;
-    this.badSpot;
+    this.shouldReload = true;  // whether the editor has a different AST
+                               // than the one last executed
+    this.currentlyRunning = false;  // whether there's more of the currently
+                                    // loaded program to run
+    this.lastProgram = '';  // string of the currently running program's AST
+                            // or an empty string if the program doesn't parse
+    this.speed = 500;  // number of bytecode steps run per this.runABit()
+    this.badSpot;  // currently highlighted ace Range of source code
 
     this.editorId = editorId;
     this.canvasId = canvasId;
     this.errorBarId = errorBarId;
-    this.initialProgramId = initialProgramId;
+
+    initialProgramId = initialProgramId || editorId;
+    this.initialContent = document.getElementById(initialProgramId);
+    if (this.initialContent === null){
+      this.initialContent = initialProgramId;
+    } else {
+      this.initialContent = this.initialContent.textContent;
+    }
 
     this.runner = new bcrun.BCRunner({});
     this.runner.setEnvBuilder( () => this.envBuilder() );
@@ -49,16 +59,17 @@
     this.initTrackers();
     this.initGraphics();
 
-    this.setMouseInToPlay();
+    this.setMouseinToPlay();
   }
   DalSegno.activeWidget = undefined;
   DalSegno.prototype.go = function(){
+    console.log('go called');
     if (this.currentlyRunning && DalSegno.activeWidget === this){ return; }
     DalSegno.activeWidget = this;
     this.currentlyRunning = true;
     this.runABit();
   };
-  DalSegno.prototype.setMouseInToPlay = function(){
+  DalSegno.prototype.setMouseinToPlay = function(){
     var self = this;
     var ctx = this.canvas.getContext("2d");
     var origFillStyle = ctx.fillStyle;
@@ -82,23 +93,27 @@
     ctx.textBaseline = origTextBaseline;
     ctx.textAlign = origTextAlign;
     function clearAndHideAndGo(){
-      ctx.clearRect(0, 0, 10000, 10000);
       self.canvas.removeEventListener('mouseenter', clearAndHideAndGo);
       ctx.putImageData(self.savedImage, 0, 0);
+      self.lastClearAndHideAndGo = undefined;
       self.go();
     }
     this.canvas.addEventListener('mouseenter', clearAndHideAndGo);
+    this.lastClearAndHideAndGo = clearAndHideAndGo;
   };
   DalSegno.prototype.runABit = function(){
+    console.log('runABit');
     var s = this.editor.getValue();
     if (this.shouldReload){
+      console.log('apparently should reload');
       this.clearError();
       this.shouldReload = false;
       if (parse.safelyParses(s, e => this.errback(e))){
         this.runner.update(s);
         this.currentlyRunning = this.runner.runABit(1, e => this.errback(e));
+        console.log('safely parsed, trying to run');
       } else {
-        currentlyRunning = false;
+        this.currentlyRunning = false;
         return;
       }
     }
@@ -110,10 +125,15 @@
         }
       }
     } else {
-      this.setMouseInToPlay();
+      this.setMouseinToPlay();
     }
   };
   DalSegno.prototype.onChange = function(e){
+    DalSegno.activeWidget = this;
+
+    if (this.lastClearAndHideAndGo){
+      this.lastClearAndHideAndGo();
+    }
     var s = this.editor.getValue();
     if (!parse.safelyParses(s, e => this.errback(e))){
       this.lastProgram = '';
@@ -134,7 +154,7 @@
   };
   DalSegno.prototype.errback = function(e){
     this.errorbar.innerText = ''+e;
-    errorbar.classList.remove('is-hidden');
+    this.errorbar.classList.remove('is-hidden');
     if (e.ast){
       Range = ace.require("ace/range").Range;
       badSpot = editor.session.addMarker(new Range(
@@ -163,11 +183,7 @@
     var editorContainer = document.getElementById(this.editorId);
     editorContainer.classList.remove('is-hidden');
 
-    var initialContent = '(display (+ 1 1))';
-    if (this.initialProgramId){
-      initialContent = document.getElementById(this.initialProgramId).textContent;
-    }
-    this.editor.setValue(initialContent, -1);
+    this.editor.setValue(this.initialContent, -1);
 
     this.editor.getSession().on('change', e => this.onChange(e));
 
@@ -185,7 +201,7 @@
     this.canvas = document.getElementById(this.canvasId);
     this.canvas.width = this.canvas.clientWidth;
     this.canvas.height = this.canvas.clientHeight;
-    this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, true);
+    this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true);
     this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
   };
   DalSegno.prototype.envBuilder = function(){

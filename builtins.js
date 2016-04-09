@@ -20,7 +20,9 @@
     },
     '-': function(a, b){ return (a - b); },
     'display': function(){
-      return console.log.apply(console, Array.prototype.slice.call(arguments));
+      var args = Array.prototype.slice.call(arguments);
+      args = args.map( x => Immutable.List.isList(x) ? x.toJS() : x);
+      return console.log.apply(console, args);
     },
     '>': function(a, b){ return (a > b); },
     '<': function(a, b){ return (a < b); },
@@ -114,6 +116,19 @@
       }
       return arr.unshift(item);
     },
+
+    'zip': function(arr1, arr2){
+      if (!Immutable.List.isList(arr1) || !Immutable.List.isList(arr2)){
+        throw Error("prepend second arg is not a list: "+JSON.stringify(arr1)+JSON.stringify(arr2));
+      }
+      var comb = Immutable.List();
+      for (var i=0; i<Math.min(arr1.count(), arr2.count()); i++){
+        comb = comb.push(Immutable.List([arr1.get(i), arr2.get(i)]));
+      }
+      return comb;
+    },
+
+    // gamey stuff
     'dist': function(p1, p2, x2, y2){
       // works with 2 or 4 arguments
       var x1, y1;
