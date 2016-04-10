@@ -48,14 +48,18 @@
   };
 
   Environment.prototype.lookup = function(key, ast, defaultValue){
+    var NotFound = {};
     for (var i = this.scopes.length - 1; i >= 0; i--){
       var val;
       if (this.scopes[i].constructor === Scope){
-        val = this.scopes[i].data.get(key);
+        val = this.scopes[i].data.has(key) ? this.scopes[i].data.get(key) : NotFound;
       } else {
         val = this.scopes[i][key];
+        // Undefined is a valid value in this language, but it can't be stored
+        // in special scopes that aren't represented with Immutable.Maps.
+        val = val === undefined ? NotFound : val;
       }
-      if (val !== undefined){
+      if (val !== NotFound){
         if (typeof val === 'function'){
           var origName = val.name;
           var newfunc = val.bind(this.scopes[i]);
