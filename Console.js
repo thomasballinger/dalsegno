@@ -24,6 +24,7 @@
 
   function Console(textareaId){
     this.textarea = document.getElementById(textareaId);
+    this.textarea.addEventListener('mousedown', function(e){ e.preventDefault(); }, false);
   }
   Console.prototype.display = function(){
     var args = Array.prototype.slice.call(arguments);

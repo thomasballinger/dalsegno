@@ -28,6 +28,11 @@ div.dalsegno {
   font-size: 14px;
   font-family: 'Arial Black';
   border-color: darkgreen;
+
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -ms-user-select: none;
 }
 .dalsegno-console-active {
   border-width: 0 10 0 10px;
