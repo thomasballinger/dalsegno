@@ -81,7 +81,7 @@ function getParameterByName(name) {
 }
 
 var codeFromURL = getParameterByName('code');
-var embed = new DalSegno('editor', 'canvas', 'errorbar', codeFromURL || window.spaceLightProgram)
+var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, codeFromURL || window.spaceLightProgram)
 
 // prevents requiring mouseover
 embed.lastClearAndHideAndGo();
