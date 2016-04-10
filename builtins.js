@@ -19,11 +19,6 @@
       }, 0);
     },
     '-': function(a, b){ return (a - b); },
-    'display': function(){
-      var args = Array.prototype.slice.call(arguments);
-      args = args.map( x => Immutable.List.isList(x) ? x.toJS() : x);
-      return console.log.apply(console, args);
-    },
     '>': function(a, b){ return (a > b); },
     '<': function(a, b){ return (a < b); },
     '=': function(a, b){ return (a === b); },

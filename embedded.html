@@ -12,10 +12,25 @@
 #editor, #editor2 {
   position: absolute;
   top: 0;
-  bottom: 0;
+  bottom: 60;
   left: 0;
   width: 500px;
   font-size: 8px;
+}
+#console, #console2 {
+  position: absolute;
+  top: 340px;
+  bottom: 0;
+  left: 0;
+  width: 500px;
+  font-size: 10px;
+  resize: none;
+  background-color: black;
+  color: darkgreen;
+  font-size: 14px;
+  font-family: 'Arial Black';
+  border-color: darkgreen;
+  border-width: 5px;
 }
 #canvas, #canvas2 {
   position: absolute;
@@ -42,6 +57,7 @@
 <script src="builtins.js"></script>
 <script src="MouseTracker.js"></script>
 <script src="KeyboardTracker.js"></script>
+<script src="Console.js"></script>
 <script src="stdlibcode.js"></script>
 <script src="bcstdlib.js"></script>
 <script src="LazyCanvasCtx.js"></script>
@@ -53,6 +69,7 @@
 
 <div id="embed1">
   <div id="editor" class="editor is-hidden"></div>
+  <textarea id="console"></textarea>
   <canvas id="canvas" width="1" height="1"></canvas>
   <div id="errorbar"></div>
 </div>
@@ -61,17 +78,18 @@
 
 <div id="embed2">
   <div id="editor2" class="editor is-hidden">(+ 2 3)</div>
+  <textarea id="console2"></textarea>
   <canvas id="canvas2" width="1" height="1"></canvas>
   <div id="errorbar2"></div>
 </div>
 
 
 <script>
-var embed = new DalSegno('editor', 'canvas', 'errorbar', window.spaceLightProgram)
+var embed = new DalSegno('editor', 'canvas', 'errorbar', 'console', window.spaceLightProgram)
 embed.speed = 600;  // how many ticks to run at a time, default is 500
 document.getElementById(embed.editorId).style.fontSize='10px';
 
-var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', window.golfProgram)
+var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', window.golfProgram)
 embed2.speed = 600;  // how many ticks to run at a time, default is 500
 document.getElementById(embed2.editorId).style.fontSize='10px';
 </script>

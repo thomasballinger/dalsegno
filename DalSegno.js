@@ -30,7 +30,7 @@
   var DrawHelpers = require("./DrawHelpers.js");
 
   //TODO Was this better as a closure? It feels weird as an object.
-  function DalSegno(editorId, canvasId, errorBarId, initialProgramId){
+  function DalSegno(editorId, canvasId, errorBarId, consoleId, initialProgramId){
     this.shouldReload = true;  // whether the editor has a different AST
                                // than the one last executed
     this.currentlyRunning = false;  // whether there's more of the currently
@@ -42,6 +42,7 @@
 
     this.editorId = editorId;
     this.canvasId = canvasId;
+    this.consoleId = consoleId;
     this.errorBarId = errorBarId;
 
     initialProgramId = initialProgramId || editorId;
@@ -56,6 +57,7 @@
     this.runner.setEnvBuilder( () => this.envBuilder() );
 
     this.initEditor();
+    this.initConsole();
     this.initTrackers();
     this.initGraphics();
 
@@ -198,6 +200,11 @@
     this.errorbar.classList.add('errorbar');
     this.clearError();
   };
+  DalSegno.prototype.initConsole = function(){
+    this.consoleElement = document.getElementById(this.consoleId);
+    this.consoleElement.disabled = true;
+    this.console = new Console(this.consoleId);
+  };
   DalSegno.prototype.initTrackers = function(){
     this.mouseTracker = new MouseTracker(this.canvasId);
     this.keyboardTracker = new KeyboardTracker(this.canvasId);
@@ -217,6 +224,7 @@
       this.canvas ? [this.canvas, this.lazyCanvasCtx, this.drawHelpers] : [],
       this.mouseTracker ? [this.mouseTracker] : [],
       this.keyboardTracker ? [this.keyboardTracker] : [],
+      this.console ? [this.console] : [],
       [new Environment.Scope(builtins),
        new Environment.Scope(bcstdlib),
        new Environment.Scope()]));
