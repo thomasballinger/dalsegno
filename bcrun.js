@@ -97,6 +97,7 @@
       this.ast = parse(s);
       var bytecode = bcexec.compileProgram(this.ast);
       this.context = new bcexec.Context(bytecode, this.envBuilder());
+      this.funs = {};
       console.log('Total reset!');
       return;
     } else {
