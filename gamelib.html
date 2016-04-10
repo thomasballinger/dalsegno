@@ -46,50 +46,6 @@
 <div id="editor" class="is-hidden"></div>
 <script src="examples/spacelight.js" type="text/javascript" charset="utf-8"></script>
 
-<script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-<script src="Immutable.js" type="text/javascript" charset="utf-8"></script>
-<script>
-function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(location.search);
-    return results === null ? "" : decodeURIComponent(results[1]);
-}
-</script>
-
-<script>
-  var editor = ace.edit("editor");
-  editor.setTheme("ace/theme/monokai");
-  editor.getSession().setMode("ace/mode/scheme");
-  var options = window.location.hash.substr(1);
-  if (getParameterByName('vim')){
-    editor.setKeyboardHandler("ace/keyboard/vim");
-  }
-  editor.commands.removeCommand('gotoline') // bound to command-L which selects the url in osx chrome
-  editor.getSession().setTabSize(2);
-  editor.getSession().setUseSoftTabs(true);
-  editor.$blockScrolling = Infinity
-  document.getElementById('editor').style.fontSize='16px';
-
-  var editorContainer = document.getElementById('editor');
-  editorContainer.classList.remove('is-hidden');
-
-  var code = getParameterByName('code');
-  if (code) {
-    editor.setValue(code);
-  } else {
-    editor.setValue(window.spaceLightProgram);
-  }
-
-  var updateUrl = function(){
-    var encoded = encodeURI(editor.getValue());
-    try {
-      history.replaceState({}, "", "?code="+encoded);
-    }catch(e){
-      console.log('failed to change url');
-    }
-  };
-</script>
 
 <canvas id="canvas" width="1" height="1"></canvas>
 <div id="errorbar"></div>
@@ -99,6 +55,8 @@ function getParameterByName(name) {
   canvas.height = window.innerHeight;
 </script>
 
+<script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="Immutable.js" type="text/javascript" charset="utf-8"></script>
 <script src="deepCopy.js"></script>
 <script src="parse.js"></script>
 <script src="Environment.js"></script>
@@ -112,97 +70,41 @@ function getParameterByName(name) {
 <script src="bcstdlib.js"></script>
 <script src="LazyCanvasCtx.js"></script>
 <script src="DrawHelpers.js"></script>
+<script src="DalSegno.js" type="text/javascript" charset="utf-8"></script>
+
 <script>
-  var DEBUGMODE = false;
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1]);
+}
 
-  var shouldReload = true; // on next tick, reload the program
-  var currentlyRunning = false; // if not, change event needs to kick off runner
-  var lazyCanvasCtx = new LazyCanvasCtx('canvas', true, true);
-  var mouseTracker = new MouseTracker('canvas');
-  var keyboardTracker = new KeyboardTracker('canvas');
-  var drawHelpers = new DrawHelpers(lazyCanvasCtx, document.getElementById('canvas'));
-  var envBuilder = function(){
-    return new Environment([
-    window, console, canvas, lazyCanvasCtx, drawHelpers, mouseTracker, keyboardTracker, new Environment.Scope(builtins), new Environment.Scope(bcstdlib), new Environment.Scope()]);
-  };
-  var runner = new bcrun.BCRunner({});
-  runner.setEnvBuilder(envBuilder);
-  var lastProgram = '';
+var codeFromURL = getParameterByName('code');
+var embed = new DalSegno('editor', 'canvas', 'errorbar', codeFromURL || window.spaceLightProgram)
 
-  //TODO alter speed to try to get 30fps?
-  var speed = 500;
+// prevents requiring mouseover
+embed.lastClearAndHideAndGo();
 
-  var errorbar = document.getElementById('errorbar');
+embed.speed = 600;  // how many ticks to run at a time, default is 500
+document.getElementById(embed.editorId).style.fontSize='14px';
+if (getParameterByName('vim')){
+  embed.editor.setKeyboardHandler("ace/keyboard/vim");
+}
 
-  var badSpot;
-  var errback = function(e){
-    errorbar.innerText = ''+e;
-    errorbar.classList.remove('is-hidden');
-    if (e.ast){
-      Range = ace.require("ace/range").Range
-      badSpot = editor.session.addMarker(new Range(
-        e.ast.lineStart-1,
-        e.ast.colStart-1,
-        e.ast.lineEnd-1,
-        e.ast.colEnd-1), "errorHighlight");
-    }
+var updateUrl = function(){
+  var encoded = encodeURI(embed.editor.getValue());
+  try {
+    history.replaceState({}, "", "?code="+encoded);
+  }catch(e){
+    console.log('failed to change url');
   }
-  var clearError = function(){
-    errorbar.classList.add('is-hidden');
-    if (badSpot){
-      editor.getSession().removeMarker(badSpot)
-      badSpot = undefined;
-    }
-  }
+};
 
-  var runABit = function(){
-    var s = editor.getValue();
-    if (shouldReload){
-      clearError()
-      shouldReload = false;
-      if (parse.safelyParses(s, errback)){
-        runner.update(s);
-        currentlyRunning = runner.runABit(1, errback);
-      } else {
-        currentlyRunning = false;
-        return;
-      }
-    }
-    if (currentlyRunning) {
-      currentlyRunning = runner.runABit(speed, errback);
-      if (currentlyRunning) {
-        setTimeout(runABit, 0);
-      }
-    }
-  }
+//TODO fix regressions:
+// updateUrl(); on change
+// keep running, forget the mouseOver thing
 
-  var onChange = function(e){
-    var s = editor.getValue();
-    if (!parse.safelyParses(s, errback)){
-      lastProgram = '';
-      currentlyRunning = false;
-      return;
-    }
-
-    updateUrl();
-
-    var newProgram = JSON.stringify(parse(s));
-    if (newProgram === lastProgram){
-      return;
-    }
-    lastProgram = newProgram;
-    shouldReload = true;
-    if (!currentlyRunning){
-      currentlyRunning = true;
-      runABit();
-    }
-  };
-
-  editor.getSession().on('change', onChange);
-
-  shouldReload = true;
-  currentlyRunning = true;
-  runABit();
 </script>
 </body>
 </html>
