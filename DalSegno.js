@@ -34,6 +34,7 @@
   function DalSegno(editorId, canvasId, errorBarId, consoleId, initialProgramId){
     this.shouldReload = true;  // whether the editor has a different AST
                                // than the one last executed
+    this.shouldRestart = false;  // despite same source code, run again
     this.currentlyRunning = false;  // whether there's more of the currently
                                     // loaded program to run
     this.lastProgram = '';  // string of the currently running program's AST
@@ -73,44 +74,69 @@
     this.currentlyRunning = true;
     this.runABit();
   };
-  DalSegno.prototype.setMouseinToPlay = function(){
-    var self = this;
+  DalSegno.prototype.canvasMessage = function(strings){
     var ctx = this.canvas.getContext("2d");
     var origFillStyle = ctx.fillStyle;
     var origFontStyle = ctx.fontStyle;
     var origTextBaseline = ctx.textBaseline;
     var origTextAlign = ctx.textAlign;
 
-    this.savedImage = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
     ctx.fillStyle = 'gray';
     ctx.fillRect(canvas.width/2 - 140, canvas.height/2 - 50, 280, 100);
     ctx.font="30px Arial";
     ctx.fillStyle = 'black';
     ctx.textBaseline = 'middle';
     ctx.textAlign = "center";
-    ctx.fillText('Mouse over canvas', canvas.width/2, canvas.height/2 - 30);
-    ctx.fillText('or edit program', canvas.width/2, canvas.height/2);
-    var text = this.currentlyRunning ? 'to resume.' : 'to start';
-    ctx.fillText(text, canvas.width/2, canvas.height/2 + 30);
+    for (var i=0, heightOffset=-(strings.length-1)/2*30; i < strings.length; i++, heightOffset+=30){
+      ctx.fillText(strings[i], canvas.width/2, canvas.height/2 + heightOffset);
+    }
 
     ctx.fillStyle = origFillStyle;
     ctx.fontStyle = origFontStyle;
     ctx.textBaseline = origTextBaseline;
     ctx.textAlign = origTextAlign;
+  };
+  DalSegno.prototype.setMouseinToPlay = function(){
+    var ctx = this.canvas.getContext("2d");
+    this.savedImage = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    this.canvasMessage(['Mouse over canvas',
+                        'or edit program',
+                        this.currentlyRunning ? 'to resume.' : 'to start']);
+    var self = this;
     function clearAndHideAndGo(){
       self.canvas.removeEventListener('mouseenter', clearAndHideAndGo);
       ctx.putImageData(self.savedImage, 0, 0);
-      self.lastClearAndHideAndGo = undefined;
+      self.lastResumeFunction = undefined;
       self.go();
     }
     this.canvas.addEventListener('mouseenter', clearAndHideAndGo);
-    this.lastClearAndHideAndGo = clearAndHideAndGo;
+    this.lastResumeFunction = clearAndHideAndGo;
+  };
+  DalSegno.prototype.setClickToRestart = function(){
+    var ctx = this.canvas.getContext("2d");
+    this.canvasMessage(['Program finished.',
+                        'Click canvas or',
+                        'edit program',
+                        'to restart.']);
+    var self = this;
+    function clearAndGo(){
+      console.log('running clearAndGo');
+      self.canvas.removeEventListener('click', clearAndGo);
+      ctx.clearRect(0, 0, 10000, 10000);
+      self.lastResumeFunction = undefined;
+      self.shouldRestart = true;
+      self.go();
+    }
+    this.canvas.addEventListener('click', clearAndGo);
+    this.lastResumeFunction = clearAndGo;
   };
   DalSegno.prototype.runABit = function(){
     var s = this.editor.getValue();
     if (this.shouldReload){
       this.clearError();
       this.shouldReload = false;
+      // in case the editor source changed when a restart was intended
+      this.shouldRestart = false;
       if (parse.safelyParses(s, e => this.errback(e))){
         this.runner.update(s);
         this.currentlyRunning = this.runner.runABit(1, e => this.errback(e));
@@ -118,12 +144,19 @@
         this.currentlyRunning = false;
         return;
       }
+    } else if (this.shouldRestart){
+      // for the case when the program finished successfully and we want to run it again
+      this.shouldRestart = false;
+      this.runner.restart();
+      this.currentlyRunning = true;
     }
     if (DalSegno.activeWidget === this) {
       if (this.currentlyRunning){
         this.currentlyRunning = this.runner.runABit(this.speed, e => this.errback(e) );
         if (this.currentlyRunning) {
           setTimeout( () => this.runABit(), 0);
+        } else {
+          this.setClickToRestart();
         }
       }
     } else {
@@ -141,8 +174,8 @@
   DalSegno.prototype.onChange = function(e){
     DalSegno.activeWidget = this;
 
-    if (this.lastClearAndHideAndGo){
-      this.lastClearAndHideAndGo();
+    if (this.lastResumeFunction){
+      this.lastResumeFunction();
     }
     var s = this.editor.getValue();
     if (!parse.safelyParses(s, e => this.errback(e))){

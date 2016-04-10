@@ -71,6 +71,11 @@
             context: copy[0]};
 
   };
+  BCRunner.prototype.restart = function(){
+    var bytecode = bcexec.compileProgram(this.ast);
+    this.context = new bcexec.Context(bytecode, this.envBuilder());
+    console.log('Restart!');
+  };
   BCRunner.prototype.update = function(s){
     var newAst = parse(s);
     var functionASTs = parse.findFunctions(newAst);
