@@ -93,7 +93,8 @@ window.spaceLightProgram = `; That headlight looks a little underpowered!
           (main))
         (do
           (map render-obj (to-render))
-          (drawText 100 100 "your" "score:" counter)
+          (drawText 100 100 "your score:" counter)
+          (display "your score:" counter)
           (render)
           ))))
     (main)))
