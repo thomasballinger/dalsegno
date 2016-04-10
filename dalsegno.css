@@ -6,6 +6,10 @@ div.dalsegno {
 }
 .dalsegno-canvas {
   background-color: #777777;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -ms-user-select: none;
 }
 .is-hidden {
   display: none;
@@ -21,18 +25,25 @@ div.dalsegno {
   font-size: 2em;
 }
 .dalsegno-console {
-  font-size: 10px;
   resize: none;
+  overflow: hidden;
+  font-size: 10px;
   background-color: black;
   color: darkgreen;
   font-size: 14px;
   font-family: 'Arial Black';
   border-color: darkgreen;
-
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -ms-user-select: none;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -khtml-user-select: text;
+  -ms-user-select: text;
+  outline: none;  /* prevent active highlight */
+}
+.just-select-text {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -khtml-user-select: text;
+  -ms-user-select: text;
 }
 .dalsegno-console-active {
   border-width: 0 10 0 10px;

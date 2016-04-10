@@ -244,7 +244,7 @@
   DalSegno.prototype.initConsole = function(){
     this.consoleElement = document.getElementById(this.consoleId);
     this.consoleElement.classList.add('dalsegno-console');
-    this.consoleElement.disabled = true;
+    this.consoleElement.readOnly = true;
     this.console = new Console(this.consoleId);
   };
   DalSegno.prototype.initTrackers = function(){
