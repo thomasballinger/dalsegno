@@ -82,7 +82,11 @@
     var origTextAlign = ctx.textAlign;
 
     ctx.fillStyle = 'gray';
-    ctx.fillRect(canvas.width/2 - 140, canvas.height/2 - 50, 280, 100);
+    ctx.fillRect(
+      canvas.width/2 - 140,
+      canvas.height/2 - strings.length*30/2 - 5,
+      280,
+      strings.length*30+10);
     ctx.font="30px Arial";
     ctx.fillStyle = 'black';
     ctx.textBaseline = 'middle';
@@ -196,11 +200,13 @@
     }
   };
   DalSegno.prototype.errback = function(e){
+    this.currentlyRunning = false;
     this.errorbar.innerText = ''+e;
     this.errorbar.classList.remove('is-hidden');
     if (e.ast){
+      console.log(e.ast);
       Range = ace.require("ace/range").Range;
-      badSpot = editor.session.addMarker(new Range(
+      this.badSpot = this.editor.session.addMarker(new Range(
         e.ast.lineStart-1,
         e.ast.colStart-1,
         e.ast.lineEnd-1,
@@ -210,7 +216,7 @@
   DalSegno.prototype.clearError = function(){
     this.errorbar.classList.add('is-hidden');
     if (this.badSpot){
-      editor.getSession().removeMarker(this.badSpot);
+      this.editor.getSession().removeMarker(this.badSpot);
       this.badSpot = undefined;
     }
   };
@@ -225,17 +231,19 @@
 
     var editorContainer = document.getElementById(this.editorId);
     editorContainer.classList.remove('is-hidden');
+    editorContainer.classList.add('dalsegno-editor');
 
     this.editor.setValue(this.initialContent, -1);
 
     this.editor.getSession().on('change', e => this.onChange(e));
 
     this.errorbar = document.getElementById(this.errorBarId);
-    this.errorbar.classList.add('errorbar');
+    this.errorbar.classList.add('dalsegno-errorbar');
     this.clearError();
   };
   DalSegno.prototype.initConsole = function(){
     this.consoleElement = document.getElementById(this.consoleId);
+    this.consoleElement.classList.add('dalsegno-console');
     this.consoleElement.disabled = true;
     this.console = new Console(this.consoleId);
   };
@@ -247,6 +255,7 @@
     if (!this.canvasId){ throw Error('No canvas id provided'); }
     if (!document.getElementById(this.canvasId)){ throw Error("can't find canvas from id"); }
     this.canvas = document.getElementById(this.canvasId);
+    this.canvas.classList.add('dalsegno-canvas');
     this.canvas.width = this.canvas.clientWidth;
     this.canvas.height = this.canvas.clientHeight;
     this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true);

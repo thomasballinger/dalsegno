@@ -132,6 +132,7 @@ both in the browser and node:
 
 Ideas for improvements
 
+* REPL for quickly evaluating expressions
 * highlight source code for errors
 * record high scores with JS interop
 * test and document keypress handler (keyPressed key from KeyboardTracker)

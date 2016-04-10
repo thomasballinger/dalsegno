@@ -1,25 +1,16 @@
 div.dalsegno {
   position: relative;
 }
-.dalsegno .editor {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 630px;
+.dalsegno-editor {
+  font-size: 8px;
 }
-.dalsegno canvas {
-  position: absolute;
-  top: 0;
-  left: 630px;
-  bottom: 0;
-  right: 0;
+.dalsegno-canvas {
   background-color: #777777;
 }
 .is-hidden {
   display: none;
 }
-.errorbar {
+.dalsegno-errorbar {
   position: absolute;
   top: 100;
   left: 660px;
@@ -28,6 +19,22 @@ div.dalsegno {
   background-color: #ff99cc;
   text-align: center;
   font-size: 2em;
+}
+.dalsegno-console {
+  font-size: 10px;
+  resize: none;
+  background-color: black;
+  color: darkgreen;
+  font-size: 14px;
+  font-family: 'Arial Black';
+  border-color: darkgreen;
+}
+.dalsegno-console-active {
+  border-width: 0 10 0 10px;
+  background-color: lightgreen;
+}
+.dalsegno-console-animate {
+  transition: border-width 1s;
 }
 .errorHighlight{
   position:absolute;

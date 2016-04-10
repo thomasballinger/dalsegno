@@ -157,7 +157,11 @@
     if (this.context.done){ return !this.context.done; }
     numIterations = numIterations || 1;
     var start = this.counter;
-    while(this.counter < start + numIterations && !this.runOneStep()){}
+    try{
+      while(this.counter < start + numIterations && !this.runOneStep()){}
+    }catch(e){
+      return errback(e);
+    }
     if (this.context.done){
       console.log('finished!', this.value());
     }
