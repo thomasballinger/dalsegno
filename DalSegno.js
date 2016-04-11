@@ -116,14 +116,16 @@
                         'or edit source',
                         this.currentlyRunning ? 'to resume program.' : 'to start program.']);
     var self = this;
-    function clearAndHideAndGo(){
+    function cleanup(){
       self.canvas.removeEventListener('mouseenter', clearAndHideAndGo);
       ctx.putImageData(self.savedImage, 0, 0);
-      self.lastResumeFunction = undefined;
+    }
+    function clearAndHideAndGo(){
+      self.lastResumeCleanupFunction = undefined;
       self.go();
     }
     this.canvas.addEventListener('mouseenter', clearAndHideAndGo);
-    this.lastResumeFunction = clearAndHideAndGo;
+    this.lastResumeCleanupFunction = cleanup;
   };
   DalSegno.prototype.setClickToRestart = function(){
     var ctx = this.canvas.getContext("2d");
@@ -132,15 +134,18 @@
                         'edit source',
                         'to run it again.']);
     var self = this;
-    function clearAndGo(){
+    function cleanup(){
       self.canvas.removeEventListener('click', clearAndGo);
       ctx.clearRect(0, 0, 10000, 10000);
-      self.lastResumeFunction = undefined;
+    }
+    function clearAndGo(){
+      cleanup();
+      self.lastResumeCleanupFunction = undefined;
       self.shouldRestart = true;
       self.go();
     }
     this.canvas.addEventListener('click', clearAndGo);
-    this.lastResumeFunction = clearAndGo;
+    this.lastResumeCleanupFunction = cleanup;
   };
   DalSegno.prototype.runABit = function(){
     var s = this.editor.getValue();
@@ -187,10 +192,11 @@
     DalSegno.windowWatcherSet = true;
   };
   DalSegno.prototype.onChange = function(e){
+    console.log('onChange running');
     DalSegno.activeWidget = this;
 
-    if (this.lastResumeFunction){
-      this.lastResumeFunction();
+    if (this.lastResumeCleanupFunction){
+      this.lastResumeCleanupFunction();
     }
     var s = this.editor.getValue();
     if (!parse.safelyParses(s, e => this.errback(e))){
