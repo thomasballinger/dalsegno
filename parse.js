@@ -77,7 +77,7 @@
           // some -1's because we're off the edge of the line
           tokens.push({type: 'word', content: word,
                        lineStart: lineno, lineEnd: lineno,
-                       colStart: col-word.length-1, colEnd: col-1});
+                       colStart: col-word.length, colEnd: col-1});
           word = '';
       }
       tokens.push({type: 'newline', content: '\n',
@@ -125,7 +125,7 @@
     if (cur.type === 'newline'){
       return;
     }
-    throw Error("expected newline between expressions");
+    throw err("expected newline between expressions", cur);
   }
 
   function maybeConsumeNewlines(s){
