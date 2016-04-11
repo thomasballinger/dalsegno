@@ -30,7 +30,7 @@
     }
 
     if (Array.isArray(ast)){
-      if (ast[0].length === 0){         return new Null(ast, itp); }
+      if (ast.length === 0){            return new Null(ast, itp); }
       if (ast[0].content === 'begin'){  return new Begin(ast, itp); }
       if (ast[0].content === 'do'){     return new Begin(ast, itp); }
       if (ast[0].content === 'if'){     return new If(ast, itp); }
@@ -60,7 +60,7 @@
   function Null(ast){
     // Special because ast isn't required
     this.ast = ast;
-    if (ast && (ast.length !== 2 || ast[0].content !== '(' || ast[1].content !== ')')){
+    if (ast && ast.length !== 0){
       throw Error("huh? doesn't look like a null node:", ast);
     }
   }

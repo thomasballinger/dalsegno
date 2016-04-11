@@ -6,6 +6,13 @@
 ;(function() {
   'use strict';
 
+  function err(msg, ast){
+    console.log('error ast:', ast);
+    var e = Error(msg);
+    e.ast = ast;
+    throw e;
+  }
+
   function tokenize(s) {
     var lines = s.split('\n');
     var tokens = [];
@@ -63,7 +70,8 @@
       }
       if (inString){
         // unclosed string
-        throw Error("unclosed string literal!");
+        err("unclosed string literal!", {lineStart: lineno, lineEnd: lineno,
+                                         colStart: col-1, colEnd: col});
       }
       if (word){
           // some -1's because we're off the edge of the line
@@ -83,28 +91,31 @@
                      colStart: col-word.length-1, colEnd: col-1});
     }
     // initial and final newlines are not required
-    while (tokens && tokens[tokens.length - 1].type === 'newline'){ tokens.pop(); }
-    while (tokens && tokens[0].type === 'newline'){ tokens.shift(); }
+    while (tokens.length > 0 && tokens[tokens.length - 1].type === 'newline'){ tokens.pop(); }
+    while (tokens.length > 0 && tokens[0].type === 'newline'){ tokens.shift(); }
 
     return tokens;
   }
 
   function parse(s) {
-    if (typeof s === 'string') {
-      s = tokenize(s);
+    if (typeof s !== 'string') {
+      throw Error("pass a string to parse, not tokens");
     }
+    var tokensLeft = tokenize(s);
+    var allTokens = tokenize(s);
+    Object.freeze(allTokens);
     var programExpressions = [];
-    maybeConsumeNewlines(s);
+    maybeConsumeNewlines(tokensLeft);
     while (true){
-      var expression = innerParse(s);
+      var expression = innerParse(tokensLeft, allTokens);
       programExpressions.push(expression);
-      if (s.length === 0){ break; }
-      consumeNewline(s);
-      maybeConsumeNewlines(s);
-      if (s.length === 0){ break; }
+      if (tokensLeft.length === 0){ break; }
+      consumeNewline(tokensLeft);
+      maybeConsumeNewlines(tokensLeft);
+      if (tokensLeft.length === 0){ break; }
     }
-    if (s.length !== 0) {
-      throw new Error("Didn't finish parse, leftover: "+justContent(s));
+    if (tokensLeft.length !== 0) {
+      err("Didn't finish parse, leftover: "+justContent(s));
     }
     return programExpressions;
   }
@@ -127,23 +138,44 @@
     }
   }
 
-  function innerParse(tokens) {
+  /** mutates tokens, should be given a copy */
+  function firstUnclosedParenFromBack(tokens){
+    console.log('first unclosed input:', tokens);
+    var level = 0;
+    var t;
+    while (level >= 0){
+      t = tokens.pop();
+      if (t === undefined){
+        throw Error('unclosed paren not found');
+      }
+      if (t.type === 'rparen'){ level++; }
+      if (t.type === 'lparen'){ level--; }
+    }
+    console.log('returning from firstUnclosed:', t);
+    return t;
+  }
+
+  function innerParse(tokens, allTokens) {
     var cur;
     do {
       cur = tokens.shift();
       if (cur === undefined) {
-        throw Error("forgot to close something?");
+        //TODO find unclosed paren to highlight
+        console.log('allTokens:',allTokens);
+        err("unmatched parenthesis", firstUnclosedParenFromBack(allTokens.slice(0)));
       }
     } while (cur.type === 'comment' || cur.type === 'newline');
     if (cur.type === 'lparen') {
       var form = [];
       while (true) {
-        var f = innerParse(tokens);
+        var f = innerParse(tokens, allTokens);
         if (f.type === 'rparen') {
-          form.lineStart = form[0].lineStart;
-          form.lineEnd = f.lineEnd;
-          form.colStart = form[0].colStart;
-          form.colEnd = f.colEnd;
+          if (form.length !== 0){
+            form.lineStart = form[0].lineStart;
+            form.lineEnd = f.lineEnd;
+            form.colStart = form[0].colStart;
+            form.colEnd = f.colEnd;
+          }
           return form;
         }
         form.push(f);
@@ -254,7 +286,7 @@
     if (!Array.isArray(ast)){
       return {};
     }
-    if (ast[0].content === 'defn'){
+    if (ast.length > 0 && ast[0].content === 'defn'){
       var func = new Function(ast[ast.length-1], ast.slice(2, -1), null, ast[1].content);
       funcs[func.name] = func;
     }

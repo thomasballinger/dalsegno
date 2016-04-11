@@ -41,6 +41,7 @@
                             // or an empty string if the program doesn't parse
     this.speed = 500;  // number of bytecode steps run per this.runABit()
     this.badSpot;  // currently highlighted ace Range of source code
+    this.DEBUGMODE = true;  // throw errors properly so we see tracebacks
 
     this.editorId = editorId;
     this.canvasId = canvasId;
@@ -74,6 +75,13 @@
     this.currentlyRunning = true;
     this.runABit();
   };
+  DalSegno.prototype.link = function(){
+    //TODO links to versions without editors or with a console
+    //var base = 'http://dalsegno.ballingt.com';
+    var base = './gamelib.html';
+    var encoded = encodeURI(this.editor.getValue());
+    return base + '?code='+encoded;
+  };
   DalSegno.prototype.canvasMessage = function(strings){
     var ctx = this.canvas.getContext("2d");
     var origFillStyle = ctx.fillStyle;
@@ -104,8 +112,8 @@
     var ctx = this.canvas.getContext("2d");
     this.savedImage = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
     this.canvasMessage(['Mouse over canvas',
-                        'or edit program',
-                        this.currentlyRunning ? 'to resume.' : 'to start']);
+                        'or edit source',
+                        this.currentlyRunning ? 'to resume program.' : 'to start program.']);
     var self = this;
     function clearAndHideAndGo(){
       self.canvas.removeEventListener('mouseenter', clearAndHideAndGo);
@@ -120,8 +128,8 @@
     var ctx = this.canvas.getContext("2d");
     this.canvasMessage(['Program finished.',
                         'Click canvas or',
-                        'edit program',
-                        'to restart.']);
+                        'edit source',
+                        'to run it again.']);
     var self = this;
     function clearAndGo(){
       console.log('running clearAndGo');
@@ -200,17 +208,22 @@
     }
   };
   DalSegno.prototype.errback = function(e){
+    console.log(e);
+    console.log(e.stack);
     this.currentlyRunning = false;
     this.errorbar.innerText = ''+e;
     this.errorbar.classList.remove('is-hidden');
     if (e.ast){
       console.log(e.ast);
       Range = ace.require("ace/range").Range;
+      if (this.badSpot){
+        this.editor.getSession().removeMarker(this.badSpot);
+      }
       this.badSpot = this.editor.session.addMarker(new Range(
         e.ast.lineStart-1,
         e.ast.colStart-1,
         e.ast.lineEnd-1,
-        e.ast.colEnd-1), "errorHighlight");
+        e.ast.colEnd), "errorHighlight");
     }
   };
   DalSegno.prototype.clearError = function(){
