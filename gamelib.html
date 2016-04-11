@@ -84,7 +84,8 @@ var codeFromURL = getParameterByName('code');
 var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, codeFromURL || window.spaceLightProgram)
 
 // prevents requiring mouseover
-embed.lastResumeFunction();
+embed.lastResumeCleanupFunction();
+embed.go();
 
 embed.speed = 600;  // how many ticks to run at a time, default is 500
 document.getElementById(embed.editorId).style.fontSize='14px';

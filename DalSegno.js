@@ -83,7 +83,8 @@
     var encoded = encodeURI(this.editor.getValue());
     return base + '?code='+encoded;
   };
-  DalSegno.prototype.canvasMessage = function(strings){
+  DalSegno.prototype.canvasMessage = function(strings, align){
+    align = align || 'center';
     var ctx = this.canvas.getContext("2d");
     var origFillStyle = ctx.fillStyle;
     var origFontStyle = ctx.fontStyle;
@@ -91,17 +92,33 @@
     var origTextAlign = ctx.textAlign;
 
     ctx.fillStyle = 'gray';
-    ctx.fillRect(
-      canvas.width/2 - 140,
-      canvas.height/2 - strings.length*30/2 - 5,
-      280,
-      strings.length*30+10);
+    if (align === 'center'){
+      ctx.fillRect(
+        canvas.width/2 - 140,
+        canvas.height/2 - strings.length*30/2 - 5,
+        280,
+        strings.length*30+10);
+    } else if (align === 'lowerRight') {
+      ctx.fillRect(
+        canvas.width - 280,
+        canvas.height - strings.length*30 - 10,
+        280,
+        strings.length*30+10);
+    } else {
+      throw Error('Bad align value: '+align+' should be "center" or "lowerRight"');
+    }
     ctx.font="30px Arial";
     ctx.fillStyle = 'black';
     ctx.textBaseline = 'middle';
     ctx.textAlign = "center";
-    for (var i=0, heightOffset=-(strings.length-1)/2*30; i < strings.length; i++, heightOffset+=30){
-      ctx.fillText(strings[i], canvas.width/2, canvas.height/2 + heightOffset);
+    if (align === 'center'){
+      for (var i=0, heightOffset=-(strings.length-1)/2*30; i < strings.length; i++, heightOffset+=30){
+        ctx.fillText(strings[i], canvas.width/2, canvas.height/2 + heightOffset);
+      }
+    } else {
+      for (var i=0, heightOffset=-(strings.length*2-1)/2*30; i < strings.length; i++, heightOffset+=30){
+        ctx.fillText(strings[i], canvas.width - 140, canvas.height + heightOffset);
+      }
     }
 
     ctx.fillStyle = origFillStyle;
@@ -132,7 +149,7 @@
     this.canvasMessage(['Program finished.',
                         'Click canvas or',
                         'edit source',
-                        'to run it again.']);
+                        'to run it again.'], 'lowerRight');
     var self = this;
     function cleanup(){
       self.canvas.removeEventListener('click', clearAndGo);
