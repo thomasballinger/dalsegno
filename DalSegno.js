@@ -22,6 +22,7 @@
   var parse = require("./parse.js");
   var Environment = require("./Environment.js");
   var bcrun = require("./bcrun.js");
+  var bcexec = require("./bcexec.js");
   var builtins = require("./builtins.js");
   var MouseTracker = require("./MouseTracker.js");
   var KeyboardTracker = require("./KeyboardTracker.js");
@@ -171,7 +172,7 @@
       this.shouldReload = false;
       // in case the editor source changed when a restart was intended
       this.shouldRestart = false;
-      if (parse.safelyParses(s, e => this.errback(e))){
+      if (bcexec.safelyParsesAndCompiles(s, e => this.errback(e))){
         this.runner.update(s);
         this.currentlyRunning = this.runner.runABit(1, e => this.errback(e));
       } else {
@@ -216,7 +217,7 @@
       this.lastResumeCleanupFunction();
     }
     var s = this.editor.getValue();
-    if (!parse.safelyParses(s, e => this.errback(e))){
+    if (!bcexec.safelyParsesAndCompiles(s, e => this.errback(e))){
       this.lastProgram = '';
       this.currentlyRunning = false;
       return;

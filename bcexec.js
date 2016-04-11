@@ -461,6 +461,20 @@
     console.log('eval result:', ''+compile.evaluateAST(ast, makeEnv()));
   }
 
+  function safelyParsesAndCompiles(program, errback){
+    if (errback === undefined){
+      errback = function(msg){console.log(msg);};
+    }
+    try {
+      var ast = parse(program);
+      compileProgram(ast);
+      return true;
+    } catch (e) {
+      errback(e);
+      return false;
+    }
+  }
+
   function evaluate(s, env){
     var ast = parse(s);
     var result = compile.evaluateAST(ast, env);
@@ -487,6 +501,7 @@
   bcexec.execBytecode = execBytecode;
   bcexec.compileFunctionBody = compileFunctionBody;
   bcexec.compileProgram = compileProgram;
+  bcexec.safelyParsesAndCompiles = safelyParsesAndCompiles;
   bcexec.evaluate = evaluate;
   bcexec.Context = Context;
   bcexec.execBytecodeOneStep = execBytecodeOneStep;

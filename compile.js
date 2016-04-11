@@ -148,7 +148,7 @@
 
   function Define(ast, itp){
     if (ast[0].content !== 'define'){ err('freak out', ast); }
-    if (ast.length < 2){ err('define requires ast least one arg', ast); }
+    if (ast.length < 2){ err('define requires at least one arg', ast); }
     if (ast.length > 3){ err('define takes two arguments at most', ast); }
     if (ast[1].type !== 'word'){ err('first argument to define should be a name', ast); }
     this.ast = ast;
@@ -168,7 +168,7 @@
 
   function Defn(ast, itp){
     if (ast[0].content !== 'defn'){ err('freak out', ast); }
-    if (ast.length < 3){ err('defn needs ast least three args', ast); }
+    if (ast.length < 3){ err('defn needs ast least two args', ast); }
     if (ast[1].type !== 'word'){ err('first arg to defn should be a name', ast); }
     ast.slice(2, -1).map( (n)=>{ if (n.type !== 'word'){ err('params!', ast);} });
     this.ast = ast;
