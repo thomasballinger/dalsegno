@@ -140,7 +140,6 @@
 
   /** mutates tokens, should be given a copy */
   function firstUnclosedParenFromBack(tokens){
-    console.log('first unclosed input:', tokens);
     var level = 0;
     var t;
     while (level >= 0){
@@ -151,7 +150,6 @@
       if (t.type === 'rparen'){ level++; }
       if (t.type === 'lparen'){ level--; }
     }
-    console.log('returning from firstUnclosed:', t);
     return t;
   }
 
@@ -161,7 +159,6 @@
       cur = tokens.shift();
       if (cur === undefined) {
         //TODO find unclosed paren to highlight
-        console.log('allTokens:',allTokens);
         err("unmatched parenthesis", firstUnclosedParenFromBack(allTokens.slice(0)));
       }
     } while (cur.type === 'comment' || cur.type === 'newline');

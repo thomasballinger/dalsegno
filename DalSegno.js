@@ -208,13 +208,11 @@
     }
   };
   DalSegno.prototype.errback = function(e){
-    console.log(e);
     console.log(e.stack);
     this.currentlyRunning = false;
     this.errorbar.innerText = ''+e;
     this.errorbar.classList.remove('is-hidden');
     if (e.ast){
-      console.log(e.ast);
       Range = ace.require("ace/range").Range;
       if (this.badSpot){
         this.editor.getSession().removeMarker(this.badSpot);

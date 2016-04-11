@@ -20,6 +20,12 @@
   var BC = compile.BC;
   var Immutable = require('./Immutable.js');
 
+  function err(msg, ast){
+    var e = Error(msg);
+    e.ast = ast;
+    throw e;
+  }
+
   function CompiledFunctionObject(params, code, env, name) {
     this.params = params;
     this.code = code;
@@ -165,7 +171,7 @@
           if (func.name !== null){
             if (func.constructor.name !== 'NamedFunctionPlaceholder'){
               console.log(func);
-              throw Error('Full named function (instead of placeholder) found on the stack:'+func);
+              err('first expression in form is not a function:'+func, ast);
             }
 
             // It's important that this happens while the function object
