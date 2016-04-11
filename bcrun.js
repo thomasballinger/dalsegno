@@ -81,7 +81,7 @@
     var functionASTs = parse.findFunctions(newAst);
     if (this.ast !== undefined &&
         JSON.stringify(parse.justContent(newAst)) ===
-        JSON.stringify(parse.justContent(this.ast)) && !this.finished){
+        JSON.stringify(parse.justContent(this.ast)) && !this.context.finished){
       return;
     }
 

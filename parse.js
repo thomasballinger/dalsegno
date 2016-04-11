@@ -61,7 +61,7 @@
           if (/[()]/.test(chr)){
             tokens.push({type: chr === '(' ? 'lparen' : 'rparen', content: chr,
                          lineStart: lineno, lineEnd: lineno,
-                         colStart: col, colEnd: col+1});
+                         colStart: col, colEnd: col});
           }
         } else {
           word += chr;

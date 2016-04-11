@@ -37,6 +37,7 @@
     this.shouldRestart = false;  // despite same source code, run again
     this.currentlyRunning = false;  // whether there's more of the currently
                                     // loaded program to run
+    this.inErrorState = false;  // in error state the only way to restart is to edit
     this.lastProgram = '';  // string of the currently running program's AST
                             // or an empty string if the program doesn't parse
     this.speed = 500;  // number of bytecode steps run per this.runABit()
@@ -132,7 +133,6 @@
                         'to run it again.']);
     var self = this;
     function clearAndGo(){
-      console.log('running clearAndGo');
       self.canvas.removeEventListener('click', clearAndGo);
       ctx.clearRect(0, 0, 10000, 10000);
       self.lastResumeFunction = undefined;
@@ -161,13 +161,16 @@
       this.shouldRestart = false;
       this.runner.restart();
       this.currentlyRunning = true;
+    } else if (this.inErrorState){
+      this.clearError();
+      return;  // don't do anything until enough change is made that shouldReload is triggered.
     }
     if (DalSegno.activeWidget === this) {
       if (this.currentlyRunning){
         this.currentlyRunning = this.runner.runABit(this.speed, e => this.errback(e) );
         if (this.currentlyRunning) {
           setTimeout( () => this.runABit(), 0);
-        } else {
+        } else if (!this.inErrorState){
           this.setClickToRestart();
         }
       }
@@ -210,6 +213,7 @@
   DalSegno.prototype.errback = function(e){
     console.log(e.stack);
     this.currentlyRunning = false;
+    this.inErrorState = true;
     this.errorbar.innerText = ''+e;
     this.errorbar.classList.remove('is-hidden');
     if (e.ast){
@@ -225,6 +229,7 @@
     }
   };
   DalSegno.prototype.clearError = function(){
+    this.inErrorState = false;
     this.errorbar.classList.add('is-hidden');
     if (this.badSpot){
       this.editor.getSession().removeMarker(this.badSpot);

@@ -155,7 +155,7 @@
         var args = [];
         if (c.valueStack.count() < arg+1){
           dis(c);
-          throw Error("Not enough values on stack for args and function!");
+          throw Error("Not enough values on stack for args ("+arg+") and function!");
         }
         for (var i=0; i<arg; i++){
           args.push(c.valueStack.peek());
@@ -168,11 +168,21 @@
           var result = func.apply(null, args);
           c.valueStack = c.valueStack.push(result);
         } else {
-          if (func.name !== null){
-            if (func.constructor.name !== 'NamedFunctionPlaceholder'){
-              console.log(func);
-              err('first expression in form is not a function:'+func, ast);
+          if (func === null || func === undefined ||
+              !(func.constructor === NamedFunctionPlaceholder ||
+                func.constructor === CompiledFunctionObject)){
+            // Restore state so this bytcode could be executed again
+            // and its arguments are still on the stack.
+            // TODO a better solution would be just peeking at the stack
+            // and then popping these values off once we're sure we can
+            // construct the next frame.
+            c.valueStack = c.valueStack.push(func);
+            for (var i=0; i<arg; i++){
+              c.valueStack = c.valueStack.push(args[i]);
             }
+            err('first expression in form is not a function: '+func, ast);
+          }
+          if (func.name !== null){
 
             // It's important that this happens while the function object
             // and its arguments are still on the stack.
