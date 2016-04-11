@@ -19,16 +19,16 @@ var evaluationTests = function(run, Runner){
   return function(){
     describe('Lambda', function(){
       it('should work', function(){
-        assert.deepEqual(run('((lambda 1))'), 1);
-        assert.deepEqual(run('((lambda a b (+ a b)) 1 2)', justSum), 3);
+        assert.deepEqual(run('((lambda () 1))'), 1);
+        assert.deepEqual(run('((lambda (a b) (+ a b)) 1 2)', justSum), 3);
       });
     });
     describe('NamedFunction', function(){
       it('should work with Runner', function(){
         var tmpEnv = new Environment([justSumScope]);
-        run.runWithDefn('(defn foo x y (+ x y))', function(){ return tmpEnv; });
+        run.runWithDefn('(defn foo (x y) (+ x y))', function(){ return tmpEnv; });
         assert.isDefined(tmpEnv.runner.funs.foo);
-        assert.deepEqual(run.runWithDefn('(do (defn foo x y (+ x y)) (foo 1 2))',
+        assert.deepEqual(run.runWithDefn('(do (defn foo (x y) (+ x y)) (foo 1 2))',
                                          function(){ return tmpEnv; }), 3);
       });
     });
@@ -77,7 +77,7 @@ var evaluationTests = function(run, Runner){
     });
     describe('runWithDefn', function(){
       it("should run code that contains defns", function(){
-        assert.deepEqual(run.runWithDefn('(do (defn foo 1) (foo))'), 1);
+        assert.deepEqual(run.runWithDefn('(do (defn foo () 1) (foo))'), 1);
       });
     });
 
@@ -125,10 +125,10 @@ var evaluationTests = function(run, Runner){
           var tmpEnvBuilder = function(){return tmpEnv;};
           var runner = new Runner(null);
           runner.runLibraryCode('(define b 2)', tmpEnv);
-          assert.throws(function(){ runner.runLibraryCode('(defn foo 1)');}, /Runner doesn't allow named functions/);
+          assert.throws(function(){ runner.runLibraryCode('(defn foo () 1)');}, /Runner doesn't allow named functions/);
           assert.deepEqual(tmpEnv.toObjects()[1], {a: 1, b: 2});
           runner.setEnvBuilder(tmpEnvBuilder);
-          runner.loadUserCode('(defn foo 1)');
+          runner.loadUserCode('(defn foo () 1)');
           assert.throws(function(){ runner.value(); }, /Runner doesn't allow named functions/);
           runner.funs = {};
           runner.value();
@@ -145,7 +145,7 @@ var evaluationTests = function(run, Runner){
           var tmpEnvBuilder = function(){return tmpEnv;};
           var runner = new Runner({});
           runner.setEnvBuilder(tmpEnvBuilder);
-          runner.loadUserCode('(do (defn foo 1) (foo))');
+          runner.loadUserCode('(do (defn foo () 1) (foo))');
           assert.deepEqual(runner.value(), 1);
           assert.deepEqual(runner.value(), 1);
         });

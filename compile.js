@@ -168,23 +168,33 @@
 
   function Defn(ast, itp){
     if (ast[0].content !== 'defn'){ err('freak out', ast); }
-    if (ast.length < 3){ err('defn needs ast least two args', ast); }
+    if (ast.length < 4){ err('defn needs params and at least one body expression', ast); }
     if (ast[1].type !== 'word'){ err('first arg to defn should be a name', ast); }
-    ast.slice(2, -1).map( (n)=>{ if (n.type !== 'word'){ err('params!', ast);} });
+    if (!Array.isArray(ast[2])){ err('defn needs parameters (or empty ())', ast); }
+    ast[2].forEach( x => {
+      if (x.type !== 'word'){
+        err('arguments should be symbols, not expressions', ast);
+      }
+    });
     this.ast = ast;
     this.itp = itp; // but this won't propagate
     this.name = ast[1].content;
-    this.params = ast.slice(2,-1).map( n => n.content );
+    this.params = ast[2].map( x => x.content );
     // body of a function is always in tail position
-    this.body = build(ast[ast.length-1], true);
-    this.bodyAST = ast[ast.length-1];
+    this.bodyAST = ast.slice(2);
+    this.expressions = [].concat(ast.slice(3, -1).map( a => build(a, false) ),
+                                 ast.slice(-1   ).map( a => build(a, true ) ));
   }
   Defn.prototype.eval = function(env){
-      return env.makeEvalNamedFunction(this.params, this.body, env);
+      return env.makeEvalNamedFunction(this.expressions, this.params, env);
   };
   Defn.prototype.compile = function(){
-    var code = this.body.compile();
-    code.push([BC.Return, null, lineInfo(this.body.ast)]);
+    var code = [];
+    for (var expr of this.expressions){
+      code = [].concat(code, expr.compile(), [[BC.Pop, null, lineInfo(expr.ast)]]);
+    }
+    code.pop();  // don't need pop for last expression
+    code.push([BC.Return, null, lineInfo(this.ast)]);
     return [
         [BC.Push, code, lineInfo(this.ast)],
         [BC.Push, this.params, lineInfo(this.ast)],
@@ -195,26 +205,31 @@
 
   function Lambda(ast, itp){
     if (ast[0].content !== 'lambda'){ err('freak out', ast); }
-    if (ast.length < 2){ err('lambda needs body', ast); }
-    ast.slice(1, -1).forEach( x => {
+    if (ast.length < 3){ err('lambda needs params and at least one body expressions', ast); }
+    if (!Array.isArray(ast[1])){ err('lambda needs parameters (or empty ())', ast); }
+    ast[1].forEach( x => {
       if (x.type !== 'word'){
-        console.log(ast);
-        err('just one body please!', ast);
+        err('arguments should be symbols, not expressions', ast);
       }
     });
     this.ast = ast;
-    this.itp = itp; // but this won't propagate
-    this.params = ast.slice(1, -1).map( x => x.content );
-    this.bodyAST = ast[ast.length-1];
+    this.itp = itp;  // but this won't propagate
+    this.params = ast[1].map( x => x.content );
+    this.bodyAST = ast.slice(2);
     // function body is always in tail position
-    this.body = build(ast[ast.length-1], true);
+    this.expressions = [].concat(ast.slice(2, -1).map( a => build(a, false) ),
+                                 ast.slice(-1   ).map( a => build(a, true ) ));
   }
   Lambda.prototype.eval = function(env){
-    return env.makeEvalLambda(this.bodyAST, this.params, null);
+    return env.makeEvalLambda(this.expressions, this.params, null);
   };
   Lambda.prototype.compile = function(env){
-    var code = this.body.compile();
-    code.push([BC.Return, null, this.ast]);
+    var code = [];
+    for (var expr of this.expressions){
+      code = [].concat(code, expr.compile(), [[BC.Pop, null, lineInfo(expr.ast)]]);
+    }
+    code.pop();  // don't need BC.Pop for last expression
+    code.push([BC.Return, null, lineInfo(this.ast)]);
     return [
       [BC.Push, code, lineInfo(this.bodyAST)],
       [BC.Push, this.params, lineInfo(this.ast)],
@@ -244,7 +259,7 @@
       var scope = {};
       this.args.forEach( (_, i) => { scope[func.params[i]] = argValues[i]; });
       var invocationEnv = func.env.newWithScope(scope);
-      return build(func.body).eval(invocationEnv);
+      return func.body.map( expr => expr.eval(invocationEnv)).pop();
       //TODO do TCO in interpreter as well
     }
   };

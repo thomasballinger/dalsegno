@@ -16,12 +16,12 @@ describe('stdlib', function(){
       describe('integration', function(){
         describe('reduce', function(){
           it('should sum numbers', function(){
-            assert.deepEqual(run('(reduce (lambda a b (+ a b)) (list 1 2 3) 0)', env), 6);
+            assert.deepEqual(run('(reduce (lambda (a b) (+ a b)) (list 1 2 3) 0)', env), 6);
           });
         });
         describe('filter', function(){
           it('should passthrough', function(){
-            assert.deepEqual(run('(filter (lambda a 1) (list 1 2 3))', env).toJS(), [1, 2, 3]);
+            assert.deepEqual(run('(filter (lambda (a) 1) (list 1 2 3))', env).toJS(), [1, 2, 3]);
           });
         });
       });

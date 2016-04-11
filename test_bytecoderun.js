@@ -31,16 +31,16 @@ describe('compile', ()=>{
     var begin = compile.build(parse(program)[0]);
     assert.equal(begin.expressions[0].itp, false);
     assert.equal(begin.expressions[1].itp, true);
-    assert.equal(begin.expressions[0].body.itp, true);
-    assert.equal(begin.expressions[0].body.expressions[0].itp, false);
-    assert.equal(begin.expressions[0].body.expressions[4].itp, false);
-    assert.equal(begin.expressions[0].body.expressions[5].itp, true);
-    assert.equal(begin.expressions[0].body.expressions[4].body.itp, true);
+    assert.equal(begin.expressions[0].expressions[0].itp, true);
+    assert.equal(begin.expressions[0].expressions[0].expressions[0].itp, false);
+    assert.equal(begin.expressions[0].expressions[0].expressions[4].itp, false);
+    assert.equal(begin.expressions[0].expressions[0].expressions[5].itp, true);
+    assert.equal(begin.expressions[0].expressions[0].expressions[4].expressions[0].itp, true);
     //assert.equal(begin.expressions[0].body.expressions[4].body.expressions[0].itp, false);
-    assert.equal(begin.expressions[0].body.expressions[4].body.expressions[0].itp, false);
-    assert.equal(begin.expressions[0].body.expressions[4].body.expressions[1].itp, false);
-    assert.equal(begin.expressions[0].body.expressions[4].body.expressions[1].ifBody.itp, false);
-    var ifBody = begin.expressions[0].body.expressions[4].body.expressions[1].ifBody;
+    assert.equal(begin.expressions[0].expressions[0].expressions[4].expressions[0].expressions[0].itp, false);
+    assert.equal(begin.expressions[0].expressions[0].expressions[4].expressions[0].expressions[1].itp, false);
+    assert.equal(begin.expressions[0].expressions[0].expressions[4].expressions[0].expressions[1].ifBody.itp, false);
+    var ifBody = begin.expressions[0].expressions[0].expressions[4].expressions[0].expressions[1].ifBody;
     assert.equal(ifBody.expressions[0].itp, false);
     assert.equal(ifBody.expressions[1].itp, false);
   });
@@ -62,19 +62,19 @@ describe('compiler and evaluator', ()=>{
             (define r 4))
           r)`);
       checkCompileAgainstEval('(do (define a 1) (set! a 2) a)');
-      checkCompileAgainstEval('(do (define f (lambda x (+ x 1))) (f 2))');
+      checkCompileAgainstEval('(do (define f (lambda (x) (+ x 1))) (f 2))');
+      checkCompileAgainstEval('(do (define f (lambda (x) (+ x 1) 2)) (f 2))');
     });
     it('give the same results for syntax changes', ()=>{
       checkCompileAgainstEval('(define a 1)\n(set! a 2)\na');
     });
     it('should do closures', ()=>{
-      checkCompileAgainstEval(`(do
-  (define one
-    ((lambda (do
+      checkCompileAgainstEval(
+  `(define one
+    ((lambda ()
       (define a 1)
-      (lambda a)))))
-  (one)
-      )`, undefined);
+      (lambda () a))))
+  (one)`, undefined);
     });
     describe("map using builtins", function(){
       var buildEnv = function(){
@@ -82,20 +82,20 @@ describe('compiler and evaluator', ()=>{
       };
       var s = "(do\n"+
       "  (define map\n"+
-      "    ((lambda\n"+
+      "    ((lambda ()\n"+
       "      (do\n"+
-      "        (define map-acc (lambda func arr acc\n"+
+      "        (define map-acc (lambda (func arr acc)\n"+
       "          (if (= (length arr) 0)\n"+
       "            acc\n"+
       "            (map-acc\n"+
       "              func\n"+
       "              (rest arr)\n"+
       "              (append acc (func (first arr)))))))\n"+
-      "        (lambda func arr\n"+
+      "        (lambda (func arr)\n"+
       "          (map-acc func arr (list)))))))\n"+
       "\n"+
-      "  (define foo (lambda x (+ x 1)))     \n"+
-      "  (define main (lambda (do            \n"+
+      "  (define foo (lambda (x) (+ x 1)))     \n"+
+      "  (define main (lambda () (do            \n"+
       "    (map foo (list 1 2 3 4)))))       \n"+
       "  (main))";
       it('should work', () => {

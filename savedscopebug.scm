@@ -1,11 +1,11 @@
 (do
-  (defn game (do
+  (defn game () (do
     (define x 100)
     (define vx 1)
     (define counter 0)
-    (defn on-c
+    (defn on-c ()
       (set! vx (+ vx 1)))
-    (defn main (do
+    (defn main () (do
       (set! counter (+ counter 1))
       (if c
           (do

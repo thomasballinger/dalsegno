@@ -139,6 +139,7 @@
       ctx.putImageData(self.savedImage, 0, 0);
     }
     function clearAndHideAndGo(){
+      cleanup();
       self.lastResumeCleanupFunction = undefined;
       self.go();
     }
@@ -242,6 +243,7 @@
     this.errorbar.classList.remove('is-hidden');
     if (e.ast){
       Range = ace.require("ace/range").Range;
+      //TODO investigate error annotations instead of markers
       if (this.badSpot){
         this.editor.getSession().removeMarker(this.badSpot);
       }
@@ -250,6 +252,8 @@
         e.ast.colStart-1,
         e.ast.lineEnd-1,
         e.ast.colEnd), "errorHighlight");
+      this.editor.resize(true);  // Ace editor bug requires this before nextline
+      this.editor.scrollToLine(e.ast.lineStart-1, true, true, function () {});
     }
   };
   DalSegno.prototype.clearError = function(){

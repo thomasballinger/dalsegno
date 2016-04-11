@@ -19,19 +19,19 @@ var tests = function(run, Runner, stdlib){
   return function(){
     describe('integration', function(){
       it('store', function(){
-        run.runWithDefn("(defn foo 1)");
+        run.runWithDefn("(defn foo () 1)");
       });
       it('store, lookup and retrieve', function(){
-        run.runWithDefn("(do (defn foo 1) (foo))");
+        run.runWithDefn("(do (defn foo () 1) (foo))");
       });
       it('and retrieve', function(){
-        run.runWithDefn("(do (defn foo 1) (foo))", buildEnv);
+        run.runWithDefn("(do (defn foo () 1) (foo))", buildEnv);
       });
       it('global functions', function(){
         run.runWithDefn("\n"+
             "(do                                   \n"+
-            "  (defn foo x (do x x))               \n"+
-            "  (defn main (do                      \n"+
+            "  (defn foo (x) (do x x))               \n"+
+            "  (defn main () (do                      \n"+
             "    (foo 1)                           \n"+
             "    (map foo (list 1 2 3))))          \n"+
             "  (main))",
@@ -40,7 +40,7 @@ var tests = function(run, Runner, stdlib){
       it('browser bug?', function(){
         run.runWithDefn(
           "(do"+
-          "(defn game (do "+
+          "(defn game () (do "+
             '"game" "started"))'+
           "(game))", buildEnv);
       });

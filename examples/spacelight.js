@@ -1,3 +1,4 @@
+// vim: set ft=scheme:
 window.spaceLightProgram = `; That headlight looks a little underpowered!
 ; Try changing the last two arguments to draw-black
 ; on line 74, or delete that line altogether.
@@ -5,53 +6,53 @@ window.spaceLightProgram = `; That headlight looks a little underpowered!
 ; Language documentation:
 ; https://github.com/thomasballinger/dalsegno#user-content-language
 
-(defn init-world
-  (map (lambda i
+(defn init-world ()
+  (map (lambda (i)
          (list
            (list (randint 200) (randint 200))
            (list (randint -5 6) (randint -5 6))))
        (range 10)))
 
-(defn wrap-obj obj
+(defn wrap-obj (obj)
   (list
     (list (% (first (first obj)) width)
           (% (last (first obj)) height))
     (last obj)))
 
-(defn step-obj obj
+(defn step-obj (obj)
   (list
     (list (+ (first (first obj)) (first (last obj)))
           (+ (last (first obj)) (last (last obj))))
     (last obj)))
 
-(defn render-obj obj (do
+(defn render-obj (obj)
   (color 110 45 2)
   (define radius 20)
   (drawArc (first (first obj))
             (nth 1 (first obj))
-            radius)))
+            radius))
 
-(defn draw-black x y h d angle (do
+(defn draw-black (x y h d angle)
     (color 0 0 0)
     (drawArc x y 1000 (+ h 180 angle) (+ h angle))
     (drawArc x y 1000 (- h angle) (- (+ h 180) angle))
-    (drawInverseCircle x y d)))
+    (drawInverseCircle x y d))
 
-(defn game (do
+(defn game ()
   (define x 300)
   (define y 300)
   (define vx 1)
   (define vy 1)
   (display "game started")
   (define world (init-world))
-  (defn nearby obj
+  (defn nearby (obj)
     (< (dist x y (first (first obj)) (nth 1 (first obj))) 300))
-  (defn collide obj
+  (defn collide (obj)
     (< (dist x y (first (first obj)) (nth 1 (first obj))) 23))
-  (defn any-collide (reduce or (map collide world) 0))
-  (defn to-render world)
+  (defn any-collide () (reduce or (map collide world) 0))
+  (defn to-render () world)
   (define counter 0)
-  (defn on-click (do
+  (defn on-click ()
     (define towards-mouse (towards x y (mousex) (mousey)))
     (set! vx (+ vx (* (x_comp towards-mouse) .5)))
     (set! vy (+ vy (* (y_comp towards-mouse) .5)))
@@ -61,9 +62,9 @@ window.spaceLightProgram = `; That headlight looks a little underpowered!
             (list -9 -10)
             (list -9 10)
             (list -13 10))
-      (towards x y (mousex) (mousey)))))
+      (towards x y (mousex) (mousey))))
 
-  (defn main (do
+  (defn main ()
     (define h (towards x y (mousex) (mousey)))
     (color 200 200 30)
     (fillRect 0 0 width height)
@@ -96,18 +97,18 @@ window.spaceLightProgram = `; That headlight looks a little underpowered!
           (drawText 100 100 "your score:" counter)
           (display "your score:" counter)
           (render)
-          ))))
-    (main)))
+          )))
+  (main))
 
-(defn wait-for-unclick
+(defn wait-for-unclick ()
   (if (clicked)
       (wait-for-unclick)))
-(defn wait-for-click
+(defn wait-for-click ()
   (if (not (clicked))
       (wait-for-click)))
-(defn play-forever (do
+(defn play-forever ()
   (game)
   (wait-for-unclick)
   (wait-for-click)
-  (play-forever)))
+  (play-forever))
 (play-forever)`;

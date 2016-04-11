@@ -60,11 +60,11 @@ describe('copyable execution trees', function(){
           var runner = new bcrun.BCRunner({});
           runner.setEnvBuilder(tmpEnvBuilder);
 
-          runner.loadUserCode('(begin (defn foo 1) (foo))');
+          runner.loadUserCode('(begin (defn foo () 1) (foo))');
           assert.equal(false, runner.runABit(100));
           console.log('foo:', runner.getState('foo'));
           assert.equal(runner.getState('foo').context.counterStack.peek(), 6);
-          runner.update('(begin (defn foo 2) (foo))');
+          runner.update('(begin (defn foo () 2) (foo))');
           /*
           assert.deepEqual(jc(runner.getState('foo').delegate.env.runner.funs.foo.body), 2);
           assert.deepEqual(jc(runner.funs['foo'].body), 2);
