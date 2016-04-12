@@ -185,9 +185,10 @@
   BCRunner.prototype.getState = function(name){
     if (name in this.savedStates){
       return this.savedStates[name];
-    } else {
-      throw Error("What is this for?");
     }
+    // TODO add commend explaining this - it's for something
+    // like a fallback for when we didn't have that function
+    // saved? When can that occur?
     return [-2, null];
   };
   BCRunner.prototype.functionExists = function(name){
