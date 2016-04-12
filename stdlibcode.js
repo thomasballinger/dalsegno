@@ -1,17 +1,20 @@
 ;(function() {
   'use strict';
 
-  var stdlibcode = [
-    "(define reduce (lambda (func arr initial)\n"+
-    "  (if (= (length arr) 0)\n"+
-    "      initial\n"+
-    "      (func (reduce func (rest arr) initial) (first arr)))))",
+  var stdlibcode = [`
+(define reduce (lambda (func arr acc)
+  (if (= (length arr) 0)
+      acc
+      (reduce
+        func
+        (rest arr)
+        (func acc (first arr))))))`,
 
     "(define filter (lambda (func arr)\n"+
     "  (reduce \n"+
     "    (lambda (acc item)\n"+
     "      (if (func item)\n"+
-    "         (cons item acc)\n"+
+    "         (append acc item)\n"+
     "         acc))\n"+
     "    arr (list))))",
 
