@@ -28,7 +28,7 @@ function checkCompileAgainstEval(s, makeEnv, debug){
 describe('compile', ()=>{
   it('correctly identifies tail position', ()=>{
     var program = fs.readFileSync('savedscopebug.scm', {encoding: 'utf8'});
-    var begin = compile.build(parse(program)[0]);
+    var begin = compile.build(parse(program)[0], true);
     assert.equal(begin.expressions[0].itp, false);
     assert.equal(begin.expressions[1].itp, true);
     assert.equal(begin.expressions[0].expressions[0].itp, true);

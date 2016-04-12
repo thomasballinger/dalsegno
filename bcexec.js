@@ -151,6 +151,10 @@
         // if the function call is in the tail position
         /* falls through */
       case BC.FunctionCall:
+        if (Immutable.List.isList(c.valueStack.get(arg))){
+          console.log('looks like a non-function...');
+          dis(c);
+        }
 
         var args = [];
         if (c.valueStack.count() < arg+1){
@@ -171,6 +175,7 @@
           if (func === null || func === undefined ||
               !(func.constructor === NamedFunctionPlaceholder ||
                 func.constructor === CompiledFunctionObject)){
+            console.log('nonfunction:', func);
             // Restore state so this bytcode could be executed again
             // and its arguments are still on the stack.
             // TODO a better solution would be just peeking at the stack
@@ -261,9 +266,12 @@
     return Object.keys(BC)[index];
   }
 
+  var UNINTERESTING = {};
   function pprint(v){
-    if (v === undefined){
+    if (v === UNINTERESTING){
       return '';
+    } else if (v === undefined){
+      return 'undefined';
     } else if (v === null){
       return 'NULL (how did that get in?)';
     } else if (typeof v === 'string'){
@@ -413,6 +421,10 @@
     var codeNum = 0;
     var output = '';
     var bytecodeLines = [];
+    bytecode.forEach( (b, i)=> {
+      if (b[0] === BC.Pop && args[i] === null){ args[i] = UNINTERESTING; }
+      if (b[0] === BC.Return && args[i] === null){ args[i] = UNINTERESTING; }
+    });
     for (var line of lines){
       var s = ((codeNum === counterStack.peek() ? '--> ' : '    ') +
                ('            '+line[1]).slice(-maxLineNumLength)     + '  ' +
@@ -421,7 +433,7 @@
       codeNum++;
     }
     output = bytecodeLines.join('\n');
-    output = horzCat(output, format(args.map( v => v === null ? undefined : v ), 10, 'left').join('\n'));
+    output = horzCat(output, format(args, 10, 'left').join('\n'));
     if(Object.keys(arrows).length){
       output = horzCat(arrowsDraw(arrows), output);
     }

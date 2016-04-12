@@ -232,11 +232,11 @@
         if (form1[1] !== form2[1]){
           return true;  // name is different
         }
-        if (form1.slice(1, -1).length !== form2.slice(1, -1).length){
+        if (form1[2].length !== form2[2].length){
           return true;  // number of parameters is different
         }
-        for (var i = 0; i < form1.slice(1, -1).length; i++){
-          if (form1.slice(1, -1)[i] !== form2.slice(1, -1)[i]){
+        for (var i = 0; i < form1[2].length; i++){
+          if (form1[2][i] !== form2[2][i]){
             return true;  // name of parameter is different
           }
         }
@@ -284,7 +284,7 @@
       return {};
     }
     if (ast.length > 0 && ast[0].content === 'defn'){
-      var func = new Function(ast[ast.length-1], ast.slice(2, -1), null, ast[1].content);
+      var func = new Function(ast.slice(3), ast[2], null, ast[1].content);
       funcs[func.name] = func;
     }
     for (var i = 0; i < ast.length; i++){

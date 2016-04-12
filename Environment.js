@@ -187,6 +187,9 @@
   function NamedFunctionPlaceholder(name){
     this.name = name;
   }
+  NamedFunctionPlaceholder.prototype.toString = function(){
+    return 'λ placeholder '+this.name+'(...?)';
+  };
 
   Environment.Environment = Environment;
   Environment.Scope = Scope;

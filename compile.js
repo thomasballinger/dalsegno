@@ -26,7 +26,7 @@
   /** Construct a builder for an ast, with whether in tail position */
   function build(ast, itp){
     if (itp === undefined){
-      itp = true;
+      throw Error('build needs two arguments');
     }
 
     if (Array.isArray(ast)){
@@ -71,7 +71,7 @@
     if (!Array.isArray(ast)){ throw Error("Program consists of a list of expressions"); }
     this.ast = ast;
     this.expressions = [].concat(ast.slice(0, -1).map( a => build(a, false) ),
-                                 ast.slice(-1   ).map( a => build(a, this.itp ) ));
+                                 ast.slice(-1   ).map( a => build(a, true ) ));
   }
   Program.prototype.eval = function(env){ return this.expressions.map( expr => expr.eval(env)).pop(); };
   Program.prototype.compile = function(){
@@ -332,8 +332,18 @@
   }
 
   function compileFunctionBody(ast){
-    var code = build(ast).compile();
-    code.push([BC.Return, null, lineInfo(ast)]);
+    if (!Array.isArray(ast)){ throw Error("function ast should be a list of expressions"); }
+    var code = [];
+
+    var expressions = [].concat(ast.slice(0, -1).map( a => build(a, false) ),
+                                ast.slice(-1   ).map( a => build(a, true ) ));
+    for (var expr of expressions){
+      code = [].concat(code, expr.compile(), [[BC.Pop, null, lineInfo(expr.ast)]]);
+    }
+    code.pop();  // don't need pop for last expression
+    code.push([BC.Return, null, {
+      lineStart: ast[0].lineStart, lineEnd: ast[ast.length-1].lineEnd,
+      colStart:  ast[0].colStart,  colEnd: ast[ast.length-1].colEnd}]);
     Object.freeze(code);
     return code;
   }
