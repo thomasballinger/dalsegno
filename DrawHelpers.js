@@ -1,5 +1,15 @@
 ;(function() {
   'use strict';
+  var require;
+  if (typeof window === 'undefined') {
+    require = module.require;
+  } else {
+    require = function(name){
+      var realname = name.match(/(\w+)[.]?j?s?$/)[1];
+      return window[realname];
+    };
+  }
+  var Immutable = require('./Immutable.js');
 
   function numToHex(n){
     var s = n.toString(16);
@@ -32,6 +42,14 @@
     this.ctx.fill();
   };
   DrawHelpers.prototype.drawPoly = function(x, y, points, h){
+    if (!Immutable.List.isList(points)){
+      throw Error('3rd argument to drawPoly should be a list of 2-element lists');
+    }
+    points.forEach(function(arr, i){
+      if (!Immutable.List.isList(arr) || arr.count() !== 2){
+        throw Error('argument #'+i+' in drawPoly points is not a 2-element list: '+arr.toJS());
+      }
+    });
     points = points.map(function(arr){
       var dx = arr.get(0), dy = arr.get(1);
       return [x + dx * Math.cos(h * Math.PI / 180) - dy * Math.sin(h * Math.PI / 180),

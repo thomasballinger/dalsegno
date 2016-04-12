@@ -209,8 +209,8 @@
 
           }
           if (func.params.length !== arg){
-            throw Error('Function called with wrong arity! Takes ' +
-              func.params.length + ' args, given ' + args.length);
+            err('Function '+func.name+' called with wrong arity! Takes ' +
+              func.params.length + ' args, given ' + args.length, ast);
           }
           var scope = {};
           args.forEach((x, i) => scope[func.params[i]] = x);

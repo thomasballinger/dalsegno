@@ -119,7 +119,8 @@
           throw Error("Concat arguments are not all lists: "+list[i]);
         }
       }
-      return Immutable.List.concat.apply([], args);
+      var l = Immutable.List();
+      return l.concat.apply(l, args);
     },
     'append': function(arr, item){
       arityCheck(arguments, 2);
