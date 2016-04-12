@@ -125,6 +125,7 @@
     if (cur.type === 'newline'){
       return;
     }
+    console.log(s);
     throw err("expected newline between expressions", cur);
   }
 

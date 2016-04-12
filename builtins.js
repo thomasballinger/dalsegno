@@ -41,7 +41,20 @@
           return (p3[1] - p1[1]) * (p2[0] - p1[0]) > (p2[1] - p1[1]) * (p3[0] - p1[0]);
       }
       return (CCW(p1, p3, p4) != CCW(p2, p3, p4)) && (CCW(p1, p2, p3) != CCW(p1, p2, p4));
-  };
+  }
+  function pointFromLineSegment(p0, p1, p2) {
+    console.log(p0, p1, p2);
+    function dist2(p1, p2) {
+      var sqr = x => x*x;
+      return sqr(p1[0] - p2[0]) + sqr(p1[1] - p2[1]);
+    }
+    var lengthSquared = dist2(p1, p2);
+    if (lengthSquared === 0) return dist2(p0, p1);
+    var t = ((p0[0] - p1[0]) * (p2[0] - p1[0]) + (p0[1] - p1[1]) * (p2[1] - p1[1])) / lengthSquared;
+    return t < 0 ? Math.sqrt(dist2(p0, p1)) : ( t > 1 ? Math.sqrt(dist2(p0, p2)) :
+      dist2(p0, [p1[0] + t * (p2[0] - p1[0]), p0[1] + t * (p2[1] - p1[1])]));
+  }
+
   var builtins = Immutable.Map({
     '+': function(){
       return Array.prototype.slice.call(arguments).reduce(function(a, b){
@@ -307,6 +320,10 @@
         p4 = line1OrPoint1.get(1).get(1);
       }
       return linesIntersect(p1, p2, p3, p4);
+    },
+    'distToLine': function(point, lineStart, lineEnd){
+      //TODO arg checking
+      return pointFromLineSegment(point.toJS(), lineStart.toJS(), lineEnd.toJS());
     },
 
     // JS interop

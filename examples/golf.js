@@ -17,9 +17,9 @@ window.golfProgram = `
       (first below)
       (list (list -1000 height) (list 1000 height))))
 
-(defn collide (x1 y1 x2 y2 lines)
-  (define line (ground-below x1 lines))
-  (linesIntersect (first line) (last line) (list x1 y1) (list x2 y2)))
+(defn distToGround (x y lines)
+  (define line (ground-below x lines))
+  (distToLine (list x y) (first line) (last line)))
 
 (defn paint (points win x y)
       (define mountainPoly
@@ -48,14 +48,15 @@ window.golfProgram = `
   (defn loop ()
     (color "yellow")
     (fillLine (ground-below x lines))
-    (display (collide x y (+ x dx) (+ y dy) lines))
-    (fillLine x y (+ x  (+ y dy))
+    (fillLine x y (+ x  (+ y dy)))
     (render)
     (set! x (+ x dx))
     (set! y (+ y dy))
     (set! dy (+ dy .1))
     (paint points dest x y)
-    (loop))
+    (if (> (distToGround x y lines) 20)
+      (loop)
+      (display "hit ground!")))
   (loop))
 (main)
 `;
