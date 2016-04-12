@@ -42,8 +42,9 @@
     this.lastProgram = '';  // string of the currently running program's AST
                             // or an empty string if the program doesn't parse
     this.speed = 500;  // number of bytecode steps run per this.runABit()
-    this.badSpot;  // currently highlighted ace Range of source code
+    this.badSpot = undefined;  // currently highlighted ace Range of source code
     this.DEBUGMODE = true;  // throw errors properly so we see tracebacks
+    this.onChangeIfValid = function(s){};  // called after valid parse with new program
 
     this.editorId = editorId;
     this.canvasId = canvasId;
@@ -57,6 +58,7 @@
     } else {
       this.initialContent = this.initialContent.textContent;
     }
+    this.onChangeIfValid(this.initialContent);
 
     this.runner = new bcrun.BCRunner({});
     this.runner.setEnvBuilder( () => this.envBuilder() );
@@ -186,7 +188,6 @@
       this.runner.restart();
       this.currentlyRunning = true;
     } else if (this.inErrorState){
-      this.clearError();
       return;  // don't do anything until enough change is made that shouldReload is triggered.
     }
     if (DalSegno.activeWidget === this) {
@@ -228,6 +229,7 @@
     if (newProgram === this.lastProgram){
       return;
     }
+    this.onChangeIfValid(s);
     this.lastProgram = newProgram;
     this.shouldReload = true;
     if (!this.currentlyRunning){

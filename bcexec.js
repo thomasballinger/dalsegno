@@ -209,7 +209,7 @@
 
           }
           if (func.params.length !== arg){
-            err('Function '+func.name+' called with wrong arity! Takes ' +
+            err('Function '+func.name+' called with wrong number of arguments! Takes ' +
               func.params.length + ' args, given ' + args.length, ast);
           }
           var scope = {};

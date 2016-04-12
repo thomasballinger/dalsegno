@@ -16,10 +16,10 @@ div.dalsegno {
 }
 .dalsegno-errorbar {
   position: absolute;
-  top: 100;
-  left: 660px;
-  bottom: 100;
-  right: 30;
+  top: 20;
+  left: 520px;
+  bottom: 20;
+  right: 20;
   background-color: #ff99cc;
   text-align: center;
   font-size: 2em;

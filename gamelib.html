@@ -84,17 +84,7 @@ function getParameterByName(name) {
 var codeFromURL = getParameterByName('code');
 var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, codeFromURL || window.spaceLightProgram)
 
-// prevents requiring mouseover
-embed.lastResumeCleanupFunction();
-embed.go();
-
-embed.speed = 500;  // how many ticks to run at a time, default is 500
-//document.getElementById(embed.editorId).style.fontSize='14px';
-if (getParameterByName('vim')){
-  embed.editor.setKeyboardHandler("ace/keyboard/vim");
-}
-
-var updateUrl = function(){
+embed.onChangeIfValid = function(){
   var encoded = encodeURI(embed.editor.getValue());
   try {
     history.replaceState({}, "", "?code="+encoded);
@@ -103,9 +93,14 @@ var updateUrl = function(){
   }
 };
 
-//TODO fix regressions:
-// updateUrl(); on change
-// keep running, forget the mouseOver thing
+// prevents requiring mouseover the first time
+embed.lastResumeCleanupFunction();
+embed.go();
+
+embed.speed = 500;  // how many ticks to run at a time, default is 500
+if (getParameterByName('vim')){
+  embed.editor.setKeyboardHandler("ace/keyboard/vim");
+}
 
 </script>
 </body>

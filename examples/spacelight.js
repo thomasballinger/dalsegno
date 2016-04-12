@@ -3,8 +3,8 @@ window.spaceLightProgram = `; That headlight looks a little underpowered!
 ; Try changing the last two arguments to draw-black
 ; on line 74, or delete that line altogether.
 ; Then make more changes to see how the game works!
-; Language documentation:
-; https://github.com/thomasballinger/dalsegno#user-content-language
+; Language documentation: on GitHub at thomasballinger/dalsegno
+; in the user-content-language section of the readme
 
 (defn init-world ()
   (map (lambda (i)

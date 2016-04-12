@@ -81,7 +81,7 @@
         throw Error("second argument to any is not a list: "+arr);
       }
       if(i>=arr.count()){
-        throw Error("Index error: "+i+" "+array);
+        throw Error("Index error: "+i+" "+arr);
       }
       return arr.get(i);
     },
@@ -91,7 +91,7 @@
         throw Error("argument to first is not a list: "+arr);
       }
       if(arr.count() < 1){
-        throw Error("Index error: "+0+" "+array);
+        throw Error("Index error: "+0+" "+arr);
       }
       return arr.first();
     },
