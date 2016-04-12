@@ -78,7 +78,7 @@
     if (this.showFPS){
       var t = new Date().getTime();
       this.renderTimes.push(new Date().getTime());
-      while (this.renderTimes[0] < t-1000){
+      while (this.renderTimes.length > 10){
         this.renderTimes.shift();
       }
     }
@@ -100,10 +100,10 @@
       this.ctx.fillRect(this.canvasElement.width-100, 0, 100, 25);
       this.ctx.font = "20px sans-serif";
       this.ctx.fillStyle = 'blue';
-      var fps = this.renderTimes.length ? this.renderTimes.length - 1 /
-                                          (t - this.renderTimes[0] )
+      var fps = this.renderTimes.length > 1 ? (this.renderTimes.length - 1) /
+                                          (t - this.renderTimes[0]) * 1000
                                         : 0;
-      this.ctx.fillText("fps: "+this.renderTimes.length,this.canvasElement.width-100, 20);
+      this.ctx.fillText("fps: "+fps,this.canvasElement.width-100, 20);
       this.ctx.font = oldFont;
       this.ctx.fillStyle = oldFillStyle;
     }
