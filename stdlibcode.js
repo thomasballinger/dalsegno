@@ -15,10 +15,18 @@
     "         acc))\n"+
     "    arr (list))))",
 
-    "(define map (lambda (func arr)\n"+
-    "  (if (= (length arr) 0)\n"+
-    "      (list)\n"+
-    "      (cons (func (first arr)) (map func (rest arr))))))",
+    "(define map\n"+
+    "  ((lambda ()\n"+
+    "    (do\n"+
+    "      (define map-acc (lambda (func arr acc)\n"+
+    "        (if (= (length arr) 0)\n"+
+    "          acc\n"+
+    "          (map-acc\n"+
+    "            func\n"+
+    "            (rest arr)\n"+
+    "            (append acc (func (first arr)))))))\n"+
+    "      (lambda (func arr)\n"+
+    "        (map-acc func arr (list)))))))",
   ];
 
   if (typeof exports !== 'undefined') {

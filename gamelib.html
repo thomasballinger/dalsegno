@@ -88,7 +88,7 @@ var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, codeFromURL 
 embed.lastResumeCleanupFunction();
 embed.go();
 
-embed.speed = 600;  // how many ticks to run at a time, default is 500
+embed.speed = 1000;  // how many ticks to run at a time, default is 500
 //document.getElementById(embed.editorId).style.fontSize='14px';
 if (getParameterByName('vim')){
   embed.editor.setKeyboardHandler("ace/keyboard/vim");
