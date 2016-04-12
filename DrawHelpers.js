@@ -11,6 +11,9 @@
   }
   var Immutable = require('./Immutable.js');
 
+  var CSS_COLOR_NAMES = ["AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Azure", "Beige", "Bisque", "Black", "BlanchedAlmond", "Blue", "BlueViolet", "Brown", "BurlyWood", "CadetBlue", "Chartreuse", "Chocolate", "Coral", "CornflowerBlue", "Cornsilk", "Crimson", "Cyan", "DarkBlue", "DarkCyan", "DarkGoldenRod", "DarkGray", "DarkGrey", "DarkGreen", "DarkKhaki", "DarkMagenta", "DarkOliveGreen", "Darkorange", "DarkOrchid", "DarkRed", "DarkSalmon", "DarkSeaGreen", "DarkSlateBlue", "DarkSlateGray", "DarkSlateGrey", "DarkTurquoise", "DarkViolet", "DeepPink", "DeepSkyBlue", "DimGray", "DimGrey", "DodgerBlue", "FireBrick", "FloralWhite", "ForestGreen", "Fuchsia", "Gainsboro", "GhostWhite", "Gold", "GoldenRod", "Gray", "Grey", "Green", "GreenYellow", "HoneyDew", "HotPink", "IndianRed", "Indigo", "Ivory", "Khaki", "Lavender", "LavenderBlush", "LawnGreen", "LemonChiffon", "LightBlue", "LightCoral", "LightCyan", "LightGoldenRodYellow", "LightGray", "LightGrey", "LightGreen", "LightPink", "LightSalmon", "LightSeaGreen", "LightSkyBlue", "LightSlateGray", "LightSlateGrey", "LightSteelBlue", "LightYellow", "Lime", "LimeGreen", "Linen", "Magenta", "Maroon", "MediumAquaMarine", "MediumBlue", "MediumOrchid", "MediumPurple", "MediumSeaGreen", "MediumSlateBlue", "MediumSpringGreen", "MediumTurquoise", "MediumVioletRed", "MidnightBlue", "MintCream", "MistyRose", "Moccasin", "NavajoWhite", "Navy", "OldLace", "Olive", "OliveDrab", "Orange", "OrangeRed", "Orchid", "PaleGoldenRod", "PaleGreen", "PaleTurquoise", "PaleVioletRed", "PapayaWhip", "PeachPuff", "Peru", "Pink", "Plum", "PowderBlue", "Purple", "Red", "RosyBrown", "RoyalBlue", "SaddleBrown", "Salmon", "SandyBrown", "SeaGreen", "SeaShell", "Sienna", "Silver", "SkyBlue", "SlateBlue", "SlateGray", "SlateGrey", "Snow", "SpringGreen", "SteelBlue", "Tan", "Teal", "Thistle", "Tomato", "Turquoise", "Violet", "Wheat", "White", "WhiteSmoke", "Yellow", "YellowGreen"];
+  var CSS_COLOR_NAMES_LOWERCASE = CSS_COLOR_NAMES.map( s => s.toLowerCase() );
+
   function numToHex(n){
     var s = n.toString(16);
     if (s.length == 1){
@@ -73,10 +76,19 @@
     this.ctx.fillStyle = oldFill;
   };
   DrawHelpers.prototype.color = function(r, g, b){
-    if (r === undefined || g === undefined || b === undefined){
-      throw new Error("not enough arguments to color");
+    var color;
+    if (typeof r === 'string' && g === undefined && b === undefined){
+      if (CSS_COLOR_NAMES_LOWERCASE.indexOf(r.toLowerCase()) === -1){
+        throw Error(r+" is not a creative color");
+      } else {
+        color = r;
+      }
+    } else {
+      if (r === undefined || g === undefined || b === undefined){
+        throw new Error("not enough arguments to color");
+      }
+      color = "#" + numToHex(r) + numToHex(g) + numToHex(b);
     }
-    var color = "#" + numToHex(r) + numToHex(g) + numToHex(b);
     this.ctx.fillStyle = color;
     this.ctx.strokeStyle = color;
   };
