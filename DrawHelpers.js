@@ -44,6 +44,39 @@
     this.ctx.closePath();
     this.ctx.fill();
   };
+  /** works with 1, 2, or 4 arguments */
+  DrawHelpers.prototype.fillLine = function(x1, y1, x2, y2){
+    var args = Array.prototype.slice.call(arguments, 2);
+    if (x2 !== undefined){
+      args.forEach(function(x, i){
+        if (typeof x !== 'number'){
+          throw Error('argument #'+i+' is not a number: '+x);
+        }
+      });
+    } else if (y1 !== undefined){
+      args.forEach(function(arr, i){
+        if (!Immutable.List.isList(arr) || arr.count() !== 2){
+          throw Error('argument #'+i+' in drawPoly points is not a 2-element list: '+arr.toJS());
+        }
+      });
+      y2 = y1.get(1);
+      x2 = y1.get(0);
+      y2 = x1.get(1);
+      x1 = x1.get(0);
+    } else {
+      if (!Immutable.List.isList(x1) || x1.count() !== 2){
+        throw Error("drawPoly takes a two points, got: "+x1.toJS());
+      }
+      y2 = x1.get(1).get(1);
+      x2 = x1.get(1).get(0);
+      y1 = x1.get(0).get(1);
+      x1 = x1.get(0).get(0);
+    }
+    this.ctx.beginPath();
+    this.ctx.moveTo(x1, y1);
+    this.ctx.lineTo(x2, y2);
+    this.ctx.stroke();
+  };
   DrawHelpers.prototype.drawPoly = function(x, y, points, h){
     if (!Immutable.List.isList(points)){
       throw Error('3rd argument to drawPoly should be a list of 2-element lists');

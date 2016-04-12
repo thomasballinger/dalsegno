@@ -12,6 +12,8 @@
   }
   var Immutable = require('./Immutable.js');
 
+  //TODO pprinting of ordinals for error messages
+
   function arityCheck(args, n){
     //TODO add typechecks
     //TODO link to docs for function that was bad
@@ -34,6 +36,12 @@
     }
   }
 
+  function linesIntersect(p1, p2, p3, p4) {
+      function CCW(p1, p2, p3) {
+          return (p3[1] - p1[1]) * (p2[0] - p1[0]) > (p2[1] - p1[1]) * (p3[0] - p1[0]);
+      }
+      return (CCW(p1, p3, p4) != CCW(p2, p3, p4)) && (CCW(p1, p2, p3) != CCW(p1, p2, p4));
+  };
   var builtins = Immutable.Map({
     '+': function(){
       return Array.prototype.slice.call(arguments).reduce(function(a, b){
@@ -58,6 +66,40 @@
         a += b;
       }
       return a % b;
+    },
+    'max': function(){
+      var args = Array.prototype.slice.call(arguments);
+      if (args.length === 1 && Immutable.List.isList(args[0])){
+        args[0].toArray().forEach(function(x, i){
+          if (typeof x !== 'number'){
+            throw Error(i+'th element of list is not a number: '+x);
+          }
+        });
+        return Math.max(args.toArray());
+      }
+      args.forEach(function(x, i){
+        if (typeof x !== 'number'){
+          throw Error('argument #'+i+' is not a number: '+x);
+        }
+      });
+      return Math.max.apply(null, args);
+    },
+    'min': function(){
+      var args = Array.prototype.slice.call(arguments);
+      if (args.length === 1 && Immutable.List.isList(args[0])){
+        args[0].toArray().forEach(function(x, i){
+          if (typeof x !== 'number'){
+            throw Error(i+'th element of list is not a number: '+x);
+          }
+        });
+        return Math.min(args.toArray());
+      }
+      args.forEach(function(x, i){
+        if (typeof x !== 'number'){
+          throw Error('argument #'+i+' is not a number: '+x);
+        }
+      });
+      return Math.min.apply(null, args);
     },
     'or': function(a, b){ arityCheck(arguments, 2);  return a || b; },
     'and': function(a, b){ arityCheck(arguments, 2); return a && b; },
@@ -187,9 +229,25 @@
       }
       return lower + Math.floor(Math.random() * (upper - lower));
     },
+    'random': function(){
+      return Math.random();
+    },
     'range': function(n){
       arityCheck(arguments, 1);
       return Immutable.List(Immutable.Range(0, n));
+    },
+    'linspace': function(start, stop, n){
+      arityCheck(arguments, [2, 3]);
+      if (typeof start !== 'number' || typeof stop !== 'number'){
+        throw Error('arguments to linspace should be numbers');
+      }
+      n = n === undefined ? 11 : n;
+      var arr = [];
+      var step = (stop - start) / (n-1);
+      for (var i=0; i<n; i++){
+        arr.push(start+step*i);
+      }
+      return Immutable.List(arr);
     },
     'towards': function(p1, p2, x2, y2){
       arityCheck(arguments, [2, 4]);
@@ -216,6 +274,42 @@
       arityCheck(arguments, 1);
       return Math.sin(h * Math.PI / 180);
     },
+    'heading': function(x, y){
+      arityCheck(arguments, 2);
+      return Math.atan2(x, y) * 180 / Math.PI;
+    },
+    'pointLineDist': function(point, line, secondPointOfLine){
+      arityCheck(arguments, [2, 3]);
+      if (!Immutable.isList(point) || point.count() != 2 ||
+          typeof point.get(0) !== 'number' || typeof point.get(1) !== 'number'){
+        throw Error("First arg to pointWithLine should be a list of two numbers");
+      }
+      if (secondPointOfLine !== undefined){
+        line = Immutable.List([line, seconPointOfLine]);
+      }
+      throw Error('TODO');
+    },
+    'linesIntersect': function(line1OrPoint1, line2OrPoint2, point3, point4){
+      arityCheck(arguments, [2, 4]);
+      var args = Array.prototype.slice.call(arguments);
+      args.map(function(a){
+        if (!Immutable.List.isList(a)){
+          throw Error('Arguments of linesIntersect should be lists');
+        }
+      });
+      var p1, p2, p3, p4;
+      if (point3){
+        p1 = line1OrPoint1; p2 = line2OrPoint2; p3 = point3; p4 = point4;
+      } else {
+        p1 = line1OrPoint1.get(0).get(0);
+        p2 = line1OrPoint1.get(0).get(1);
+        p3 = line1OrPoint1.get(1).get(0);
+        p4 = line1OrPoint1.get(1).get(1);
+      }
+      return linesIntersect(p1, p2, p3, p4);
+    },
+
+    // JS interop
     'jsSet': function(obj, prop, value){
       arityCheck(arguments, 3);
       if (obj === undefined || prop === undefined || value === undefined){

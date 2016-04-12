@@ -74,6 +74,7 @@
   <div id="errorbar2"></div>
 </div>
 <a id="fullscreen2" href="#">Open fullscreen</a>
+<input type="range" id="speed2">
 
 
 <script>
@@ -82,13 +83,17 @@ embed.speed = 600;  // how many ticks to run at a time, default is 500
 document.getElementById(embed.editorId).style.fontSize='10px';
 
 var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', window.golfProgram)
-embed2.speed = 1;  // how many ticks to run at a time, default is 500
+embed2.speed = 30;  // how many ticks to run at a time, default is 500
 embed2.onChangeIfValid = function(){
   var fullscreen = document.getElementById('fullscreen2');
   fullscreen.setAttribute('href', embed2.link());
 }
 embed2.onChangeIfValid(embed2.initialContent);
 document.getElementById(embed2.editorId).style.fontSize='14px';
+document.getElementById('speed2').addEventListener('input', function(){
+  console.log("setting speed to", this.value);
+  embed2.speed = parseInt(this.value);
+})
 </script>
 
 </body>
