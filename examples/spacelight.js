@@ -11,7 +11,7 @@ window.spaceLightProgram = `; That headlight looks a little underpowered!
          (list
            (list (randint 200) (randint 200))
            (list (randint -5 6) (randint -5 6))))
-       (range 100)))
+       (range 10)))
 
 (defn wrap-obj (obj)
   (list

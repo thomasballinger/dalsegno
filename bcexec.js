@@ -169,7 +169,12 @@
         var func = c.valueStack.peek();
         c.valueStack = c.valueStack.pop();
         if (typeof func === 'function'){
-          var result = func.apply(null, args);
+          try {
+            var result = func.apply(null, args);
+          } catch (e){
+            e.ast = ast;
+            throw e;
+          }
           c.valueStack = c.valueStack.push(result);
         } else {
           if (func === null || func === undefined ||
