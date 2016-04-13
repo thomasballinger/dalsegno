@@ -24,6 +24,14 @@ describe('stdlib', function(){
             assert.deepEqual(run('(filter (lambda (a) 1) (list 1 2 3))', env).toJS(), [1, 2, 3]);
           });
         });
+        describe('find', function(){
+          it('should return the first for an always predicate', function(){
+            assert.deepEqual(run('(find (lambda (a) 1) (list 1 2 3))', env), 1);
+          });
+          it('should return null for a never predicate', function(){
+            assert.deepEqual(run('(find (lambda (a) 0) (list 1 2 3))', env), null);
+          });
+        });
       });
 
       describe('builtins', function(){

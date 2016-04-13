@@ -210,6 +210,20 @@
       }
       return comb;
     },
+    'zip3': function(arr1, arr2, arr3){
+      arityCheck(arguments, 3);
+      var args = Array.prototype.slice.call(arguments);
+      args.forEach(function(x, i){
+        if (!Immutable.List.isList(x)){
+          throw Error('argument #'+i+' of list is not a list: '+x);
+        }
+      });
+      var comb = Immutable.List();
+      for (var i=0; i<Math.min(arr1.count(), arr2.count(), arr3.count()); i++){
+        comb = comb.push(Immutable.List([arr1.get(i), arr2.get(i), arr3.get(i)]));
+      }
+      return comb;
+    },
 
     // gamey stuff
     'dist': function(p1, p2, x2, y2){
@@ -321,9 +335,9 @@
       }
       return linesIntersect(p1, p2, p3, p4);
     },
-    'distToLine': function(point, lineStart, lineEnd){
+    'distToLine': function(point, line){
       //TODO arg checking
-      return pointFromLineSegment(point.toJS(), lineStart.toJS(), lineEnd.toJS());
+      return pointFromLineSegment(point.toJS(), line.toJS()[0], line.toJS()[1]);
     },
 
     // JS interop

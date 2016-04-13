@@ -8,7 +8,13 @@
       (reduce
         func
         (rest arr)
-        (func acc (first arr))))))`,
+        (func acc (first arr))))))`, `
+(define find (lambda (func arr)
+  (if (= (length arr) 0)
+      ()
+      (if (func (first arr))
+          (first arr)
+          (find func (rest arr))))))`,
 
     "(define filter (lambda (func arr)\n"+
     "  (reduce \n"+
