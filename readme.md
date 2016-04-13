@@ -59,7 +59,7 @@ the standard library and builtin functions:
     * (any [*expr*...])
   * list operations
     * (list [*e1*...])
-    * (nth *index* *list*)
+    * (get *index* *list*)
     * (first *list*)
     * (last *list*)
     * (rest *list*)

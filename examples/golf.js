@@ -1,40 +1,46 @@
 window.golfProgram = `
 (defn terrain ()
-  (zip
-    (linspace 0 width 10)
-    (map (lambda (x) (randint 0 height))
-         (range 11))))
+  (concat
+    (list (list 0 height))
+    (zip
+      (linspace 0 width 10)
+      (map (lambda (x) (randint 0 height))
+           (range 11)))
+    (list (list width height))))
 
 (defn get-win-spot (points)
-  (define point (nth (randint (- (length points) 2)) points))
-  (list (first point) (- (nth 1 point) 20)))
+  (define point (get (randint (- (length points) 2)) points))
+  (list (first point) (- (get 1 point) 20)))
 
 (defn ground-below (x lines)
+  "the relevant lines below the ball"
+  (define line-triples (zip3 lines (rest lines) (rest (rest lines))))
   (define below
-    (filter (lambda (p) (> x (first (first p))))
-            lines))
-  (if (> (length below) 0)
-      (first below)
-      (list (list -1000 height) (list 1000 height))))
+    (find (lambda (triple) (> x (first (first (get 1 triple)))))
+          line-triples))
+  (if (= below ())
+      (last line-triples)
+      below))
+
+(defn debug (arg)
+  (display arg)
+  arg)
 
 (defn distToGround (x y lines)
-  (define line (ground-below x lines))
-  (distToLine (list x y) (first line) (last line)))
+  (define 3-lines (ground-below x lines))
+  (min (map (lambda (line)
+              (distToLine (list x y)  line))
+            3-lines)))
 
 (defn paint (points win x y)
-      (define mountainPoly
-        (concat
-          points
-          (list (list width height) (list 0 height))))
       (color "lightblue")
       (fillRect 0 0 10000 10000)
       (color "black")
-      (drawPoly 0 0 mountainPoly 0)
+      (drawPoly 0 0 points 0)
       (color "green")
       (drawArc (first win) (first (rest win)) 10)
       (color "red")
-      (drawArc x y 10)
-      (render))
+      (drawArc x y 10))
 
 (defn main ()
   (define points (terrain))
@@ -46,15 +52,16 @@ window.golfProgram = `
   (define dy 1)
   (define dx (random))
   (defn loop ()
-    (color "yellow")
-    (fillLine (ground-below x lines))
-    (fillLine x y (+ x  (+ y dy)))
-    (render)
     (set! x (+ x dx))
     (set! y (+ y dy))
     (set! dy (+ dy .1))
     (paint points dest x y)
-    (if (> (distToGround x y lines) 20)
+    (color "yellow")
+    (map fillLine (ground-below x lines))
+    (color "green")
+    (fillLine x y (+ x  (+ y dy)))
+    (render)
+    (if (> (debug (distToGround x y lines)) 10)
       (loop)
       (display "hit ground!")))
   (loop))

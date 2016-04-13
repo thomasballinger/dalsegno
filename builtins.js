@@ -130,10 +130,10 @@
       }
       return false;
     },
-    'nth': function(i, arr){
+    'get': function(i, arr){
       arityCheck(arguments, 2);
       if(!Immutable.List.isList(arr)){
-        throw Error("second argument to any is not a list: "+arr);
+        throw Error("second argument to get is not a list: "+arr);
       }
       if(i>=arr.count()){
         throw Error("Index error: "+i+" "+arr);

@@ -27,9 +27,9 @@ describe('stdlib', function(){
       });
 
       describe('builtins', function(){
-        describe('nth', function(){
+        describe('get', function(){
           it('should index', function(){
-            assert.deepEqual(run('(nth 0 (list 1 2 3))', env), 1);
+            assert.deepEqual(run('(get 0 (list 1 2 3))', env), 1);
           });
         });
       });
