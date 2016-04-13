@@ -43,16 +43,16 @@
       return (CCW(p1, p3, p4) != CCW(p2, p3, p4)) && (CCW(p1, p2, p3) != CCW(p1, p2, p4));
   }
   function pointFromLineSegment(p0, p1, p2) {
-    console.log(p0, p1, p2);
     function dist2(p1, p2) {
       var sqr = x => x*x;
       return sqr(p1[0] - p2[0]) + sqr(p1[1] - p2[1]);
     }
     var lengthSquared = dist2(p1, p2);
     if (lengthSquared === 0) return dist2(p0, p1);
-    var t = ((p0[0] - p1[0]) * (p2[0] - p1[0]) + (p0[1] - p1[1]) * (p2[1] - p1[1])) / lengthSquared;
-    return t < 0 ? Math.sqrt(dist2(p0, p1)) : ( t > 1 ? Math.sqrt(dist2(p0, p2)) :
-      dist2(p0, [p1[0] + t * (p2[0] - p1[0]), p0[1] + t * (p2[1] - p1[1])]));
+    var t = ((p0[0] - p1[0]) * (p2[0] - p1[0]) +
+             (p0[1] - p1[1]) * (p2[1] - p1[1])) / lengthSquared;
+    t = Math.max(0, Math.min(1, t));
+    return Math.sqrt(dist2(p0, [p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1])]));
   }
 
   var builtins = Immutable.Map({
@@ -88,7 +88,7 @@
             throw Error(i+'th element of list is not a number: '+x);
           }
         });
-        return Math.max(args.toArray());
+        return Math.max.apply(null, args[0].toArray());
       }
       args.forEach(function(x, i){
         if (typeof x !== 'number'){
@@ -105,7 +105,7 @@
             throw Error(i+'th element of list is not a number: '+x);
           }
         });
-        return Math.min(args.toArray());
+        return Math.min.apply(null, args[0].toArray());
       }
       args.forEach(function(x, i){
         if (typeof x !== 'number'){
@@ -202,7 +202,7 @@
     'zip': function(arr1, arr2){
       arityCheck(arguments, 2);
       if (!Immutable.List.isList(arr1) || !Immutable.List.isList(arr2)){
-        throw Error("prepend second arg is not a list: "+JSON.stringify(arr1)+JSON.stringify(arr2));
+        throw Error("zip arg is not a list: "+JSON.stringify(arr1)+JSON.stringify(arr2));
       }
       var comb = Immutable.List();
       for (var i=0; i<Math.min(arr1.count(), arr2.count()); i++){
