@@ -256,7 +256,7 @@
         e.ast.colEnd), "errorHighlight");
       this.editor.resize(true);  // Ace editor bug requires this before nextline
       this.editor.scrollToLine(e.ast.lineStart-1, true, true, function(){});
-      this.editor.goToLine(e.ast.lineStart-1, e.ast.colEnd-1);
+      this.editor.gotoLine(e.ast.lineStart-1, e.ast.colEnd-1);
     }
   };
   DalSegno.prototype.clearError = function(){
