@@ -36,6 +36,11 @@
     }
   }
 
+  // Pure JavaScript (no Immutable.js) helpers
+  function normalize(dx, dy){
+    var magnitude = Math.sqrt(dx*dx + dy*dy);
+    return [dx / magnitude, dy / magnitude];
+  }
   function linesIntersect(p1, p2, p3, p4) {
       function CCW(p1, p2, p3) {
           return (p3[1] - p1[1]) * (p2[0] - p1[0]) > (p2[1] - p1[1]) * (p3[0] - p1[0]);
@@ -335,15 +340,43 @@
       }
       return linesIntersect(p1, p2, p3, p4);
     },
+    /** really to a line segment */
     'distToLine': function(point, line){
-      //TODO arg checking
-      return pointFromLineSegment(point.toJS(), line.toJS()[0], line.toJS()[1]);
+      if (!Immutable.List.isList(point) || point.count() !== 2){
+        throw Error("first argument to bounce should be a point");
+      }
+      if (!Immutable.List.isList(line) || line.count() !== 2){
+        throw Error("second argument to bounce should be a line");
+      }
+      return pointFromLineSegment(point.toJS(), line.get(0).toJS(), line.get(1).toJS());
     },
     /** Returns the line or point a point is closest if closer than a distance*/
     'closestLineOrPointWithin': function(x, y, lines, d){
     },
     /** Returns (list dx dy) updated to have bounced off of line or point */
-    'bounce': function(dx, dy, lineOrPoint){
+    'bounce': function(x, y, dx, dy, lineOrPoint){
+      if (!Immutable.List.isList(lineOrPoint) || lineOrPoint.count() !== 2){
+        throw Error("third argument to bounce should be a line or a point");
+      }
+      var normal;
+      if (typeof lineOrPoint.get(0) === 'number'){
+        var point = lineOrPoint;
+        if (typeof point.get(1) !== 'number'){ throw Error("Second element of point is not a number"); }
+        // for bouncing off of a point, normal is from point to ball
+        normal = normalize(x - point.get(0), y - point.get(1));
+
+      } else if (Immutable.List.isList(lineOrPoint.get(0))){
+        var line = lineOrPoint;
+        if (typeof line.get(0).get(0) !== 'number'){ throw Error("line doesn't seem like it's made of numbers"); }
+        var xDiff = line.get(1).get(0) - line.get(0).get(0);
+        var yDiff = line.get(1).get(1) - line.get(0).get(1);
+        normal = normalize(-yDiff, xDiff);
+      } else {
+        throw Error('bad inputs to bounce');
+      }
+      var dot = dx*normal[0]+dy*normal[1];
+      var reflected = [dx-2*dot*normal[0], dy-2*dot*normal[1]];
+      return Immutable.List(reflected);
     },
 
     // JS interop

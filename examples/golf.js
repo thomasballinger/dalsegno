@@ -26,6 +26,10 @@ window.golfProgram = `
   (display arg)
   arg)
 
+(defn closestPointOrLine (x, y, lines)
+  (define 3-lines (ground-below x lines))
+)
+
 (defn distToGround (x y lines)
   (define 3-lines (ground-below x lines))
   (min (map (lambda (line)
