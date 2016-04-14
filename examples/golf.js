@@ -29,7 +29,7 @@ window.golfProgram = `
 (defn distToGround (x y lines)
   (define 3-lines (ground-below x lines))
   (min (map (lambda (line)
-              (distToLine (list x y)  line))
+              (distToLine (list x y) line))
             3-lines)))
 
 (defn paint (points win x y)

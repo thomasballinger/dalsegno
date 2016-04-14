@@ -339,6 +339,12 @@
       //TODO arg checking
       return pointFromLineSegment(point.toJS(), line.toJS()[0], line.toJS()[1]);
     },
+    /** Returns the line or point a point is closest if closer than a distance*/
+    'closestLineOrPointWithin': function(x, y, lines, d){
+    },
+    /** Returns (list dx dy) updated to have bounced off of line or point */
+    'bounce': function(dx, dy, lineOrPoint){
+    },
 
     // JS interop
     'jsSet': function(obj, prop, value){
