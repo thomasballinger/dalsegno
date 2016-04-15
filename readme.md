@@ -12,6 +12,11 @@ back to the last time that piece of code was run.
 It's sort of like Scheme.
 
 ### Example
+
+<a
+href="http://dalsegno.ballingt.com/?code=;semicolons%20make%20the%20rest%20of%20a%20line%20a%20comment%0A(define%20x%2010)%20%20%20%20%20%20%20%20%20%20%20;var%20x%20=%2010%0A(defn%20recur%20()%20%20%20%20%20%20%20%20%20%20;named%20function%20definitions%20are%20global%0A%20%20(color%20100%20200%20100)%20%20%20;sets%20the%20color%20to%20be%20used%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20;for%20future%20draw%20operations%0A%20%20(fillRect%200%200%20width%20height)%20;this%20is%20the%20canvas%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20;context%20drawing%20operation%0A%20%20(color%200%200%20230)%0A%20%20(drawArc%20x%20100%20111)%20%20%20;queues%20a%20circle%20to%20be%20drawn%0A%20%20(render)%20%20%20%20%20%20%20%20%20%20%20%20%20%20;actually%20paints%20queued%20drawings%0A%20%20(set!%20x%20(+%20x%20.1))%20%20%20%20%20;change%20var%20wherever%20it%20was%20defined%0A%20%20(if%20(%3E%20x%20300)%20%20%20%20%20%20%20%20%20;you%27ve%20got%20if,%20set!,%20define,%20defn,%0A%20%20%20%20%20%20(set!%20x%200))%20%20%20%20%20%20%20;and%20lambda%20-%20that%27s%20it%20for%20special%20forms%0A%20%20(recur))%20%20%20%20%20%20%20%20%20%20%20%20%20%20;no%20loop%20constructs%20-%20you%20have%20to%20recur!%0A(recur)">Try
+it</a>
+
     ;semicolons make the rest of a line a comment
     (define x 10)           ;var x = 10
     (defn recur ()          ;named function definitions are global
@@ -28,20 +33,17 @@ It's sort of like Scheme.
       (recur))              ;no loop constructs - you have to recur!
     (recur)
 
-<a
-href="http://dalsegno.ballingt.com/?code=;semicolons%20make%20the%20rest%20of%20a%20line%20a%20comment%0A(define%20x%2010)%20%20%20%20%20%20%20%20%20%20%20;var%20x%20=%2010%0A(defn%20recur%20()%20%20%20%20%20%20%20%20%20%20;named%20function%20definitions%20are%20global%0A%20%20(color%20100%20200%20100)%20%20%20;sets%20the%20color%20to%20be%20used%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20;for%20future%20draw%20operations%0A%20%20(fillRect%200%200%20width%20height)%20;this%20is%20the%20canvas%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20;context%20drawing%20operation%0A%20%20(color%200%200%20230)%0A%20%20(drawArc%20x%20100%20111)%20%20%20;queues%20a%20circle%20to%20be%20drawn%0A%20%20(render)%20%20%20%20%20%20%20%20%20%20%20%20%20%20;actually%20paints%20queued%20drawings%0A%20%20(set!%20x%20(+%20x%20.1))%20%20%20%20%20;change%20var%20wherever%20it%20was%20defined%0A%20%20(if%20(%3E%20x%20300)%20%20%20%20%20%20%20%20%20;you%27ve%20got%20if,%20set!,%20define,%20defn,%0A%20%20%20%20%20%20(set!%20x%200))%20%20%20%20%20%20%20;and%20lambda%20-%20that%27s%20it%20for%20special%20forms%0A%20%20(recur))%20%20%20%20%20%20%20%20%20%20%20%20%20%20;no%20loop%20constructs%20-%20you%20have%20to%20recur!%0A(recur)">Try
-the demo</a>
-
 ###Keywords
-* (**do** *expr1* [*expr2...*])
 * (**if** *cond* *expr1* [*expr2*])
 * (**define** *name* *expr*)
 * (**set!** *name* *expr*)
-* (**lambda** [*param*...] *expr*)
-* (**defn** *name* [*param1*...] *expr*)
+* (**lambda** (*param*...) *expr1...*)
+* (**defn** *name* [*param1*...) *expr1...*)
+* (**do** *expr1* [*expr2...*])
 
-*defn* expressions update a global table of named functions in addition to
+**defn** expressions update a global table of named functions in addition to
 evaluating to a function.
+Use **do** to put multiple expressions in the body of an **if**, **set**, or **define**
 
 ### API
 
@@ -52,6 +54,7 @@ the standard library and builtin functions:
   * (map *func* *array*)
   * (reduce *func* *array* *initial*)
   * (filter *func* *array*)
+  * (find *func* *array*)
 * builtins - written in JavaScript and execute in a single tick
   * (display *expr* [...]) - just (`console.log(args)`)
   * binary operators (prefix notation, like `(+ 2 2)`)
@@ -69,8 +72,14 @@ the standard library and builtin functions:
     * (append *list* *expr*)
     * (prepend *list* *expr*)
     * (length *list*)
-    * (range *n*) - list of n numbers from 0 up to n-1
+    * (range *n*) - list of n numbers from 0 up to n, including 0 but not including n
+    * (linspace *start* *stop* *n*) - list of n evenly spaced numbers from start
+    to stop inclusive on both sides
     * (concat [*list1*...])
+    * (zip *list1*)
+    * (zip2 *list1* *list2*)
+    * (zip3 *list1* *list2* *list3*)
+    * (zip4 *list1* *list2* *list3* *list4*)
   * game math
     * (dist *x1* *y1* *x2* *y2*) - Euclidian distance
     * (dist *p1* *p2*) - Euclidian distance betwen two two-element lists
@@ -79,6 +88,21 @@ the standard library and builtin functions:
     * (towards *p1* *p2*) - degree heading to point
     * (x_comp *degrees*) - float between -1 and 1
     * (y_comp *degrees*) - float between -1 and 1
+    * (distToLine *point* *line*) - distance from point to line segment
+    * (distToLine *point* *p1* *p2*) - distance from point to line segment
+    defined by p1 and p2
+    * (linesIntersect *line* *line*) - whether two line segments intersect
+    * (linesIntersect *p1* *p2* *p3* *p4*) - whether two line segments intersect
+    * (pointFromLineSegment *p1* *p2* *p3*) - distance from a point to a line
+    segment
+    * (closestPointOrLine *p1* *points*) - the closest [x, y] point or [[x, y],
+    [x, y]] line segment closest to the point p1 or null if no points given
+    * (closestPointOrLine *p1* *points* *maxDist*) - the closest [x, y] point or [[x, y],
+    [x, y]] line segment closest to the point p1 or null if none closer than
+    maxDist
+    * (bounce *x* *y* *dx* *dy* *pointOrLine*) - New [dx, dy] after bouncing off of
+    pointOrLine
+    * (linesFromPoints points) - pairs of consecutive points to fom lines
   * JavaScript interop
     * (jsGet *obj* *prop*)
     * (jsSet *obj* *prop* *value*)
@@ -92,6 +116,7 @@ the standard library and builtin functions:
   * (drawText *x* *y* [*text*...])
   * (drawPoly *x* *y* *list-of-x-y-pairs* *heading-in-degrees*])
   * (drawInverseCircle *x* *y* *radius*)
+  * (fillLine *points*)
 
 If an identifier is not found in the above scopes lookup proceeds to
 JavaScript objects. If the found value is a function, a version of
