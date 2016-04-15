@@ -215,11 +215,9 @@
     console.log('onChange running');
     DalSegno.activeWidget = this;
 
-    if (this.lastResumeCleanupFunction){
-      this.lastResumeCleanupFunction();
-    }
     var s = this.editor.getValue();
     if (!bcexec.safelyParsesAndCompiles(s, e => this.errback(e))){
+      if (this.lastResumeCleanupFunction){ this.lastResumeCleanupFunction(); }
       this.lastProgram = '';
       this.currentlyRunning = false;
       return;
@@ -229,6 +227,7 @@
     if (newProgram === this.lastProgram){
       return;
     }
+    if (this.lastResumeCleanupFunction){ this.lastResumeCleanupFunction(); }
     this.onChangeIfValid(s);
     this.lastProgram = newProgram;
     this.shouldReload = true;
@@ -256,7 +255,7 @@
         e.ast.colEnd), "errorHighlight");
       this.editor.resize(true);  // Ace editor bug requires this before nextline
       this.editor.scrollToLine(e.ast.lineStart-1, true, true, function(){});
-      this.editor.gotoLine(e.ast.lineStart-1, e.ast.colEnd-1);
+      //this.editor.gotoLine(e.ast.lineStart-1, e.ast.colEnd-1);
     }
   };
   DalSegno.prototype.clearError = function(){

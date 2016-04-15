@@ -45,36 +45,41 @@
     this.ctx.fill();
   };
   /** works with 1, 2, or 4 arguments */
-  DrawHelpers.prototype.fillLine = function(x1, y1, x2, y2){
-    var args = Array.prototype.slice.call(arguments, 2);
-    if (x2 !== undefined){
-      args.forEach(function(x, i){
-        if (typeof x !== 'number'){
-          throw Error('argument #'+i+' is not a number: '+x);
+  DrawHelpers.prototype.fillLine = function(){
+    var args = Array.prototype.slice.call(arguments);
+    var points = [];
+    if (args.length === 1){
+      args[0].toArray().forEach( l => {
+        if (!Immutable.List.isList(l) || l.count() !== 2){
+          console.log(Immutable.List.isList(l));
+          console.log(l.count());
+          throw Error("fillLine takes points, got: "+l);
         }
+        points.push([l.get(0), l.get(1)]);
       });
-    } else if (y1 !== undefined){
+    } else if (typeof args[0] === 'number'){
+      if (args.length % 2 !== 0){
+        console.log(args);
+        throw Error('fillLine needs x, y, x, y... pairs, got an x without a y');
+      }
+      for (var i=0; i<args.length; i+=2){
+        if (typeof args[i] !== 'number' || typeof args[i+1] !== 'number'){
+          console.log(args);
+          throw Error('fillLine needs numbers as arguments, got non-number');
+        }
+        points.push([args[i], args[i+1]]);
+      }
+    } else {
       args.forEach(function(arr, i){
         if (!Immutable.List.isList(arr) || arr.count() !== 2){
           throw Error('argument #'+i+' in drawPoly points is not a 2-element list: '+arr.toJS());
         }
+        points.push([arr.get(0), args.get(1)]);
       });
-      y2 = y1.get(1);
-      x2 = y1.get(0);
-      y2 = x1.get(1);
-      x1 = x1.get(0);
-    } else {
-      if (!Immutable.List.isList(x1) || x1.count() !== 2){
-        throw Error("drawPoly takes a two points, got: "+x1.toJS());
-      }
-      y2 = x1.get(1).get(1);
-      x2 = x1.get(1).get(0);
-      y1 = x1.get(0).get(1);
-      x1 = x1.get(0).get(0);
     }
     this.ctx.beginPath();
-    this.ctx.moveTo(x1, y1);
-    this.ctx.lineTo(x2, y2);
+    this.ctx.moveTo(points[0][0], points[0][1]);
+    points.slice(1).forEach( point => this.ctx.lineTo(point[0], point[1]) );
     this.ctx.stroke();
   };
   DrawHelpers.prototype.drawPoly = function(x, y, points, h){
@@ -100,7 +105,7 @@
     this.ctx.fill();
   };
   DrawHelpers.prototype.drawText = function(x, y){
-    var args = Array.prototype.slice.call(arguments, 2);
+    var args = Array.prototype.slice.call(arguments);
     var text = args.join(" ");
     var oldFill = this.ctx.fillStyle;
     this.ctx.fillStyle = '#808080';

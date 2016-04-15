@@ -47,17 +47,20 @@
       }
       return (CCW(p1, p3, p4) != CCW(p2, p3, p4)) && (CCW(p1, p2, p3) != CCW(p1, p2, p4));
   }
+  /** Returns closest line or point and distance to it */
   function pointFromLineSegment(p0, p1, p2) {
     function dist2(p1, p2) {
       var sqr = x => x*x;
       return sqr(p1[0] - p2[0]) + sqr(p1[1] - p2[1]);
     }
     var lengthSquared = dist2(p1, p2);
-    if (lengthSquared === 0) return dist2(p0, p1);
+    if (lengthSquared === 0) return [p1, dist2(p0, p1)];
     var t = ((p0[0] - p1[0]) * (p2[0] - p1[0]) +
              (p0[1] - p1[1]) * (p2[1] - p1[1])) / lengthSquared;
     t = Math.max(0, Math.min(1, t));
-    return Math.sqrt(dist2(p0, [p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1])]));
+    var dist = Math.sqrt(dist2(p0, [p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1])]));
+    var obj = t === 0 ? p1 : ( t === 1 ? p2 : [p1, p2]);
+    return [obj, dist];
   }
 
   var builtins = Immutable.Map({
@@ -148,6 +151,7 @@
     'first': function(arr){
       arityCheck(arguments, 1);
       if(!Immutable.List.isList(arr)){
+        console.log(arr);
         throw Error("argument to first is not a list: "+arr);
       }
       if(arr.count() < 1){
@@ -226,6 +230,20 @@
       var comb = Immutable.List();
       for (var i=0; i<Math.min(arr1.count(), arr2.count(), arr3.count()); i++){
         comb = comb.push(Immutable.List([arr1.get(i), arr2.get(i), arr3.get(i)]));
+      }
+      return comb;
+    },
+    'zip4': function(arr1, arr2, arr3, arr4){
+      arityCheck(arguments, 4);
+      var args = Array.prototype.slice.call(arguments);
+      args.forEach(function(x, i){
+        if (!Immutable.List.isList(x)){
+          throw Error('argument #'+i+' of list is not a list: '+x);
+        }
+      });
+      var comb = Immutable.List();
+      for (var i=0; i<Math.min(arr1.count(), arr2.count(), arr3.count(), arr4.count()); i++){
+        comb = comb.push(Immutable.List([arr1.get(i), arr2.get(i), arr3.get(i), arr4.get(i)]));
       }
       return comb;
     },
@@ -348,15 +366,37 @@
       if (!Immutable.List.isList(line) || line.count() !== 2){
         throw Error("second argument to bounce should be a line");
       }
-      return pointFromLineSegment(point.toJS(), line.get(0).toJS(), line.get(1).toJS());
+      var dist = pointFromLineSegment(point.toJS(), line.get(0).toJS(), line.get(1).toJS())[1];
+      return dist;
     },
-    /** Returns the line or point a point is closest if closer than a distance*/
-    'closestLineOrPointWithin': function(x, y, lines, d){
+    'closestPointOrLine': function(point, points, r){
+      r = r === undefined ? Infinity : r;
+      point = point.toJS();
+      var lines = [];
+      points.toJS().slice(0, -1).forEach( (_, i) => lines.push([points.get(i).toJS(), points.get(i+1).toJS()]) );
+      var minDist = r;
+      var closest = null;
+      lines.forEach( line => {
+        var result = pointFromLineSegment(point, line[0], line[1]);
+        var obj = result[0];
+        var dist = result[1];
+        if (dist < minDist){
+          closest = obj;
+          minDist = dist;
+        }
+      });
+      if (closest !== null && Array.isArray(closest[0])){
+        closest = Immutable.List(closest.map( l => Immutable.List(l) ));
+      } else if (closest !== null){
+        closest = Immutable.List(closest);
+      }
+      return Immutable.List([closest, minDist]);
     },
     /** Returns (list dx dy) updated to have bounced off of line or point */
     'bounce': function(x, y, dx, dy, lineOrPoint){
       if (!Immutable.List.isList(lineOrPoint) || lineOrPoint.count() !== 2){
-        throw Error("third argument to bounce should be a line or a point");
+        console.log(lineOrPoint);
+        throw Error("fifth argument to bounce should be a line or a point");
       }
       var normal;
       if (typeof lineOrPoint.get(0) === 'number'){
@@ -378,7 +418,11 @@
       var reflected = [dx-2*dot*normal[0], dy-2*dot*normal[1]];
       return Immutable.List(reflected);
     },
-
+    'linesFromPoints': function(){
+      var args = Array.prototype.slice.call(arguments);
+      var lines = points.slice(0, -1).forEach( _, i => [points.get(i), points.get(i+1)] );
+      return Immutable.List(list);
+    },
     // JS interop
     'jsSet': function(obj, prop, value){
       arityCheck(arguments, 3);

@@ -4,26 +4,26 @@
 <title>live code reloading</title>
 <link rel="stylesheet" href="dalsegno.css">
 <style>
-#embed1, #embed2 {
+#embed1, #embed2, #embed3 {
   position: relative;
   width: 900px;
   height: 400px;
 }
-#editor, #editor2 {
+#editor, #editor2, #editor3 {
   position: absolute;
   top: 0;
   bottom: 60;
   left: 0;
   width: 500px;
 }
-#console, #console2 {
+#console, #console2, #console3 {
   position: absolute;
   top: 340px;
   bottom: 0;
   left: 0;
   width: 500px;
 }
-#canvas, #canvas2 {
+#canvas, #canvas2, #canvas3 {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -76,6 +76,27 @@
 <a id="fullscreen2" href="#">Open fullscreen</a>
 <input type="range" id="speed2">
 
+<div id="embed3">
+  <div id="editor3" class="editor is-hidden">
+(define points (list (list 0 100)
+                     (list 10 200)
+                     (list 20 200)
+                     (list 30 200)
+                     (list 40 200)))
+(defn ground-below (x points)
+  "the relevant points below the ball"
+  (define 4-points (zip4 points
+                        (rest points)
+                        (rest (rest points))
+                        (rest (rest (rest points)))))
+  (define below
+    (find (lambda (4-points) (> x (get 1 4-points)))
+          4-points)))
+  </div>
+  <textarea id="console3"></textarea>
+  <canvas id="canvas3" width="1" height="1"></canvas>
+  <div id="errorbar3"></div>
+</div>
 
 <script>
 var embed = new DalSegno('editor', 'canvas', 'errorbar', 'console', window.spaceLightProgram)
@@ -94,6 +115,8 @@ document.getElementById('speed2').addEventListener('input', function(){
   console.log("setting speed to", this.value);
   embed2.speed = parseInt(this.value);
 })
+
+var embed3 = new DalSegno('editor3', 'canvas3', 'errorbar3', 'console3');
 </script>
 
 </body>
