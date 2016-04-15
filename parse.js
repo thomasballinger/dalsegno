@@ -110,6 +110,7 @@
       var expression = innerParse(tokensLeft, allTokens);
       programExpressions.push(expression);
       if (tokensLeft.length === 0){ break; }
+      maybeConsumeComment(tokensLeft);
       consumeNewline(tokensLeft);
       maybeConsumeNewlines(tokensLeft);
       if (tokensLeft.length === 0){ break; }
@@ -136,6 +137,12 @@
         s.unshift(cur);
         break;
       }
+    }
+  }
+
+  function maybeConsumeComment(s){
+    if (s[0].type === 'comment'){
+      s.shift();
     }
   }
 

@@ -105,7 +105,7 @@
     this.ctx.fill();
   };
   DrawHelpers.prototype.drawText = function(x, y){
-    var args = Array.prototype.slice.call(arguments);
+    var args = Array.prototype.slice.call(arguments, 2);
     var text = args.join(" ");
     var oldFill = this.ctx.fillStyle;
     this.ctx.fillStyle = '#808080';

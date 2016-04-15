@@ -4,30 +4,31 @@ Write games, see your changes immediately:
 every time you change your code, Dal Segno rewinds your game
 back to the last time that piece of code was run.
 
-[live demo](http://dalsegno.ballingt.com/)
+[about](http://dalsegno.ballingt.com/about/)
+[fullscreen demo](http://dalsegno.ballingt.com/)
 
 #Language
 
 It's sort of like Scheme.
-Only one expression is allowed in a program.
 
 ### Example
-    (do                       ;semicolons make the rest of a line a comment
-      (define x 10)           ;defines a new variable x and sets to 10
-      (defn recur             ;named function definitions are global
-        (do                   ;do blocks allow multiple expressions
-          (color 100 200 100) ;sets the color to be used
-                              ;for future draw operations
-          (fillRect 0 0 width height) ;this is the canvas
-                              ;context drawing operation
-          (color 0 0 230)   
-          (drawArc 300 x 111) ;queues a circle to be drawn
-          (render)            ;actually paints queued drawings
-          (set! x (+ x .1))   ;change var wherever it was defined
-          (if (> x 300)       ;you've got if, set!, define, defn,
-              (set! x 0))     ;and lambda - that's it for special forms
-          (recur)))           ;no loop constructs - you have to recur!
-      (recur))
+    ;semicolons make the rest of a line a comment
+    (define x 10)           ;var x = 10
+    (defn recur ()          ;named function definitions are global
+      (color 100 200 100)   ;sets the color to be used
+                            ;for future draw operations
+      (fillRect 0 0 width height) ;this is the canvas
+                            ;context drawing operation
+      (color 0 0 230)
+      (drawArc x 100 111)   ;queues a circle to be drawn
+      (render)              ;actually paints queued drawings
+      (set! x (+ x .1))     ;change var wherever it was defined
+      (if (> x 300)         ;you've got if, set!, define, defn,
+          (set! x 0))       ;and lambda - that's it for special forms
+      (recur))              ;no loop constructs - you have to recur!
+    (recur)
+
+[Open fullscreen]()
 
 ###Keywords
 * (**do** *expr1* [*expr2...*])
@@ -118,30 +119,25 @@ To run the tests, install mocha and chai and run mocha on the tests:
     npm install chai
     mocha test*
 
-There's currently no build process, so no need for gulp/grunt yet.
-There's also no module system, so code using this pattern to work
-both in the browser and node:
+There's currently no build process, which is nice and simple but
+means that embedding requires a long list of script tags.
+The ES5/6 features in the code are limited to those implemented
+in Chrome, Firefox, and Node without requiring any flags.
 
-    if (typeof exports !== 'undefined') {
-      if (typeof module !== 'undefined' && module.exports) {
-        exports = module.exports = LazyCanvasCtx;
-      }
-    } else {
-      window.LazyCanvasCtx = LazyCanvasCtx;
-    }
+I'd be open to adding a build system if you write the PR,
+if I do it myself it's going to be Webpack.
 
 Ideas for improvements
 
+* stepper debugger: buttons and highlighting source
 * REPL for quickly evaluating expressions
-* highlight source code for errors
-* record high scores with JS interop
+* example of JS interop
 * test and document keypress handler (keyPressed key from KeyboardTracker)
 * methods for drawing and loading external assets by url
 * more parse-time errors (function call arity, literal validity
   currently happen at runtime)
 * vary speed in runner to achieve constant fps
 * button to restore source to last parsable state
-* buttons for step evaluation and highlighting source
 * inline documentation viewer
 * prettier error message display
 * write a virtual machine instead of using generators
@@ -156,7 +152,7 @@ Ideas for improvements
 * Add a real parser for syntax
   * `=`, `->` or `<-` for assignment
   * Lisp 2 (have to use apply for first element of a form to be dynamically
-    evaluated) for easier compile-time arity checking
+    evaluated) for compile-time arity checking
   * parens after function calls
 
 # Motivation

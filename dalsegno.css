@@ -46,11 +46,10 @@ div.dalsegno {
   -ms-user-select: text;
 }
 .dalsegno-console-active {
-  border-width: 0 10 0 10px;
   background-color: lightgreen;
 }
 .dalsegno-console-animate {
-  transition: border-width 1s;
+  transition: background-color .1s;
 }
 .errorHighlight{
   position:absolute;
