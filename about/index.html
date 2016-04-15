@@ -10,16 +10,11 @@
   margin-left: -4px;
 }
 #editor {
-  width: 600px;
+  width: 800px;
   height: 400px;
   display: inline-block;
   text-align: left;
-}
-#console {
-  height: 100px;
-  width: 1000px;
-  background-color: #afa;
-  margin-top: -4px;
+  font-size: 18;
 }
 body {
   background-color: #eef;
@@ -37,31 +32,32 @@ div.content {
 .embed{
   border: solid lightgray 4px;
   display: table-block;
-  width: 1000px;
+  width: 1200px;
   margin: auto;
 }
 
-#embed2 {
+#embed2, #embed3 {
   position: relative;
   width: 900px;
   height: 400px;
   margin: auto;
+  margin-top: 30px;
 }
-#editor2 {
+#editor2, #editor3 {
   position: absolute;
   top: 0;
   bottom: 60;
   left: 0;
   width: 500px;
 }
-#console2 {
+#console2, #console3 {
   position: absolute;
   top: 340px;
   bottom: 0;
   left: 0;
   width: 500px;
 }
-#canvas2 {
+#canvas2, #canvas3 {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -95,35 +91,35 @@ div.content {
 
 <script src="../examples/golf.js"></script>
 <script src="../examples/spacelight.js"></script>
+<script src="../examples/simple.js"></script>
 
 
 <div class="embed">
   <div id="editor" class="editor is-hidden"></div>
   <canvas id="canvas" class="canvas" width="1" height="1"></canvas>
   <div id="errorbar" class="errorbar"></div>
-  <textarea id="console" class="console"></textarea>
 </div>
 <script>
-var embed = new DalSegno('editor', 'canvas', 'errorbar', 'console', window.spaceLightProgram)
+var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, window.simpleProgram)
 embed.editor.setTheme("ace/theme/dawn");
 </script>
 
 <h1>Dal Segno</h1>
 <div class="content">
 Dal Segno is a programming environment for the browser.
-Programs are written in a Scheme-like language with drawing primitives always
-accessible. <a href="https://github.com/thomasballinger/dalsegno#language">Read the documentation for the language on GitHub</a>.
+Programs are written in a Scheme-like language with some drawing primitives
+in the global scope. <a href="https://github.com/thomasballinger/dalsegno#language">Read the documentation for the language on GitHub</a>.
 <p>
-The name <a href="https://en.wikipedia.org/wiki/Dal_Segno">"Dal Segno"</a> comes from the environment's behavior when a named function is
+The name <a href="https://en.wikipedia.org/wiki/Dal_Segno">Dal Segno</a> comes from the environment's behavior when a named function is
 edited: the running program is rewound back to the last time that edited function
 was run so that the new behavior of the edited function can immediately be seen.
 </div>
 
 <div id="embed2">
   <div id="editor2" class="editor is-hidden">(+ 2 3)</div>
-  <textarea id="console2"></textarea>
   <canvas id="canvas2" width="1" height="1"></canvas>
   <div id="errorbar2"></div>
+  <textarea id="console2"></textarea>
 </div>
 <a id="fullscreen2" href="#">Open fullscreen</a>
 execution speed:
@@ -141,6 +137,21 @@ document.getElementById('speed2').addEventListener('input', function(){
   console.log("setting speed to", this.value);
   embed2.speed = parseInt(this.value);
 })
+</script>
+<div id="embed3">
+  <div id="editor3" class="editor is-hidden">(+ 2 3)</div>
+  <canvas id="canvas3" width="1" height="1"></canvas>
+  <div id="errorbar3"></div>
+  <textarea id="console3"></textarea>
+</div>
+<a id="fullscreen3" href="#">Open fullscreen</a>
+<script>
+var embed3 = new DalSegno('editor3', 'canvas3', 'errorbar3', 'console3', window.spaceLightProgram)
+embed3.onChangeIfValid = function(){
+  var fullscreen = document.getElementById('fullscreen3');
+  fullscreen.setAttribute('href', embed2.link());
+}
+embed3.onChangeIfValid(embed3.initialContent);
 </script>
 
 <h2>Embedding</h2>
@@ -168,10 +179,8 @@ document.getElementById('speed2').addEventListener('input', function(){
   libraries (other than Immutable.js) and no module bundler makes the
   project approachable for JavaScript programmers of a variety of experience levels.
   <p>
-  There's a lot that could be added to the project.
-  I don't foresee contrbuting much to the project myself in the
-  immediate future
-  but I will make time to support other contributors.
+  There's a lot that could be added to the project,
+  and I will make time to support contributors.
   I'd particularly love to see an inline documentation viewer,
   a stepper debugger, and improved visual design.
   I'm interested in changing the syntax from s-expressions
