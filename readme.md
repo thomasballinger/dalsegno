@@ -157,7 +157,7 @@ if I do it myself it's going to be Webpack.
 Ideas for improvements
 
 * stepper debugger: buttons and highlighting source
-* REPL for quickly evaluating expressions
+* REPL for quickly evaluating expressions in the same environment
 * example of JS interop
 * test and document keypress handler (keyPressed key from KeyboardTracker)
 * methods for drawing and loading external assets by url
@@ -168,15 +168,11 @@ Ideas for improvements
 * inline documentation viewer
 * prettier error message display
 * write a virtual machine instead of using generators
-* language changes
-  * group args in defns and lambdas
-  * implicit do blocks everywhere (allow multiple expressions)
-  * remove do
 * code improvements
   * use a real module system instead of the hacks
   * allow external files so scm programs are in their own files (requires
     a build system)
-* Add a real parser for syntax
+* Use a better syntax for beginners - something like http://codelauren.com/
   * `=`, `->` or `<-` for assignment
   * Lisp 2 (have to use apply for first element of a form to be dynamically
     evaluated) for compile-time arity checking

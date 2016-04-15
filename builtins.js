@@ -328,17 +328,6 @@
       arityCheck(arguments, 2);
       return Math.atan2(x, y) * 180 / Math.PI;
     },
-    'pointLineDist': function(point, line, secondPointOfLine){
-      arityCheck(arguments, [2, 3]);
-      if (!Immutable.isList(point) || point.count() != 2 ||
-          typeof point.get(0) !== 'number' || typeof point.get(1) !== 'number'){
-        throw Error("First arg to pointWithLine should be a list of two numbers");
-      }
-      if (secondPointOfLine !== undefined){
-        line = Immutable.List([line, seconPointOfLine]);
-      }
-      throw Error('TODO');
-    },
     'linesIntersect': function(line1OrPoint1, line2OrPoint2, point3, point4){
       arityCheck(arguments, [2, 4]);
       var args = Array.prototype.slice.call(arguments);

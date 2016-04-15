@@ -81,8 +81,8 @@
   };
   DalSegno.prototype.link = function(){
     //TODO links to versions without editors or with a console
-    //var base = 'http://dalsegno.ballingt.com';
-    var base = './gamelib.html';
+    var base = 'http://dalsegno.ballingt.com/';
+    //var base = './gamelib.html';
     var encoded = encodeURI(this.editor.getValue());
     return base + '?code='+encoded;
   };
@@ -291,6 +291,21 @@
     this.consoleElement = document.getElementById(this.consoleId);
     this.consoleElement.classList.add('dalsegno-console');
     this.consoleElement.readOnly = true;
+
+    function preventScrollIfFullyScrolled(e){
+      var d = e.wheelDelta || -e.detail,
+          dir = d > 0 ? 'up' : 'down',
+          stop = (dir == 'up' && this.scrollTop === 0) ||
+                 (dir == 'down' && this.scrollTop === this.scrollHeight - this.offsetHeight);
+      if (stop){
+        e.preventDefault();
+      }
+    }
+    this.consoleElement.addEventListener('mousewheel',
+      preventScrollIfFullyScrolled);
+    this.consoleElement.addEventListener('DOMMouseScroll',
+      preventScrollIfFullyScrolled);
+
     this.console = new Console(this.consoleId);
   };
   DalSegno.prototype.initTrackers = function(){
@@ -304,7 +319,7 @@
     this.canvas.classList.add('dalsegno-canvas');
     this.canvas.width = this.canvas.clientWidth;
     this.canvas.height = this.canvas.clientHeight;
-    this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, true);
+    this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, false);
     this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
   };
   DalSegno.prototype.envBuilder = function(){
