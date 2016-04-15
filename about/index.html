@@ -1,0 +1,190 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dal Segno</title>
+<link rel="stylesheet" href="../dalsegno.css">
+<style>
+#canvas {
+  width: 400px;
+  height: 400px;
+  margin-left: -4px;
+}
+#editor {
+  width: 600px;
+  height: 400px;
+  display: inline-block;
+  text-align: left;
+}
+#console {
+  height: 100px;
+  width: 1000px;
+  background-color: #afa;
+  margin-top: -4px;
+}
+body {
+  background-color: #eef;
+  display: inline-block;
+  margin-top: 2em;
+}
+html {
+  text-align: center;
+}
+div.content {
+  width: 600px;
+  display: inline-block;
+  text-align: left;
+}
+.embed{
+  border: solid lightgray 4px;
+  display: table-block;
+  width: 1000px;
+  margin: auto;
+}
+
+#embed2 {
+  position: relative;
+  width: 900px;
+  height: 400px;
+  margin: auto;
+}
+#editor2 {
+  position: absolute;
+  top: 0;
+  bottom: 60;
+  left: 0;
+  width: 500px;
+}
+#console2 {
+  position: absolute;
+  top: 340px;
+  bottom: 0;
+  left: 0;
+  width: 500px;
+}
+#canvas2 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 400px;
+  height: 400px;
+  background-color: gray;
+}
+
+</style>
+</head>
+<body>
+
+<script src="../ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="../Immutable.js" type="text/javascript" charset="utf-8"></script>
+<script src="../deepCopy.js"></script>
+<script src="../parse.js"></script>
+<script src="../Environment.js"></script>
+<script src="../compile.js"></script>
+<script src="../bcexec.js"></script>
+<script src="../bcrun.js"></script>
+<script src="../builtins.js"></script>
+<script src="../MouseTracker.js"></script>
+<script src="../KeyboardTracker.js"></script>
+<script src="../Console.js"></script>
+<script src="../stdlibcode.js"></script>
+<script src="../bcstdlib.js"></script>
+<script src="../LazyCanvasCtx.js"></script>
+<script src="../DrawHelpers.js"></script>
+<script src="../DalSegno.js" type="text/javascript" charset="utf-8"></script>
+
+<script src="../examples/golf.js"></script>
+<script src="../examples/spacelight.js"></script>
+
+
+<div class="embed">
+  <div id="editor" class="editor is-hidden"></div>
+  <canvas id="canvas" class="canvas" width="1" height="1"></canvas>
+  <div id="errorbar" class="errorbar"></div>
+  <textarea id="console" class="console"></textarea>
+</div>
+<script>
+var embed = new DalSegno('editor', 'canvas', 'errorbar', 'console', window.spaceLightProgram)
+embed.editor.setTheme("ace/theme/dawn");
+</script>
+
+<h1>Dal Segno</h1>
+<div class="content">
+Dal Segno is a programming environment for the browser.
+Programs are written in a Scheme-like language with drawing primitives always
+accessible. <a href="https://github.com/thomasballinger/dalsegno#language">Read the documentation for the language on GitHub</a>.
+<p>
+The name <a href="https://en.wikipedia.org/wiki/Dal_Segno">"Dal Segno"</a> comes from the environment's behavior when a named function is
+edited: the running program is rewound back to the last time that edited function
+was run so that the new behavior of the edited function can immediately be seen.
+</div>
+
+<div id="embed2">
+  <div id="editor2" class="editor is-hidden">(+ 2 3)</div>
+  <textarea id="console2"></textarea>
+  <canvas id="canvas2" width="1" height="1"></canvas>
+  <div id="errorbar2"></div>
+</div>
+<a id="fullscreen2" href="#">Open fullscreen</a>
+execution speed:
+<input type="range" id="speed2">
+<script>
+var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', window.golfProgram)
+embed2.speed = 50;  // how many ticks to run at a time, default is 500
+embed2.onChangeIfValid = function(){
+  var fullscreen = document.getElementById('fullscreen2');
+  fullscreen.setAttribute('href', embed2.link());
+}
+embed2.onChangeIfValid(embed2.initialContent);
+document.getElementById(embed2.editorId).style.fontSize='14px';
+document.getElementById('speed2').addEventListener('input', function(){
+  console.log("setting speed to", this.value);
+  embed2.speed = parseInt(this.value);
+})
+</script>
+
+<h2>Embedding</h2>
+  <div class="content">
+  To embed a Dal Segno widget, you'll need to:
+  <ul>
+    <li>Include about a dozen script tags</li>
+    <li>create a canvas, a div each for the editor and error display, and optionally a textarea, all with ids</li>
+    <li>write the following JavaScript: <code>
+      var embed = new DalSegno('editorid', 'canvasid', 'errorbarid', 'consoleid');
+    </code></li>
+  </ul>
+  Take a look at the page source for <a href="/">the demo</a> for a straightforward example.
+</div>
+
+<h2>Contributing</h2>
+
+<div class="content">
+  Writing a program and wish you had another builtin?
+  Think it's ridiculous that you have to include so many script tags
+  instead of a single concatenated script?
+  See the <a href="https://github.com/thomasballinger/dalsegno#development">readme</a> for information on contributing.
+  <p>
+  I hope the pure JavaScript approach of using no language extension-type
+  libraries (other than Immutable.js) and no module bundler makes the
+  project approachable for JavaScript programmers of a variety of experience levels.
+  <p>
+  There's a lot that could be added to the project.
+  I don't foresee contrbuting much to the project myself in the
+  immediate future
+  but I will make time to support other contributors.
+  I'd particularly love to see an inline documentation viewer,
+  a stepper debugger, and improved visual design.
+  I'm interested in changing the syntax from s-expressions
+  to something more familiar to more programmers,
+  probably something similar to the language used by
+  <a href="http://codelauren.com/">Code Lauren</a>.
+  I think changing language semantics such that all variables are global
+  would be an improvement because proper lexical scope is more confusion
+  to beginners than its worth. Maybe local variables could have a special
+  syntax?
+  I'd love to see visualization of expressions values in the editor
+  (Light Table-style) or another visualization of interpreter state.
+</div>
+
+</body>
+</html>
