@@ -19,7 +19,7 @@ window.golfProgram = `
                         (rest (rest points))
                         (rest (rest (rest points)))))
   (define below
-    (find (lambda (4-points) (> x (first (get 1 4-points))))
+    (find (lambda (points) (< x (first (get 2 points))))
           4-points))
   below)
 
@@ -45,10 +45,10 @@ window.golfProgram = `
   (define dest (get-win-spot points))
   (define y 10)
   (define x 1)
-  (define dy 1)
+  (define dy 0)
   (define dx (random))
   (defn loop ()
-    (define c (collision x y points 10))
+    (define c (collision x y (ground-below x points) 10))
     (if c
       (do (define newV (bounce x y dx dy c))
           (display "bounce!" newV)
@@ -67,5 +67,4 @@ window.golfProgram = `
         (loop))
       (main)))
   (loop))
-(main)
-`;
+(main) `;
