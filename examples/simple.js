@@ -1,7 +1,7 @@
 // vim: set ft=scheme:
 window.simpleProgram = `;semicolons make the rest of a line a comment
-(define x 10)           ;var x = 10
-(defn recur ()          ;named function definitions are global
+(define x 10)           ;for JSers, that's var x = 10
+(defn recur ()          ;defn creates a global function
   (color 100 200 100)   ;sets the color to be used
                         ;for future draw operations
   (fillRect 0 0 width height) ;this is the canvas
