@@ -85,14 +85,18 @@ window.golfProgram = `
   (define dy 0)
   (define dx (random))
   (defn fly-loop ()
-    (define c (collision x y (ground-below x) 10))
+    (define c (collision (+ x dx) (+ y dy) (ground-below x) 10))
     (if c
-      (do (define newV (bounce x y dx dy c))
-          (set! dx (first newV))
-          (set! dy (get 1 newV))))
+      (do (display "collision!")
+          (define newV (bounce x y dx dy c))
+          (define portion .7)
+          (set! dx (* (first newV) portion))
+          (set! dy (* (get 1 newV) portion))))
+
     (set! x (+ x dx))
     (set! y (+ y dy))
-    (set! dy (+ dy .1))
+
+    (define min-motion .6)
     (if (and (> x 0) (< x width))
       (do
         (paint points x y 0)
@@ -100,7 +104,11 @@ window.golfProgram = `
         (fillLine (ground-below x))
         (color "green")
         (render)
-        (fly-loop))
+        (if c (display (+ (abs dx) (abs dy))))
+        (if (not (and c (< (+ (abs dx) (abs dy)) min-motion)))
+          (do
+            (set! dy (+ dy .1))
+            (fly-loop))))
       (main)))
   (defn aim-loop ()
     (paint points x y 0)
@@ -112,6 +120,9 @@ window.golfProgram = `
         (set! dx (/ (- (mousex) x) 10))
         (set! dy (/ (- (mousey) y) 10)))
       (aim-loop)))
-  (aim-loop)
-  (fly-loop))
+  (defn gameloop ()
+    (aim-loop)
+    (fly-loop)
+    (gameloop))
+  (gameloop))
 (main) `;
