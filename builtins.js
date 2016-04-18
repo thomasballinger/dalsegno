@@ -76,6 +76,7 @@
     '*': function(a, b){ arityCheck(arguments, 2); return a * b; },
     '/': function(a, b){ arityCheck(arguments, 2); return a / b; },
     '//': function(a, b){ arityCheck(arguments, 2); return Math.floor(a / b); },
+    'abs': function(a){ arityCheck(arguments, 1); return Math.abs(a); },
     '%': function(a, b){
       arityCheck(arguments, 2);
       if (!(a % 1 === 0)){
