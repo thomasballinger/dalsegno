@@ -319,7 +319,7 @@
     this.canvas.classList.add('dalsegno-canvas');
     this.canvas.width = this.canvas.clientWidth;
     this.canvas.height = this.canvas.clientHeight;
-    this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, false);
+    this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, true);
     this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
   };
   DalSegno.prototype.envBuilder = function(){
