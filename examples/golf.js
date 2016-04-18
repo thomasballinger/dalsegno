@@ -66,6 +66,10 @@ window.golfProgram = `
       (color "red")
       (drawArc x y 10))
 
+(defn start-spot (points)
+  (define point (get (randint 3 (- (length points) 2)) points))
+  (list (first point) (- (get 1 point) 20)))
+
 (defn main ()
   (define points (terrain 20))
 
@@ -75,8 +79,9 @@ window.golfProgram = `
   (render)
   (init-ground-below points)
   (define lines (zip points (rest points)))
-  (define y 10)
-  (define x 1)
+  (define start (start-spot points))
+  (define x (first start))
+  (define y (get 1 start))
   (define dy 0)
   (define dx (random))
   (defn fly-loop ()
