@@ -164,6 +164,8 @@ Ideas for improvements
 * more parse-time errors (function call arity, literal validity
   currently happen at runtime)
 * vary speed in runner to achieve constant fps
+* "fast" versions of map etc. that are written in JavaScript
+  and execute in one step
 * button to restore source to last parsable state
 * inline documentation viewer
 * prettier error message display
