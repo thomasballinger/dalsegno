@@ -70,7 +70,8 @@ window.golfProgram = `
       (drawArc x y 10))
 
 (defn start-spot (points)
-  (define point (get (randint 3 (- (length points) 2)) points))
+  (define index (randint 3 (// (length points) 2)))
+  (define point (get index points))
   (list (first point) (- (get 1 point) 20)))
 
 (defn main ()
