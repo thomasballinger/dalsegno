@@ -17,7 +17,7 @@ window.golfProgram = `
   (concat
     (list (list 0 height))
     (zip
-      (linspace 0 hole-start (- points-before 1))
+      (linspace 0 hole-start points-before)
       (map gradual-slope (range points-before)))
     (do
       (set! next-y last-y)
@@ -26,7 +26,7 @@ window.golfProgram = `
             (list (- hole-end 6) (+ last-y 24))
             (list (- hole-end 5) (- last-y 1))))
     (zip
-      (linspace hole-end width (- points-after 1))
+      (linspace hole-end width points-after)
       (map gradual-slope (range points-after)))
     (list (list width height))))
 
