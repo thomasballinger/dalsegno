@@ -75,6 +75,7 @@
     '=': function(a, b){ arityCheck(arguments, 2); return (a === b); },
     '*': function(a, b){ arityCheck(arguments, 2); return a * b; },
     '/': function(a, b){ arityCheck(arguments, 2); return a / b; },
+    '//': function(a, b){ arityCheck(arguments, 2); return Math.floor(a / b); },
     '%': function(a, b){
       arityCheck(arguments, 2);
       if (!(a % 1 === 0)){
@@ -185,6 +186,17 @@
       }
       var l = Immutable.List();
       return l.concat.apply(l, args);
+    },
+    'slice': function(arr, first, second){
+      arityCheck(arguments, [2, 3]);
+      if (!Immutable.List.isList(arr)){
+        throw Error("slice first arg is not a list: "+JSON.stringify(arr));
+      }
+      if (second === undefined){
+        return arr.slice(first);
+      } else {
+        return arr.slice(first, second);
+      }
     },
     'append': function(arr, item){
       arityCheck(arguments, 2);
