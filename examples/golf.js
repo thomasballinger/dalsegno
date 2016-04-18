@@ -1,6 +1,7 @@
 // vim: set ft=scheme:
 window.golfProgram = `
 (defn terrain (n)
+  ; returns points and hole x y
   (define hole-start (- (* 2 (/ width 3)) 17))
   (define hole-end (+ (* 2 (/ width 3)) 17))
   (define points-before (// (* n 2) 3))
@@ -14,13 +15,14 @@ window.golfProgram = `
       (+ last-y (randint -50 50)))))
     last-y)
 
-  (concat
+  (define points (concat
     (list (list 0 height))
     (zip
       (linspace 0 hole-start points-before)
       (map gradual-slope (range points-before)))
     (do
       (set! next-y last-y)
+      (define hole-y (+ last-y 12))
       (list (list (+ hole-start 5) (- last-y 1))
             (list (+ hole-start 6) (+ last-y 24))
             (list (- hole-end 6) (+ last-y 24))
@@ -29,6 +31,7 @@ window.golfProgram = `
       (linspace hole-end width points-after)
       (map gradual-slope (range points-after)))
     (list (list width height))))
+  (list points (/ (+ hole-start hole-end) 2) hole-y))
 
 (define ground-below-lookup)
 (defn init-ground-below (points)
@@ -71,10 +74,10 @@ window.golfProgram = `
   (list (first point) (- (get 1 point) 20)))
 
 (defn main ()
-  (define points (terrain 20))
+  (define stuff (terrain 20))
+  (define points (first stuff))
+  (define hole (rest stuff))
 
-  (color "black")
-  (fillRect 0 0 10000 10000)
   (drawText 100 100 "get ready...")
   (render)
   (init-ground-below points)
@@ -87,7 +90,7 @@ window.golfProgram = `
   (defn fly-loop ()
     (define c (collision (+ x dx) (+ y dy) (ground-below x) 10))
     (if c
-      (do (display "collision!")
+      (do
           (define newV (bounce x y dx dy c))
           (define portion .7)
           (set! dx (* (first newV) portion))
@@ -104,12 +107,16 @@ window.golfProgram = `
         (fillLine (ground-below x))
         (color "green")
         (render)
-        (if c (display (+ (abs dx) (abs dy))))
         (if (not (and c (< (+ (abs dx) (abs dy)) min-motion)))
           (do
             (set! dy (+ dy .1))
-            (fly-loop))))
-      (main)))
+            (fly-loop))
+          (if (< (+ (abs (- x (first hole)))
+                    (abs (- y (get 1 hole)))) 10)
+              (main))))
+      (do
+        (set! x (first start))
+        (set! y (get 1 start)))))
   (defn aim-loop ()
     (paint points x y 0)
     (color "green")
