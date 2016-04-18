@@ -1,5 +1,15 @@
 ;(function() {
   'use strict';
+  var require;
+  if (typeof window === 'undefined') {
+    require = module.require;
+  } else {
+    require = function(name){
+      var realname = name.match(/(\w+)[.]?j?s?$/)[1];
+      return window[realname];
+    };
+  }
+  var Immutable = require('./Immutable.js');
 
   function MouseTracker(canvasId){
     var self = this;
@@ -26,7 +36,7 @@
     }, false);
   }
   MouseTracker.prototype.mousepos = function(){
-    return [this.mouse.x, this.mouse.y];
+    return Immutable.List([this.mouse.x, this.mouse.y]);
   };
   MouseTracker.prototype.mousex = function(){
     return this.mouse.x;
