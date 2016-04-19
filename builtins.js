@@ -394,6 +394,13 @@
       }
       return Immutable.List([closest, minDist]);
     },
+    /** Bounces the object as many times as are necesary
+     *
+     * After maxCollisions the initial position will be used*/
+    'newbounce': function(x, y, dx, dy, r, points, maxCollisions){
+      arityCheck([6, 7])
+      maxCollisions = maxCollisions || 3;
+    },
     /** Returns (list dx dy) updated to have bounced off of line or point */
     'bounce': function(x, y, dx, dy, lineOrPoint){
       if (!Immutable.List.isList(lineOrPoint) || lineOrPoint.count() !== 2){
