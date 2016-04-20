@@ -23,10 +23,10 @@ window.golfProgram = `
     (do
       (set! next-y last-y)
       (define hole-y (+ last-y 12))
-      (list (list (+ hole-start 5) (- last-y 1))
+      (list (list (+ hole-start 5) last-y)
             (list (+ hole-start 6) (+ last-y 24))
             (list (- hole-end 6) (+ last-y 24))
-            (list (- hole-end 5) (- last-y 1))))
+            (list (- hole-end 5) last-y)))
     (zip
       (linspace hole-end width points-after)
       (map gradual-slope (range points-after)))
