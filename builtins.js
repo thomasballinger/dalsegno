@@ -47,6 +47,34 @@
       }
       return (CCW(p1, p3, p4) != CCW(p2, p3, p4)) && (CCW(p1, p2, p3) != CCW(p1, p2, p4));
   }
+  /** Returns x, y, and object of first collision. */
+  function circleCollision(x1, y1, x2, y2, r, points){
+  // The REAL intersection question is "Did this ball at any point hit a wall?"
+  // which includes current arc, the rectangle to the new point, and the new arc.
+  // A new bounce function therefore needs initial and final positions and 
+  //
+  // We can ignore the ball's initial position. If the ball was just placed here,
+  // dx and dy will be 0 anyway so we'll catch a bad placement in the next steps.
+  // Next a rectangle with width 2*r is checked. We look for lines inter
+  // TOMHERE - what do we look for? what about objects floating inside the rectangle?
+
+  }
+  /** Distance from p1 to line intersection, or Infinity if they don't intersect */
+  function distToLineIntersection(p1, p2, p3, p4){
+    if (!linesIntersect(p1, p2, p3, p4)){ return Infinity; }
+    var m1 = (p2[1]-p1[1]) / (p2[0]-p1[0]);
+    var m2 = (p4[1]-p3[1]) / (p4[0]-p3[0]);
+    var k1 = p1[1] - m1*p1[0];
+    var k2 = p3[1] - m2*p3[0];
+    if (m1 === m2){  // parallel
+      if (k1 === k2){ throw Error("Lines are collinear"); }
+      return Infinity;  // otherwise they never intersect
+    }
+    var x = (k2 - k1) / (m1 - m2);
+    var y = m1*x + k1;
+    var sqr = n => n*n;
+    return Math.sqrt(sqr(p1[0]-x)+sqr(p1[1]-y));
+  }
   /** Returns closest line or point and distance to it */
   function pointFromLineSegment(p0, p1, p2) {
     function dist2(p1, p2) {
@@ -394,12 +422,28 @@
       }
       return Immutable.List([closest, minDist]);
     },
-    /** Bounces the object as many times as are necesary
-     *
-     * After maxCollisions the initial position will be used*/
-    'newbounce': function(x, y, dx, dy, r, points, maxCollisions){
-      arityCheck([6, 7])
-      maxCollisions = maxCollisions || 3;
+    /** Finds first line or point a circle intersects with, or null if none */
+    'firstIntersectingPointOrLine': function(x1, y1, x2, y2, r, points){
+      arityCheck([6, 7]);
+      if (typeof x !== 'number' || typeof x !== 'number' || typeof dx !== 'number' ||
+          typeof dy !== 'number' || typeof r !== 'number'){
+        throw Error("First 5 arguments to newbounce should be numbers");
+      }
+      var lines = [];
+      points.toJS().slice(0, -1).forEach( (_, i) => lines.push([points.get(i).toJS(), points.get(i+1).toJS()]) );
+      minDistSquared = Infinity;
+      obj = null;
+      lines.forEach( line => {
+        var d = distToLineIntersection([x1, y1], [x2, y2], line[0], line[1]);
+        if (minDist > d){
+          minDist = d;
+          obj = line;
+        }
+      });
+      return obj;
+    },
+    'distToLineIntersection': function(p1, p2, p3, p4){
+      return distToLineIntersection(p1, p2, p3, p4);
     },
     /** Returns (list dx dy) updated to have bounced off of line or point */
     'bounce': function(x, y, dx, dy, lineOrPoint){
