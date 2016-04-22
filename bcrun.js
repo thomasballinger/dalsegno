@@ -130,7 +130,7 @@
           this.funs[funcName].code = bcexec.compileFunctionBody(functionASTs[funcName].body);
           this.funs[funcName].params = parse.justContent(functionASTs[funcName].params);
         } else {
-          console.log('updating linenumbers for', funcName);
+          //console.log('updating linenumbers for', funcName);
           this.funs[funcName].code = bcexec.compileFunctionBody(functionASTs[funcName].body);
         }
       }

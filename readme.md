@@ -156,6 +156,9 @@ if I do it myself it's going to be Webpack.
 
 Ideas for improvements
 
+* display most recently run named functions and when they were run,
+  and clicking them rewinds state to that time.
+* pause builtin function
 * stepper debugger: buttons and highlighting source
 * REPL for quickly evaluating expressions in the same environment
 * example of JS interop

@@ -118,6 +118,9 @@ window.golfProgram = `
       (do
         (set! x (first start))
         (set! y (get 1 start)))))
+  (defn fire (power h)
+    (set! dx (* (* .1 power) (x_comp h)))
+    (set! dy (* (* .1 power) (y_comp h))))
   (defn aim-loop ()
     (paint points x y 0)
     (color "green")
@@ -127,9 +130,7 @@ window.golfProgram = `
     (fillLine (list (list x y) lineEnd))
     (render)
     (if (clicked)
-      (do
-        (set! dx (* (* .1 power) (x_comp h)))
-        (set! dy (* (* .1 power) (y_comp h))))
+      (fire power h)
       (aim-loop)))
   (defn gameloop ()
     (aim-loop)
