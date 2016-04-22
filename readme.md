@@ -159,6 +159,8 @@ Ideas for improvements
 * display most recently run named functions and when they were run,
   and clicking them rewinds state to that time.
 * pause builtin function
+* branches of ifs acting like functions: changing them rewinds
+  back to last time they were changed
 * stepper debugger: buttons and highlighting source
 * REPL for quickly evaluating expressions in the same environment
 * example of JS interop
