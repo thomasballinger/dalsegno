@@ -87,7 +87,7 @@ var codeFromURL = getParameterByName('code');
 if (typeof window[codeFromURL] === 'string'){
   codeFromURL = window[codeFromURL];
 }
-var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, codeFromURL || window.spaceLightProgram)
+var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, undefined, codeFromURL || window.spaceLightProgram)
 
 embed.onChangeIfValid = function(){
   var encoded = encodeURI(embed.editor.getValue());

@@ -50,6 +50,14 @@ div.content {
   left: 0;
   width: 500px;
 }
+#funs2, #funs3 {
+  position: absolute;
+  top: 340px;
+  bottom: 0px;
+  left: 0;
+  width: 500px;
+  background-color: lightgray;
+}
 #console2, #console3 {
   position: absolute;
   top: 340px;
@@ -93,26 +101,10 @@ div.content {
 <script src="../examples/spacelight.js"></script>
 <script src="../examples/simple.js"></script>
 
-
-<div class="embed">
-  <div id="editor" class="editor is-hidden"></div>
-  <canvas id="canvas" class="canvas" width="1" height="1"></canvas>
-  <div id="errorbar" class="errorbar"></div>
-</div>
-<script>
-var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, window.simpleProgram)
-embed.editor.setTheme("ace/theme/dawn");
-</script>
-
 <h1>Dal Segno</h1>
+
 <div class="content">
 Dal Segno is a programming environment for the browser.
-Programs are written in a Scheme-like language with some drawing primitives
-in the global scope. <a href="https://github.com/thomasballinger/dalsegno#language">Read the documentation for the language on GitHub</a>.
-<p>
-The name <a href="https://en.wikipedia.org/wiki/Dal_Segno">Dal Segno</a> comes from the environment's behavior when a named function is
-edited: the running program is rewound back to the last time that edited function
-was run so that the new behavior of the edited function can immediately be seen.
 </div>
 
 <div id="embed2">
@@ -120,12 +112,13 @@ was run so that the new behavior of the edited function can immediately be seen.
   <canvas id="canvas2" width="1" height="1"></canvas>
   <div id="errorbar2"></div>
   <textarea id="console2"></textarea>
+  <textarea id="funs2"></textarea>
 </div>
 <a id="fullscreen2" href="#">Open fullscreen</a>
 execution speed:
 <input type="range" id="speed2">
 <script>
-var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', window.golfProgram)
+var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', 'funs2', window.golfProgram)
 embed2.speed = 50;  // how many ticks to run at a time, default is 500
 embed2.onChangeIfValid = function(){
   var fullscreen = document.getElementById('fullscreen2');
@@ -138,6 +131,26 @@ document.getElementById('speed2').addEventListener('input', function(){
   embed2.speed = parseInt(this.value);
 })
 </script>
+<h2>Language</h2>
+<div class="embed">
+  <div id="editor" class="editor is-hidden"></div>
+  <canvas id="canvas" class="canvas" width="1" height="1"></canvas>
+  <div id="errorbar" class="errorbar"></div>
+</div>
+<script>
+var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, undefined, window.simpleProgram)
+embed.editor.setTheme("ace/theme/dawn");
+</script>
+
+<div class="content">
+Programs are written in a Scheme-like language with some drawing primitives
+in the global scope. <a href="https://github.com/thomasballinger/dalsegno#language">Read the documentation for the language on GitHub</a>.
+<p>
+The name <a href="https://en.wikipedia.org/wiki/Dal_Segno">Dal Segno</a> comes from the environment's behavior when a named function is
+edited: the running program is rewound back to the last time that edited function
+was run so that the new behavior of the edited function can immediately be seen.
+</div>
+
 <div id="embed3">
   <div id="editor3" class="editor is-hidden">(+ 2 3)</div>
   <canvas id="canvas3" width="1" height="1"></canvas>
@@ -146,7 +159,7 @@ document.getElementById('speed2').addEventListener('input', function(){
 </div>
 <a id="fullscreen3" href="#">Open fullscreen</a>
 <script>
-var embed3 = new DalSegno('editor3', 'canvas3', 'errorbar3', 'console3', window.spaceLightProgram)
+var embed3 = new DalSegno('editor3', 'canvas3', 'errorbar3', 'console3', undefined, window.spaceLightProgram)
 embed3.onChangeIfValid = function(){
   var fullscreen = document.getElementById('fullscreen3');
   fullscreen.setAttribute('href', embed2.link());

@@ -158,6 +158,7 @@ Ideas for improvements
 
 * display most recently run named functions and when they were run,
   and clicking them rewinds state to that time.
+* save canvas state for restores: save/restore for scope objects
 * pause builtin function
 * branches of ifs acting like functions: changing them rewinds
   back to last time they were changed

@@ -32,7 +32,7 @@
   var DrawHelpers = require("./DrawHelpers.js");
 
   //TODO Was this better as a closure? It feels weird as an object.
-  function DalSegno(editorId, canvasId, errorBarId, consoleId, initialProgramId){
+  function DalSegno(editorId, canvasId, errorBarId, consoleId, funsId, initialProgramId){
     this.shouldReload = true;  // whether the editor has a different AST
                                // than the one last executed
     this.shouldRestart = false;  // despite same source code, run again
@@ -50,6 +50,7 @@
     this.canvasId = canvasId;
     this.consoleId = consoleId;
     this.errorBarId = errorBarId;
+    this.funsId = funsId;
 
     initialProgramId = initialProgramId || editorId;
     this.initialContent = document.getElementById(initialProgramId);
@@ -67,6 +68,7 @@
     if (this.consoleId){ this.initConsole(); }
     this.initTrackers();
     this.initGraphics();
+    if (this.funsId){ this.initFunsWatcher(); }
 
     this.initWindowWatcher();
     this.setMouseinToPlay();
@@ -116,11 +118,11 @@
     ctx.textAlign = "center";
     if (align === 'center'){
       for (var i=0, heightOffset=-(strings.length-1)/2*30; i < strings.length; i++, heightOffset+=30){
-        ctx.fillText(strings[i], canvas.width/2, canvas.height/2 + heightOffset);
+        ctx.fillText(strings[i], this.canvas.width/2, this.canvas.height/2 + heightOffset);
       }
     } else {
       for (var i=0, heightOffset=-(strings.length*2-1)/2*30; i < strings.length; i++, heightOffset+=30){
-        ctx.fillText(strings[i], canvas.width - 140, canvas.height + heightOffset);
+        ctx.fillText(strings[i], this.canvas.width - 140, this.canvas.height + heightOffset);
       }
     }
 
@@ -169,6 +171,7 @@
     this.lastResumeCleanupFunction = cleanup;
   };
   DalSegno.prototype.runABit = function(){
+    this.updateFunsWatcher();
     var s = this.editor.getValue();
     if (this.shouldReload){
       this.clearError();
@@ -202,6 +205,22 @@
     } else {
       this.setMouseinToPlay();
     }
+  };
+  DalSegno.prototype.initFunsWatcher = function(){
+    this.funsWatcherDiv = document.getElementById(this.funsId);
+  };
+  DalSegno.prototype.updateFunsWatcher = function(){
+    if (!this.funsWatcherDiv){ return; }
+    var whenCalled = Object.keys(this.runner.funs)
+      .map( name => [this.runner.savedStates[name] ?
+                     this.runner.savedStates[name].counter : -1, name] )
+      .filter( pair => pair[0] > -1 );
+    whenCalled.sort( (a, b) => a[0]-b[0] );
+    console.log(whenCalled);
+    whenCalled.reverse();
+    var s = whenCalled.map( pair => pair[1] ).join('\n');
+    this.funsWatcherDiv.innerHTML = 'Most recently executed functions:\n'+s;
+    console.log("setting funsWatcherDiv");
   };
   DalSegno.prototype.initWindowWatcher = function(){
     if (DalSegno.windowWatcherSet){ return; }
