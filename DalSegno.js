@@ -97,14 +97,14 @@
     ctx.fillStyle = 'gray';
     if (align === 'center'){
       ctx.fillRect(
-        canvas.width/2 - 140,
-        canvas.height/2 - strings.length*30/2 - 5,
+        this.canvas.width/2 - 140,
+        this.canvas.height/2 - strings.length*30/2 - 5,
         280,
         strings.length*30+10);
     } else if (align === 'lowerRight') {
       ctx.fillRect(
-        canvas.width - 280,
-        canvas.height - strings.length*30 - 10,
+        this.canvas.width - 280,
+        this.canvas.height - strings.length*30 - 10,
         280,
         strings.length*30+10);
     } else {
