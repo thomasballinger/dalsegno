@@ -91,10 +91,7 @@
   DalSegno.prototype.canvasMessage = function(strings, align){
     align = align || 'center';
     var ctx = this.canvas.getContext("2d");
-    var origFillStyle = ctx.fillStyle;
-    var origFontStyle = ctx.fontStyle;
-    var origTextBaseline = ctx.textBaseline;
-    var origTextAlign = ctx.textAlign;
+    ctx.save();
 
     ctx.fillStyle = 'gray';
     if (align === 'center'){
@@ -126,10 +123,7 @@
       }
     }
 
-    ctx.fillStyle = origFillStyle;
-    ctx.fontStyle = origFontStyle;
-    ctx.textBaseline = origTextBaseline;
-    ctx.textAlign = origTextAlign;
+    ctx.restore();
   };
   DalSegno.prototype.setMouseinToPlay = function(){
     var ctx = this.canvas.getContext("2d");
