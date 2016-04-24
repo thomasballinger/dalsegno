@@ -223,6 +223,11 @@
               } else {
                 // window and other non-object literals
                 var scope = obj.scopes[i];
+                if (scope.hasOwnProperty('savedScopeState')){
+                  // nop
+                } else if (typeof scope.saveScopeState !== 'undefined'){
+                  scope.savedScopeState = scope.saveScopeState();
+                }
               }
               copy.scopes.push(scope);
             }

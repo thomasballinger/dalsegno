@@ -21,10 +21,18 @@
     if (funs === undefined){
       throw Error("Pass in an empty object for functions dictionary, or null for no defns");
     }
+    this.statefuls = [];
     this.funs = funs;
     this.counter = 0;
     this.savedStates = {};
   }
+  /** Add object to be saved and restored with state during saves and restores */
+  BCRunner.prototype.addStateful = function(obj){
+    if (typeof obj.saveState === 'undefined'){ throw Error('Stateful object need a saveState method'); }
+    if (typeof obj.restoreState === 'undefined'){ throw Error('Stateful object need a restoreState method'); }
+    if (Object.keys(this.savedStates).length > 0){ throw Error("Stateful objects can't be added once states have been saved"); }
+    this.statefuls.push(obj);
+  };
   //TODO instead of using an envBuilder, pass in an env the runner
   //can make a copy of to be the original
   BCRunner.prototype.setEnvBuilder = function(callback){
@@ -68,7 +76,8 @@
     var copy = deepCopy([this.context, this.funs]);
     return {counter: this.counter,
             funs: copy[1],
-            context: copy[0]};
+            context: copy[0],
+            statefuls: this.statefuls.map( x => x.saveState() )};
 
   };
   BCRunner.prototype.restart = function(){
@@ -181,6 +190,9 @@
     this.counter = state.counter;
     this.context = state.context;  // deepcopied because this mutates
     this.funs = state.funs;  // copied so we can update these
+    this.statefuls.forEach( (s, i) => {
+      s.restore(state.statefuls[i]);
+    });
   };
   BCRunner.prototype.getState = function(name){
     if (name in this.savedStates){

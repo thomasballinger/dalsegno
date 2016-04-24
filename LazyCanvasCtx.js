@@ -1,6 +1,17 @@
 ;(function() {
   'use strict';
 
+  var require;
+  if (typeof window === 'undefined') {
+    require = module.require;
+  } else {
+    require = function(name){
+      var realname = name.match(/(\w+)[.]?j?s?$/)[1];
+      return window[realname];
+    };
+  }
+  var Immutable = require('./Immutable.js');
+
   function LazyCanvasCtx(canvasId, lazy, showFPS){
     if (lazy === undefined){
       lazy = false;
@@ -13,6 +24,7 @@
     this.operations = [];
     this.testCtx = document.createElement('canvas').getContext('2d');
     this.renderTimes = [];
+    this.savedCanvasImage = undefined;
 
     var self = this;
 
@@ -75,6 +87,7 @@
     }
   }
   LazyCanvasCtx.prototype.trigger = function(){
+    this.savedCanvasState = undefined;
     if (this.showFPS){
       var t = new Date().getTime();
       this.renderTimes.push(new Date().getTime());
@@ -108,6 +121,28 @@
       this.ctx.fillStyle = oldFillStyle;
     }
     return returnValue;
+  };
+  /** Saves the drawing context, queued operations, and current image of canvas */
+  LazyCanvasCtx.prototype.saveState = function(){
+    //TODO keep last saved image around to use repeatedly
+    // noticing it's bad will require setting this.dirty = true when
+    // mutating operations occur
+    if (this.savedCanvasImage){
+      // using cached image state
+    } else {
+      // taking new canvas snapshot
+      this.savedCanvasImage = this.ctx.getImageData(0, 0, this.canvasElement.width, this.canvasElement.height);
+    }
+    //TODO save everything like fillStyle etc. that the user might have changed (ugh)
+    //TODO save queued operations as well as image data
+    //var savedOperations = this.operations.slice(0);
+    return Immutable.Map({imageData: this.savedCanvasImage});
+  };
+  LazyCanvasCtx.prototype.restoreState = function(state){
+    if (!Immutable.Map.isMap(state)){
+      throw Error("Lazy canvas restored with bad state:"+state);
+    }
+    this.ctx.putImageData(state.get('imageData'), 0, 0);
   };
 
   LazyCanvasCtx.LazyCanvasCtx = LazyCanvasCtx;

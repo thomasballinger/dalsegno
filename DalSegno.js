@@ -70,6 +70,8 @@
     this.initGraphics();
     if (this.funsId){ this.initFunsWatcher(); }
 
+    this.runner.addStateful(this.lazyCanvasCtx);
+
     this.initWindowWatcher();
     this.setMouseinToPlay();
   }
@@ -210,11 +212,9 @@
                      this.runner.savedStates[name].counter : -1, name] )
       .filter( pair => pair[0] > -1 );
     whenCalled.sort( (a, b) => a[0]-b[0] );
-    console.log(whenCalled);
     whenCalled.reverse();
     var s = whenCalled.map( pair => pair[1] ).join('\n');
     this.funsWatcherDiv.innerHTML = 'Most recently executed functions:\n'+s;
-    console.log("setting funsWatcherDiv");
   };
   DalSegno.prototype.initWindowWatcher = function(){
     if (DalSegno.windowWatcherSet){ return; }
