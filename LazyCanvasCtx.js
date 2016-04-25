@@ -87,7 +87,7 @@
     }
   }
   LazyCanvasCtx.prototype.trigger = function(){
-    this.savedCanvasState = undefined;
+    this.savedCanvasImage = undefined;
     if (this.showFPS){
       var t = new Date().getTime();
       this.renderTimes.push(new Date().getTime());
@@ -131,7 +131,7 @@
       // using cached image state
     } else {
       // taking new canvas snapshot
-      this.savedCanvasImage = this.ctx.getImageData(0, 0, this.canvasElement.width, this.canvasElement.height);
+      this.savedCanvasImage = this.canvasElement.toDataURL("image/jpeg", 0.1);
     }
     //TODO save everything like fillStyle etc. that the user might have changed (ugh)
     //TODO save queued operations as well as image data
@@ -142,7 +142,9 @@
     if (!Immutable.Map.isMap(state)){
       throw Error("Lazy canvas restored with bad state:"+state);
     }
-    this.ctx.putImageData(state.get('imageData'), 0, 0);
+    var img = new Image;
+    img.src = state.get('imageData');
+    this.ctv.drawImage( img, 0, 0 );
   };
 
   LazyCanvasCtx.LazyCanvasCtx = LazyCanvasCtx;

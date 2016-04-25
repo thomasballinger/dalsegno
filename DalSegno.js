@@ -209,11 +209,26 @@
     if (!this.funsWatcherDiv){ return; }
     var whenCalled = Object.keys(this.runner.funs)
       .map( name => [this.runner.savedStates[name] ?
-                     this.runner.savedStates[name].counter : -1, name] )
+                       this.runner.savedStates[name].counter : -1,
+                     name,
+                     this.runner.savedStates[name] ?
+                       this.runner.savedStates[name].statefuls[0].get('imageData') :
+                      "data:image/gif;base64,R0lGODlhAQABAIAAAP7//wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+      ] )
       .filter( pair => pair[0] > -1 );
     whenCalled.sort( (a, b) => a[0]-b[0] );
     whenCalled.reverse();
-    var s = whenCalled.map( pair => pair[1] ).join('\n');
+    var lastURI = '';
+    function funcDiv(name, im){
+      var div = `<div style:"border:solid;border:1px;border:red;width:100%">
+      ${name}
+      <br>` +
+      (im === lastURI ? '' : `<img width="100" height="100" alt="saved" src="${im}" />`) +
+      `</div>`;
+      lastURI = im;
+      return div;
+    }
+    var s = whenCalled.map( pair => funcDiv(pair[1], pair[2]) ).join('\n');
     this.funsWatcherDiv.innerHTML = 'Most recently executed functions:\n'+s;
   };
   DalSegno.prototype.initWindowWatcher = function(){
@@ -332,7 +347,7 @@
     this.canvas.classList.add('dalsegno-canvas');
     this.canvas.width = this.canvas.clientWidth;
     this.canvas.height = this.canvas.clientHeight;
-    this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, true);
+    this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, false);
     this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
   };
   DalSegno.prototype.envBuilder = function(){
