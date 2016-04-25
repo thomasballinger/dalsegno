@@ -2,8 +2,8 @@
 window.golfProgram = `
 (defn terrain (n)
   ; returns points and hole x y
-  (define hole-start (- (* 2 (/ width 3)) 17))
-  (define hole-end (+ (* 2 (/ width 3)) 17))
+  (define hole-start (- (* 2 (/ width 3)) 12))
+  (define hole-end (+ (* 2 (/ width 3)) 12))
   (define points-before (// (* n 2) 3))
   (define points-after (// n 3))
 
@@ -22,10 +22,10 @@ window.golfProgram = `
       (map gradual-slope (range points-before)))
     (do
       (set! next-y last-y)
-      (define hole-y (+ last-y 12))
+      (define hole-y (+ last-y 8))
       (list (list (+ hole-start 5) last-y)
-            (list (+ hole-start 6) (+ last-y 24))
-            (list (- hole-end 6) (+ last-y 24))
+            (list (+ hole-start 6) (+ last-y 15))
+            (list (- hole-end 6) (+ last-y 15))
             (list (- hole-end 5) last-y)))
     (zip
       (linspace hole-end width points-after)
@@ -67,7 +67,7 @@ window.golfProgram = `
       (color "black")
       (drawPoly 0 0 points 0)
       (color "red")
-      (drawArc x y 10))
+      (drawArc x y 5))
 
 (defn start-spot (points)
   (define index (randint 3 (// (length points) 2)))
@@ -89,7 +89,7 @@ window.golfProgram = `
   (define dy 0)
   (define dx (random))
   (defn fly-loop ()
-    (define c (collision (+ x dx) (+ y dy) (ground-below x) 10))
+    (define c (collision (+ x dx) (+ y dy) (ground-below x) 5))
     (if c
       (do
           (define newV (bounce x y dx dy c))
