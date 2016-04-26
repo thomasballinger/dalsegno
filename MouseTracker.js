@@ -35,6 +35,7 @@
       mousedown[0] = false;
     }, false);
   }
+  //TODO save and restore mouse position for rewinds
   MouseTracker.prototype.mousepos = function(){
     return Immutable.List([this.mouse.x, this.mouse.y]);
   };

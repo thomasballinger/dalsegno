@@ -132,6 +132,8 @@
     } else {
       // taking new canvas snapshot
       this.savedCanvasImage = this.canvasElement.toDataURL("image/jpeg", 0.1);
+      //TODO maybe instead of snapshots, save the drawing operations? Should add
+      //an explicit clear-screen call if doing this or detect 
     }
     //TODO save everything like fillStyle etc. that the user might have changed (ugh)
     //TODO save queued operations as well as image data

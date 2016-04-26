@@ -38,8 +38,8 @@ div.content {
 
 #embed2, #embed3 {
   position: relative;
-  width: 1300px;
-  height: 400px;
+  width: 800px;
+  height: 500px;
   margin: auto;
   margin-top: 30px;
 }
@@ -52,15 +52,16 @@ div.content {
 }
 #funs2, #funs3 {
   position: absolute;
-  top: 0;
+  top: 400px;
   bottom: 0;
-  right: 0;
+  left: 500px;
   width: 400px;
+  height: 100px;
   background-color: lightgray;
 }
 #console2, #console3 {
   position: absolute;
-  top: 340px;
+  top: 440px;
   bottom: 0;
   left: 0;
   width: 500px;
@@ -68,7 +69,6 @@ div.content {
 #canvas2, #canvas3 {
   position: absolute;
   top: 0;
-  bottom: 0;
   left: 500px;
   width: 400px;
   height: 400px;
@@ -103,16 +103,12 @@ div.content {
 
 <h1>Dal Segno</h1>
 
-<div class="content">
-Dal Segno is a programming environment for the browser.
-</div>
-
 <div id="embed2">
   <div id="editor2" class="editor is-hidden">(+ 2 3)</div>
   <canvas id="canvas2" width="1" height="1"></canvas>
+  <div id="funs2"> <input type="range" id="scrubber2"> </div>
   <div id="errorbar2"></div>
   <textarea id="console2"></textarea>
-  <div id="funs2"></div>
 </div>
 <a id="fullscreen2" href="#">Open fullscreen</a>
 execution speed:

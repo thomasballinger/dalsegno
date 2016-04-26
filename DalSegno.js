@@ -228,8 +228,10 @@
       lastURI = im;
       return div;
     }
+    scrubber = document.getElementById('scrubber2');
+
     var s = whenCalled.map( pair => funcDiv(pair[1], pair[2]) ).join('\n');
-    this.funsWatcherDiv.innerHTML = 'Most recently executed functions:\n'+s;
+    //this.funsWatcherDiv.innerHTML = 'Most recently executed functions:\n'+s;
   };
   DalSegno.prototype.initWindowWatcher = function(){
     if (DalSegno.windowWatcherSet){ return; }
