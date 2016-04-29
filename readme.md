@@ -156,6 +156,8 @@ if I do it myself it's going to be Webpack.
 
 Ideas for improvements
 
+* Scrubber for viewing preview states and play button to resume
+  execution at that arbitrary point
 * display most recently run named functions and when they were run,
   and clicking them rewinds state to that time.
 * either a rewind animation or an animation replacing the current image
