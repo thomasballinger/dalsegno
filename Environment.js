@@ -25,7 +25,17 @@
    * objects shared between all saved snapshots including Environments
    * currently in use.
    *
+   * saveState() should produce a deepcopy-able (preferrably immutable)
+   * object that contains sufficient information for restoreState(state) to
+   * reset the behavior and visual appearance of the object.
+   * restoreState(state) is used to step backwards in execution in such a
+   * way that execution could be resumed at any time producing the same results.
    *
+   * TODO it's not clear what user input watchers should do: if stepping
+   * forward ever becomes possible (distinct from resuming execution) and
+   * is implemented by executing one step instead of just loading the next
+   * state then both behaviors will be required. For now there's no need
+   * to save user input in this way because we're only stepping backwards.
    */
   function Environment(scopes, runner){
     if (scopes === undefined){
