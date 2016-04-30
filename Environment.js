@@ -13,6 +13,20 @@
   var Immutable = require('./Immutable.js');
   var parse = require('./parse.js');
 
+  /**
+   * Environment constructor take a list of scope objects.
+   * These can Scope instances
+   * (which store bindings to values in the interpreted language)
+   * or other objects whose properties will be accessible in the language.
+   * During lookup, properties which are functions will be bound to the
+   * object they were looked up on so `this` can be used in them.
+   * These objects should either be stateless or provide the methods
+   * saveState and restoreState for rewind. Either way, these non-Scope
+   * objects shared between all saved snapshots including Environments
+   * currently in use.
+   *
+   *
+   */
   function Environment(scopes, runner){
     if (scopes === undefined){
       scopes = [new Scope()];

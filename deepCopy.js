@@ -225,8 +225,8 @@
                 var scope = obj.scopes[i];
                 if (scope.hasOwnProperty('savedScopeState')){
                   // nop
-                } else if (typeof scope.saveScopeState !== 'undefined'){
-                  scope.savedScopeState = scope.saveScopeState();
+                } else if (typeof scope.saveState !== 'undefined'){
+                  scope.savedScopeState = scope.saveState();
                 }
               }
               copy.scopes.push(scope);
