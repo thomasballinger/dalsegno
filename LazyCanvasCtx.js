@@ -12,6 +12,20 @@
   }
   var Immutable = require('./Immutable.js');
 
+  /**
+   * When in lazy mode:
+   * Method calls are recorded in this.operations
+   * Calling trigger runs all of these method calls
+   * Accessing a non-function property also runs these
+   *   method calls and returns the property value
+   * Method calls are run immediately on the this.testCtx
+   *
+   * When turning off lazy mode:
+   * Queued operations are immediately run
+   *
+   * It makes sense to turn off lazy when stepping the interpreter,
+   * but having it on makes drawing appear smoother.
+   */
   function LazyCanvasCtx(canvasId, lazy, showFPS){
     if (lazy === undefined){
       lazy = false;
@@ -20,13 +34,23 @@
     // important to give this a name that isn't a property on a ctx (like this.canvas)
     this.canvasElement = document.getElementById(canvasId);
     this.ctx = this.canvasElement.getContext('2d');
-    this.lazy = lazy;
     this.operations = [];
     this.testCtx = document.createElement('canvas').getContext('2d');
     this.renderTimes = [];
     this.savedCanvasImage = undefined;
+    this._lazy = lazy;
 
     var self = this;
+
+    Object.defineProperty(this, 'lazy', {
+      get: function(){ return self._lazy; },
+      set: function(value){
+        if (self._lazy && !value){
+          self.trigger();
+        }
+        self._lazy = value;
+      }
+    });
 
     for (var property in this.ctx){
       if (typeof this.ctx[property] === 'function'){
