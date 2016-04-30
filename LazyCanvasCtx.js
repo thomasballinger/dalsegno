@@ -99,6 +99,7 @@
           } else {
             descriptors.set = function(value){
               var simpleSetter = function(value){
+                console.log('running simple setter');
                 this[property] = value;
                 return value;
               };

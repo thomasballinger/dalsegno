@@ -33,6 +33,15 @@ function FakeCanvasCtx(){
       return cb();
     }
   };
+  Object.defineProperty(this, 'justGetter', {
+    enumerable: true,
+    get: function(){ return 1; }
+  });
+  this.justSetterValue = 0;
+  Object.defineProperty(this, 'justSetter', {
+    enumerable: true,
+    set: function(value){ this.justSetterValue++; }
+  });
 }
 
 /** Run cb with global[name] set to value */
@@ -89,6 +98,41 @@ describe('LazyCanvasCtx', function(){
       assert.equal(callbackRun, 1);
       c.trigger();
       assert.equal(callbackRun, 1);
+    });
+  });
+  it('works with builtin getters and setters', function(){
+    patchGlobal('document', new FakeDocument(), function(){
+      var c = new LazyCanvasCtx("doesn't matter", true, false);
+      var callbackRun = 0;
+      c.runCB(function(){ callbackRun++; });
+      assert.equal(callbackRun, 0);
+      // Getters have to happen now, so they call trigger()
+      assert.equal(c.justGetter, 1);
+      assert.equal(callbackRun, 1);
+
+      c.justSetter = "doesn't matter";
+      assert.equal(c.ctx.justSetterValue, 0);
+      c.trigger();
+      assert.equal(c.ctx.justSetterValue, 1);
+    });
+  });
+  it('works with ', function(){
+    patchGlobal('document', new FakeDocument(), function(){
+      var c = new LazyCanvasCtx("doesn't matter", true, false);
+      var callbackRun = 0;
+      c.runCB(function(){ callbackRun++; });
+      assert.equal(callbackRun, 0);
+      // Getters have to happen now, so they call trigger()
+      assert.equal(c.justGetter, 1);
+      assert.equal(callbackRun, 1);
+
+      // just checking that this runs (had a bug where it didn't)
+      c.justGetter = 10;
+
+      c.justSetter = "doesn't matter";
+      assert.equal(c.ctx.justSetterValue, 0);
+      c.trigger();
+      assert.equal(c.ctx.justSetterValue, 1);
     });
   });
 });
