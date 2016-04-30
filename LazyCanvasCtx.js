@@ -35,9 +35,9 @@
     this.canvasElement = document.getElementById(canvasId);
     this.ctx = this.canvasElement.getContext('2d');
     this.operations = [];
+    this.operationsSinceLastClear = [];
     this.testCtx = document.createElement('canvas').getContext('2d');
     this.renderTimes = [];
-    this.savedCanvasImage = undefined;
     this._lazy = lazy;
 
     var self = this;
@@ -111,7 +111,6 @@
     }
   }
   LazyCanvasCtx.prototype.trigger = function(){
-    this.savedCanvasImage = undefined;
     if (this.showFPS){
       var t = new Date().getTime();
       this.renderTimes.push(new Date().getTime());
@@ -148,21 +147,14 @@
   };
   /** Saves the drawing context, queued operations, and current image of canvas */
   LazyCanvasCtx.prototype.saveState = function(){
-    //TODO keep last saved image around to use repeatedly
-    // noticing it's bad will require setting this.dirty = true when
-    // mutating operations occur
-    if (this.savedCanvasImage){
-      // using cached image state
-    } else {
-      // taking new canvas snapshot
-      this.savedCanvasImage = this.canvasElement.toDataURL("image/jpeg", 0.1);
-      //TODO maybe instead of snapshots, save the drawing operations? Should add
-      //an explicit clear-screen call if doing this or detect 
-    }
+    //TODO Add an explicit clear-screen call to clear finished operations
     //TODO save everything like fillStyle etc. that the user might have changed (ugh)
     //TODO save queued operations as well as image data
     //var savedOperations = this.operations.slice(0);
-    return Immutable.Map({imageData: this.savedCanvasImage});
+    return Immutable.Map({
+      queuedOperations: this.operations,
+      operationsSinceLastClear: this.runOperationsSinceLastClear,
+    });
   };
   LazyCanvasCtx.prototype.restoreState = function(state){
     if (!Immutable.Map.isMap(state)){
