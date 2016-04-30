@@ -34,8 +34,8 @@
     // important to give this a name that isn't a property on a ctx (like this.canvas)
     this.canvasElement = document.getElementById(canvasId);
     this.ctx = this.canvasElement.getContext('2d');
-    this.operations = [];
-    this.operationsSinceLastClear = [];
+    this.operations = Immutable.Stack([]);
+    this.operationsSinceLastClear = Immutable.Stack([]);
     this.testCtx = document.createElement('canvas').getContext('2d');
     this.renderTimes = [];
     this._lazy = lazy;
@@ -58,12 +58,12 @@
           return function(){
             var method = this.ctx[property];
             var args = Array.prototype.slice.call(arguments);
-            this.operations.push([method, args]);
+            this.operations = this.operations.push([method, args]);
             if (this.lazy){
               try {
                 method.apply(this.testCtx, args);
               } catch (e) {
-                this.operations = [];
+                this.operations = this.operations.clear();
                 throw e;
               }
             } else {
@@ -79,7 +79,7 @@
           if (getter){
             descriptors.get = function(){
               self.trigger();
-              self.operations.push([getter, []]);
+              self.operations = self.operations.push([getter, []]);
               return self.trigger();
             };
           } else {
@@ -88,13 +88,13 @@
               var simpleGetter = function(){
                 return this[property];
               };
-              self.operations.push([simpleGetter, []]);
+              self.operations = self.operations.push([simpleGetter, []]);
               return self.trigger();
             };
           }
           if (setter) {
             descriptors.set = function(value){
-              self.operations.push([setter, [value]]);
+              self.operations = self.operations.push([setter, [value]]);
             };
           } else {
             descriptors.set = function(value){
@@ -122,13 +122,11 @@
 
     var returnValue;
     try {
-      while (this.operations.length){
-        var operation = this.operations.shift();
+      this.operations.reverse().forEach( operation => {
         returnValue = operation[0].apply(this.ctx, operation[1]);
-      }
-    } catch (e) {
-      this.operations = [];
-      throw e;
+      });
+    } finally {
+      this.operations = this.operations.clear();
     }
     if (this.showFPS){
       var oldFont = this.ctx.font;
