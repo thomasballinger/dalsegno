@@ -103,7 +103,7 @@
                 this[property] = value;
                 return value;
               };
-              self.operations.push(simpleSetter, []);
+              self.operations = self.operations.push([simpleSetter, []]);
             };
           }
           Object.defineProperty(this, property, descriptors);

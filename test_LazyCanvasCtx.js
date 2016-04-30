@@ -126,8 +126,10 @@ describe('LazyCanvasCtx', function(){
       assert.equal(c.justGetter, 1);
       assert.equal(callbackRun, 1);
 
-      // just checking that this runs (had a bug where it didn't)
       c.justGetter = 10;
+      assert.throws(
+        () => c.trigger(),
+        /Cannot set property justGetter of .* which has only a getter/);
 
       c.justSetter = "doesn't matter";
       assert.equal(c.ctx.justSetterValue, 0);
