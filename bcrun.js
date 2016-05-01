@@ -24,13 +24,14 @@
     this.statefuls = [];
     this.funs = funs;
     this.counter = 0;
-    this.savedStates = {};
+    this.savesByFunInvoke = {};
+    this.rewindStates = [];
   }
   /** Add object to be saved and restored with state during saves and restores */
   BCRunner.prototype.registerStateful = function(obj){
     if (typeof obj.saveState === 'undefined'){ throw Error('Stateful object need a saveState method'); }
     if (typeof obj.restoreState === 'undefined'){ throw Error('Stateful object need a restoreState method'); }
-    if (Object.keys(this.savedStates).length > 0){ throw Error("Stateful objects can't be added once states have been saved"); }
+    if (Object.keys(this.savesByFunInvoke).length > 0){ throw Error("Stateful objects can't be added once states have been saved"); }
     this.statefuls.push(obj);
   };
   //TODO instead of using an envBuilder, pass in an env the runner
@@ -127,7 +128,10 @@
       // never been run so those changes will take effect on their own!
       return;
     }
-    this.restoreState(earliestGen);
+
+    console.log('restoring from last invocation of function', earliestGen);
+    // making a copy because we're about to munge it with new defn bodies
+    this.restoreState(deepCopy(this.savesByFunInvoke[earliestGen]));
 
     // For each defn form in the current code
     for (funcName in functionASTs){
@@ -179,14 +183,12 @@
     return !this.context.done;
   };
   BCRunner.prototype.saveState = function(name){
-    this.savedStates[name] = this.copy();
+    this.savesByFunInvoke[name] = this.copy();
   };
-  BCRunner.prototype.restoreState = function(name){
-    console.log('restoring from', name);
+  BCRunner.prototype.restoreState = function(state){
     // copied in one deepCopy call because their
     // object webs are intertwined; functions share environments
     // also on the context.envStack.
-    var state = deepCopy(this.savedStates[name]);
     this.counter = state.counter;
     this.context = state.context;  // deepcopied because this mutates
     this.funs = state.funs;  // copied so we can update these
@@ -195,10 +197,10 @@
     });
   };
   BCRunner.prototype.getState = function(name){
-    if (name in this.savedStates){
-      return this.savedStates[name];
+    if (name in this.savesByFunInvoke){
+      return this.savesByFunInvoke[name];
     }
-    // TODO add commend explaining this - it's for something
+    // TODO add comment explaining this - it's for something
     // like a fallback for when we didn't have that function
     // saved? When can that occur?
     return [-2, null];
@@ -224,6 +226,7 @@
   };
   /** returns true if finished */
   BCRunner.prototype.runOneStep = function(){
+    this.rewindStates.push(this.copy());
     bcexec.execBytecodeOneStep(this.context);
     if (this.debug && this.context.counterStack.count() &&
         this.context.bytecodeStack.count()){

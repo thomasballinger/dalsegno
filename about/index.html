@@ -39,7 +39,7 @@ div.content {
 #embed2, #embed3 {
   position: relative;
   width: 800px;
-  height: 500px;
+  height: 400px;
   margin: auto;
   margin-top: 30px;
 }
@@ -50,18 +50,9 @@ div.content {
   left: 0;
   width: 500px;
 }
-#funs2, #funs3 {
-  position: absolute;
-  top: 400px;
-  bottom: 0;
-  left: 500px;
-  width: 400px;
-  height: 100px;
-  background-color: lightgray;
-}
 #console2, #console3 {
   position: absolute;
-  top: 440px;
+  top: 340px;
   bottom: 0;
   left: 0;
   width: 500px;
@@ -106,15 +97,16 @@ div.content {
 <div id="embed2">
   <div id="editor2" class="editor is-hidden">(+ 2 3)</div>
   <canvas id="canvas2" width="1" height="1"></canvas>
-  <div id="funs2"> <input type="range" id="scrubber2"> </div>
   <div id="errorbar2"></div>
   <textarea id="console2"></textarea>
 </div>
 <a id="fullscreen2" href="#">Open fullscreen</a>
 execution speed:
 <input type="range" id="speed2">
+replay:
+<input type="range" id="scrubber2">
 <script>
-var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', 'funs2', window.golfProgram)
+var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', 'scrubber2', window.golfProgram)
 embed2.speed = 50;  // how many ticks to run at a time, default is 500
 embed2.onChangeIfValid = function(){
   var fullscreen = document.getElementById('fullscreen2');

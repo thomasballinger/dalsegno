@@ -63,7 +63,7 @@ var tests = function(run, Runner, stdlib){
 
         env.set('c', 1);
         runner.runABit(100);
-        var save = runner.savedStates['on-c'];
+        var save = runner.savesByFunInvoke['on-c'];
 
         runner.runABit(100);
 

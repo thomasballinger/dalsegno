@@ -32,7 +32,7 @@
   var DrawHelpers = require("./DrawHelpers.js");
 
   //TODO Was this better as a closure? It feels weird as an object.
-  function DalSegno(editorId, canvasId, errorBarId, consoleId, funsId, initialProgramId){
+  function DalSegno(editorId, canvasId, errorBarId, consoleId, scrubberId, initialProgramId){
     this.shouldReload = true;  // whether the editor has a different AST
                                // than the one last executed
     this.shouldRestart = false;  // despite same source code, run again
@@ -50,7 +50,7 @@
     this.canvasId = canvasId;
     this.consoleId = consoleId;
     this.errorBarId = errorBarId;
-    this.funsId = funsId;
+    this.scrubberId = scrubberId;
 
     initialProgramId = initialProgramId || editorId;
     this.initialContent = document.getElementById(initialProgramId);
@@ -68,7 +68,7 @@
     if (this.consoleId){ this.initConsole(); }
     this.initTrackers();
     this.initGraphics();
-    if (this.funsId){ this.initFunsWatcher(); }
+    if (this.scrubberId){ this.initScrubber(); }
 
     this.runner.registerStateful(this.lazyCanvasCtx);
 
@@ -167,7 +167,6 @@
     this.lastResumeCleanupFunction = cleanup;
   };
   DalSegno.prototype.runABit = function(){
-    this.updateFunsWatcher();
     var s = this.editor.getValue();
     if (this.shouldReload){
       this.clearError();
@@ -201,37 +200,6 @@
     } else {
       this.setMouseinToPlay();
     }
-  };
-  DalSegno.prototype.initFunsWatcher = function(){
-    this.funsWatcherDiv = document.getElementById(this.funsId);
-  };
-  DalSegno.prototype.updateFunsWatcher = function(){
-    if (!this.funsWatcherDiv){ return; }
-    var whenCalled = Object.keys(this.runner.funs)
-      .map( name => [this.runner.savedStates[name] ?
-                       this.runner.savedStates[name].counter : -1,
-                     name,
-                     this.runner.savedStates[name] ?
-                       this.runner.savedStates[name].statefuls[0].get('imageData') :
-                      "data:image/gif;base64,R0lGODlhAQABAIAAAP7//wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-      ] )
-      .filter( pair => pair[0] > -1 );
-    whenCalled.sort( (a, b) => a[0]-b[0] );
-    whenCalled.reverse();
-    var lastURI = '';
-    function funcDiv(name, im){
-      var div = `<div style:"border:solid;border:1px;border:red;width:100%">
-      ${name}
-      <br>` +
-      (im === lastURI ? '' : `<img width="100" height="100" alt="saved" src="${im}" />`) +
-      `</div>`;
-      lastURI = im;
-      return div;
-    }
-    scrubber = document.getElementById('scrubber2');
-
-    var s = whenCalled.map( pair => funcDiv(pair[1], pair[2]) ).join('\n');
-    //this.funsWatcherDiv.innerHTML = 'Most recently executed functions:\n'+s;
   };
   DalSegno.prototype.initWindowWatcher = function(){
     if (DalSegno.windowWatcherSet){ return; }
@@ -337,6 +305,10 @@
       preventScrollIfFullyScrolled);
 
     this.console = new Console(this.consoleId);
+  };
+  DalSegno.prototype.initScrubber = function(){
+    this.scrubber = document.getElementById(this.scrubberId);
+    this.snapshots = [];
   };
   DalSegno.prototype.initTrackers = function(){
     this.mouseTracker = new MouseTracker(this.canvasId);
