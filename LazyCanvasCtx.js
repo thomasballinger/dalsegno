@@ -16,6 +16,10 @@
    * When in lazy mode:
    * Method calls are recorded in this.operations
    * Calling trigger runs all of these method calls
+   * Calling forget tosses saved operations (used to
+   *   replicate the current onscreen state) because
+   *   an upcoming operation will remove all evidence
+   *   of them.
    * Accessing a non-function property also runs these
    *   method calls and returns the property value
    * Method calls are run immediately on the this.testCtx
@@ -99,7 +103,6 @@
           } else {
             descriptors.set = function(value){
               var simpleSetter = function(value){
-                console.log('running simple setter');
                 this[property] = value;
                 return value;
               };
@@ -111,7 +114,13 @@
       }
     }
   }
-  LazyCanvasCtx.prototype.trigger = function(){
+  /** Asserts that saved operations no longer need to be remembered
+   * because a screen-clearing operation is about to happen.
+   */
+  LazyCanvasCtx.prototype.forget = function(){
+    this.operationsSinceLastClear = operationsSinceLastClear.clear();
+  };
+  LazyCanvasCtx.prototype.trigger = function(forget){
     if (this.showFPS){
       var t = new Date().getTime();
       this.renderTimes.push(new Date().getTime());
@@ -124,6 +133,7 @@
     try {
       this.operations.reverse().forEach( operation => {
         returnValue = operation[0].apply(this.ctx, operation[1]);
+        this.operationsSinceLastClear = this.operationsSinceLastClear.push(operation);
       });
     } finally {
       this.operations = this.operations.clear();
@@ -152,16 +162,20 @@
     //var savedOperations = this.operations.slice(0);
     return Immutable.Map({
       queuedOperations: this.operations,
-      operationsSinceLastClear: this.runOperationsSinceLastClear,
+      operationsSinceLastClear: this.operationsSinceLastClear,
     });
   };
   LazyCanvasCtx.prototype.restoreState = function(state){
     if (!Immutable.Map.isMap(state)){
       throw Error("Lazy canvas restored with bad state:"+state);
     }
-    var img = new Image;
-    img.src = state.get('imageData');
-    this.ctv.drawImage( img, 0, 0 );
+    this.operationsSinceLastClear = state.get('operationsSinceLastClear');
+    this.operations = state.get('queuedOperations');
+
+    // these operations have successfully been run on this canvas before
+    this.operationsSinceLastClear.reverse().forEach( operation => {
+      operation[0].apply(this.ctx, operation[1]);
+    });
   };
 
   LazyCanvasCtx.LazyCanvasCtx = LazyCanvasCtx;

@@ -137,4 +137,20 @@ describe('LazyCanvasCtx', function(){
       assert.equal(c.ctx.justSetterValue, 1);
     });
   });
+  describe('restoring', function(){
+    it('plays back already run operations', function(){
+      patchGlobal('document', new FakeDocument(), function(){
+        var c = new LazyCanvasCtx("doesn't matter", true, false);
+        var callbackRun = 0;
+        c.runCB(function(){ callbackRun++; });
+        assert.equal(c.operationsSinceLastClear.count(), 0);
+        c.trigger();
+        assert.equal(callbackRun, 1);
+        assert.equal(c.operationsSinceLastClear.count(), 1);
+        var state = c.saveState();
+        c.restoreState(state);
+        assert.equal(callbackRun, 2);
+      });
+    });
+  });
 });
