@@ -152,5 +152,17 @@ describe('LazyCanvasCtx', function(){
         assert.equal(callbackRun, 2);
       });
     });
+    it('throws out saved operations on forget', function(){
+      patchGlobal('document', new FakeDocument(), function(){
+        var c = new LazyCanvasCtx("doesn't matter", true, false);
+        c.runCB(function(){});
+        c.trigger();
+        var state1 = c.saveState();
+        assert.equal(state1.get('operationsSinceLastClear').count(), 1);
+        c.forget();
+        var state2 = c.saveState();
+        assert.equal(state2.get('operationsSinceLastClear').count(), 0);
+      });
+    });
   });
 });

@@ -118,7 +118,7 @@
    * because a screen-clearing operation is about to happen.
    */
   LazyCanvasCtx.prototype.forget = function(){
-    this.operationsSinceLastClear = operationsSinceLastClear.clear();
+    this.operationsSinceLastClear = this.operationsSinceLastClear.clear();
   };
   LazyCanvasCtx.prototype.trigger = function(forget){
     if (this.showFPS){
