@@ -26,6 +26,7 @@
     this.counter = 0;
     this.savesByFunInvoke = {};
     this.rewindStates = [];
+    this.currentRewindIndex = null;
   }
   /** Add object to be saved and restored with state during saves and restores */
   BCRunner.prototype.registerStateful = function(obj){
@@ -235,6 +236,16 @@
     }
     this.counter += 1;
     return this.context.done;
+  };
+  /** Step back one step or do nothing if no more to go back*/
+  BCRunner.prototype.stepBackOneStep = function(){
+    if (this.currentRewindIndex === null){
+      this.currentRewindIndex = this.rewindStates.length - 1;
+    } else {
+      this.currentRewindIndex = Math.max(0, this.currentRewindIndex - 1);
+    }
+    this.restoreState(this.rewindStates[this.currentRewindState]);
+
   };
   //TODO temp ship for compatibility with evalGen in tests
   BCRunner.prototype.next = BCRunner.prototype.runOneStep;
