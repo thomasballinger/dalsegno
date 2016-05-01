@@ -48,6 +48,13 @@ function FakeCanvasCtx(){
   // these are for testing wrappers around them
   // that clear previous drawing operations
   this.fillRect = function(){};
+
+  var fillStyle = '#000000';
+  Object.defineProperty(this, 'fillStyle', {
+    enumerable: true,
+    get: function(){ return fillStyle; },
+    set: function(value){ fillStyle = value; }
+  });
 }
 
 /** Run cb with global[name] set to value */
@@ -185,6 +192,26 @@ describe('LazyCanvasCtx', function(){
         c.fillRect(0, 0, 100, 100);
         c.trigger();
         assert.equal(c.operationsSinceLastClear.count(), 1);
+      });
+    });
+    patchGlobal('document', new FakeDocument(), function(){
+      it('sets fillStyle', function(){
+        patchGlobal('document', new FakeDocument(), function(){
+          var c = new LazyCanvasCtx("doesn't matter", true, false);
+          c.fillStyle = '#123456';
+          c.trigger();
+          var state1 = c.saveState();
+          c.fillStyle = '#000000';
+          c.restoreState(state1);
+          assert.equal(c.fillStyle, '#123456');
+
+          // here we test whether styles at the time of a forget are saved
+          c.forget();
+          var state2 = c.saveState();
+          c.fillStyle = '#000000';
+          c.restoreState(state2);
+          assert.equal(c.fillStyle, '#123456');
+        });
       });
     });
   });

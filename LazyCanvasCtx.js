@@ -40,6 +40,7 @@
     this.ctx = this.canvasElement.getContext('2d');
     this.operations = Immutable.Stack([]);
     this.operationsSinceLastClear = Immutable.Stack([]);
+    this.propStateAtLastClear = this.getPropState();
     this.testCtx = document.createElement('canvas').getContext('2d');
     this.renderTimes = [];
     this._lazy = lazy;
@@ -73,9 +74,13 @@
               // Forgetting old operations should only happen in the
               // second case.
               var forgetIfThisIsRealCanvasContext = function(){
-                if (this === self.ctx){ self.forget(); }
+                if (this === self.ctx){
+                  self.forget();
+                }
               };
-              forgetIfThisIsRealCanvasContext.DONOTADD = true;
+              // This prevents the operation from being added
+              // to the list that it clears after being run
+              forgetIfThisIsRealCanvasContext.DONOTRECORDINSINCELASTCLEAR = true;
               this.operations = this.operations.push([forgetIfThisIsRealCanvasContext, []]);
             }
             this.operations = this.operations.push([method, args]);
@@ -134,7 +139,16 @@
    * because a screen-clearing operation is about to happen.
    */
   LazyCanvasCtx.prototype.forget = function(){
+    this.propStateAtLastClear = this.getPropState();
     this.operationsSinceLastClear = this.operationsSinceLastClear.clear();
+  };
+  LazyCanvasCtx.prototype.getPropState = function(){
+    var properties = ['fillStyle'];
+    var propState = {};
+    properties.forEach( prop => {
+      propState[prop] = this.ctx[prop];
+    });
+    return propState;
   };
   LazyCanvasCtx.prototype.trigger = function(){
     if (this.showFPS){
@@ -149,7 +163,8 @@
     try {
       this.operations.reverse().forEach( operation => {
         returnValue = operation[0].apply(this.ctx, operation[1]);
-        if (!operation[0].DONOTADD){
+        // ugh this is ugly, and possibly slow?
+        if (!operation[0].DONOTRECORDINSINCELASTCLEAR){
           this.operationsSinceLastClear = this.operationsSinceLastClear.push(operation);
         }
       });
@@ -174,11 +189,11 @@
   };
   /** Saves the drawing context, queued operations, and current image of canvas */
   LazyCanvasCtx.prototype.saveState = function(){
-    //TODO Add an explicit clear-screen call to clear finished operations
     //TODO save everything like fillStyle etc. that the user might have changed (ugh)
     //TODO save queued operations as well as image data
-    //var savedOperations = this.operations.slice(0);
     return Immutable.Map({
+      // TODO avoid rebuilding this each time by dirtying it on the way in
+      propState: this.propStateAtLastClear,
       queuedOperations: this.operations,
       operationsSinceLastClear: this.operationsSinceLastClear,
     });
@@ -187,6 +202,10 @@
     if (!Immutable.Map.isMap(state)){
       throw Error("Lazy canvas restored with bad state:"+state);
     }
+    Object.keys(state.get('propState')).forEach( prop => {
+      this.ctx[prop] = state.get('propState')[prop];
+    });
+    this.propStateAtLastClear = state.get('propState');
     this.operationsSinceLastClear = state.get('operationsSinceLastClear');
     this.operations = state.get('queuedOperations');
 
