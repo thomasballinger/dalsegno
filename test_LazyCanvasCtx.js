@@ -24,6 +24,8 @@ function FakeCanvas(){
     ctx.parent = this;
     return ctx;
   };
+  this.width = 20;
+  this.height = 10;
 }
 function FakeCanvasCtx(){
   this.runCB = function(cb){
@@ -42,6 +44,10 @@ function FakeCanvasCtx(){
     enumerable: true,
     set: function(value){ this.justSetterValue++; }
   });
+
+  // these are for testing wrappers around them
+  // that clear previous drawing operations
+  this.fillRect = function(){};
 }
 
 /** Run cb with global[name] set to value */
@@ -162,6 +168,23 @@ describe('LazyCanvasCtx', function(){
         c.forget();
         var state2 = c.saveState();
         assert.equal(state2.get('operationsSinceLastClear').count(), 0);
+      });
+    });
+    it('tosses operations before a fullscreen fillRect', function(){
+      patchGlobal('document', new FakeDocument(), function(){
+        var c = new LazyCanvasCtx("doesn't matter", true, false);
+        c.runCB(function(){});
+        c.trigger();
+        assert.equal(c.operationsSinceLastClear.count(), 1);
+        c.fillRect(0, 0, 1, 1);
+        c.trigger();
+        assert.equal(c.operationsSinceLastClear.count(), 2);
+        c.fillRect(0, 0, 1, 1);
+        c.trigger();
+        assert.equal(c.operationsSinceLastClear.count(), 3);
+        c.fillRect(0, 0, 100, 100);
+        c.trigger();
+        assert.equal(c.operationsSinceLastClear.count(), 1);
       });
     });
   });

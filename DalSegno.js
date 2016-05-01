@@ -70,7 +70,7 @@
     this.initGraphics();
     if (this.funsId){ this.initFunsWatcher(); }
 
-    this.runner.addStateful(this.lazyCanvasCtx);
+    this.runner.registerStateful(this.lazyCanvasCtx);
 
     this.initWindowWatcher();
     this.setMouseinToPlay();

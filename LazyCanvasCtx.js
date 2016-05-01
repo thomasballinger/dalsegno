@@ -62,6 +62,22 @@
           return function(){
             var method = this.ctx[property];
             var args = Array.prototype.slice.call(arguments);
+            if (property === 'fillRect' && args.length >= 4 &&
+                args[0] <= 0 && args[1] <= 0 &&
+                args[2] >= this.canvasElement.width &&
+                args[3] >= this.canvasElement.height){
+
+              // operations are used in two situations:
+              // immediately in lazy mode on the this.testCtx to check
+              // for errors, and on trigger to run for real on this.ctx.
+              // Forgetting old operations should only happen in the
+              // second case.
+              var forgetIfThisIsRealCanvasContext = function(){
+                if (this === self.ctx){ self.forget(); }
+              };
+              forgetIfThisIsRealCanvasContext.DONOTADD = true;
+              this.operations = this.operations.push([forgetIfThisIsRealCanvasContext, []]);
+            }
             this.operations = this.operations.push([method, args]);
             if (this.lazy){
               try {
@@ -120,7 +136,7 @@
   LazyCanvasCtx.prototype.forget = function(){
     this.operationsSinceLastClear = this.operationsSinceLastClear.clear();
   };
-  LazyCanvasCtx.prototype.trigger = function(forget){
+  LazyCanvasCtx.prototype.trigger = function(){
     if (this.showFPS){
       var t = new Date().getTime();
       this.renderTimes.push(new Date().getTime());
@@ -133,7 +149,9 @@
     try {
       this.operations.reverse().forEach( operation => {
         returnValue = operation[0].apply(this.ctx, operation[1]);
-        this.operationsSinceLastClear = this.operationsSinceLastClear.push(operation);
+        if (!operation[0].DONOTADD){
+          this.operationsSinceLastClear = this.operationsSinceLastClear.push(operation);
+        }
       });
     } finally {
       this.operations = this.operations.clear();

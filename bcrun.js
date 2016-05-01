@@ -27,7 +27,7 @@
     this.savedStates = {};
   }
   /** Add object to be saved and restored with state during saves and restores */
-  BCRunner.prototype.addStateful = function(obj){
+  BCRunner.prototype.registerStateful = function(obj){
     if (typeof obj.saveState === 'undefined'){ throw Error('Stateful object need a saveState method'); }
     if (typeof obj.restoreState === 'undefined'){ throw Error('Stateful object need a restoreState method'); }
     if (Object.keys(this.savedStates).length > 0){ throw Error("Stateful objects can't be added once states have been saved"); }
