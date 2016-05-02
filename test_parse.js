@@ -7,6 +7,16 @@ var parse = require('./parse.js').parse;
 var tokenize = parse.tokenize;
 var jc = parse.justContent;
 
+function withConsoleLogIgnored(cb){
+  var orig = global.console.log
+  global.console.log = function(){};
+  try{
+    return cb();
+  } finally {
+    global.console.log = orig;
+  }
+}
+
 describe('parse', function(){
   describe('tokenize', function(){
     it('should tokenize simple literals', function(){
@@ -47,8 +57,10 @@ describe('parse', function(){
     });
     it('should return throw an error when parse fails', function(){
       assert.deepEqual(jc(parse('(+ 1 2)')), [['+', 1, 2]]);
-      assert.throw(function(){parse('(+ 1 2');}, Error);
-      assert.throw(function(){parse('+ 1 2)');}, Error);
+      withConsoleLogIgnored(function(){
+        assert.throw(function(){parse('(+ 1 2');}, Error);
+        assert.throw(function(){parse('+ 1 2)');}, Error);
+      });
     });
   });
   describe('findFunctions', function(){

@@ -219,7 +219,6 @@
     this.env = env;
   }
   Function.prototype.toString = function(){
-    console.log('the scary thing to print:', this.body);
     return 'λ('+this.params+'): '+justContent(this.body);
   };
   Function.prototype.diff = function(other){

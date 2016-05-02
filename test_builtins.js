@@ -25,7 +25,7 @@ describe('builtins', function(){
          *    |
          *    |       */
       immutableListsEqual(
-        builtins.get('bounce')(1, 1, 0, -1, Immutable.List([0, 0])),
+        builtins['bounce'](1, 1, 0, -1, Immutable.List([0, 0])),
         Immutable.List([1, 0]));
         /*          *(2, 2)
          *         /
@@ -35,30 +35,30 @@ describe('builtins', function(){
          *    |
          *    |       */
       immutableListsEqual(
-        builtins.get('bounce')(2, 2, -1, -1, Immutable.List([0, 0])),
+        builtins['bounce'](2, 2, -1, -1, Immutable.List([0, 0])),
         Immutable.List([1, 1]));
     });
     it('should work with lines', function(){
       immutableListsEqual(
-        builtins.get('bounce')(123, 456, 0, -1, Immutable.List([
+        builtins['bounce'](123, 456, 0, -1, Immutable.List([
           Immutable.List([0, 1]), Immutable.List([1, 0])])),
           Immutable.List([1, 0]));
     });
   });
   describe('distToLineIntersection', function(){
-    assert.equal( builtins.get('distToLineIntersection')(
+    assert.equal( builtins['distToLineIntersection'](
         [-5, -5], [5, 5], [-5, 5], [5, -5]),
       Math.sqrt(50));
-    assert.equal( builtins.get('distToLineIntersection')(
+    assert.equal( builtins['distToLineIntersection'](
         [-4, -5], [6, 5], [-4, 5], [6, -5]),
       Math.sqrt(50));
-    assert.equal( builtins.get('distToLineIntersection')(
+    assert.equal( builtins['distToLineIntersection'](
         [-4, -3], [6, 7], [-4, 7], [6, -3]),
       Math.sqrt(50));
-    assert.equal( builtins.get('distToLineIntersection')(
+    assert.equal( builtins['distToLineIntersection'](
         [-1, -1], [1, 1], [-1, 1], [1, -1]),
       Math.sqrt(2));
-    assert.equal( builtins.get('distToLineIntersection')(
+    assert.equal( builtins['distToLineIntersection'](
         [-100, -100], [1, 1], [-1, 1], [1, -1]),
       Math.sqrt(20000));
   });
