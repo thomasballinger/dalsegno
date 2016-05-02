@@ -58,4 +58,10 @@ describe('Environments', function(){
       assert.equal(innerEnv.lookup('c'), 3);
     });
   });
+  it('can set variables', function(){
+    var env = new Environment();
+    env.define('a', 1);
+    env.set('a', 2);
+    assert.equal(env.lookup('a'), 2);
+  });
 });

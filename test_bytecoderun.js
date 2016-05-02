@@ -12,8 +12,7 @@ var builtins = require('./builtins.js');
 
 
 function defaultMakeEnv(){
-  return new Environment.fromObjects(
-    [{'+': function(a, b){ return a + b; }}]);
+  return new Environment({'+': function(a, b){ return a + b; }});
 }
 
 function checkCompileAgainstEval(s, makeEnv, debug){
@@ -94,7 +93,7 @@ describe('compiler and evaluator', ()=>{
     });
     describe("map using builtins", function(){
       var buildEnv = function(){
-        return new Environment.fromObjects([builtins, {}]);
+        return Environment.fromMultipleMutables([builtins, {}]);
       };
       var s = "(do\n"+
       "  (define map\n"+

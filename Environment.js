@@ -65,6 +65,9 @@
    * to save user input in this way because we're only stepping backwards.
    */
   function Environment(mutableScope, libraryScopes, runner){
+    //TODO incorporate the fromMultipleMutables stuff into the constructor
+    // (but wait until the refactor is over because catchign arrays for now
+    // is a convenient notice that code needs to be updated)
 
     // this.mutableScope
     if (mutableScope === undefined){
@@ -121,24 +124,12 @@
   }
 
   // testing methods
-  Environment.fromObjects = function(arr, runner, scopeCheck){
-    //TODO enforce only a single scopeId per Environment
-    //(put off because tests will have to be fixed)
-    if (scopeCheck === undefined){
-      scopeCheck = new ScopeCheck();
+  Environment.fromMultipleMutables = function(arr){
+    var env = new Environment(arr[0]);
+    for (var scope of arr.slice(1)){
+      env = env.newWithScope(scope);
     }
-    var scopes = [];
-    arr.forEach(function(x){
-      if (Immutable.Iterable.isIterable(x)){
-        throw Error("Environment.fromObjects called on stuff", arr);
-      }
-      var scopeId = scopes.length ? scopeCheck.newFromScope(scopes[scopes.length-1]) : scopeCheck.new();
-      for (var name of Object.keys(x)){
-        scopeCheck.define(scopeId, name, x[name]);
-      }
-      scopes.push(scopeId);
-    });
-    return new Environment(scopes, runner, scopeCheck);
+    return env;
   };
   Environment.prototype.toObjects = function(){
     return this.runner.scopeCheck.toObject(this.mutableScope);
@@ -181,7 +172,7 @@
   };
   Environment.prototype.set = function(key, value){
     if (this.mutableScope){
-      if(this.runner.scopeCheck.set(this.scopes[i], key, value)){
+      if(this.runner.scopeCheck.set(this.mutableScope, key, value)){
         return value;
       }
     }
