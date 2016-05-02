@@ -16,13 +16,18 @@
   var Environment = require('./Environment.js');
   var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
   var bcexec = require('./bcexec.js');
+  var ScopeCheck = require('./ScopeCheck.js');
 
   function BCRunner(funs, scopeCheck){
     if (funs === undefined){
       throw Error("Pass in an empty object for functions dictionary, or null for no defns");
     }
     if (scopeCheck === undefined){
-
+      scopeCheck = new ScopeCheck();
+    } else if (scopeCheck === null){
+      // no mutable variables allowed!
+    } else if (scopeCheck.constructor !== ScopeCheck){
+      throw Error("bad scopeCheck value, use null for no mutable variables");
     }
     this.statefuls = [];
     this.funs = funs;

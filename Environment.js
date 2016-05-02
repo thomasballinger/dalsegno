@@ -31,11 +31,20 @@
     return 'λ('+this.params+'): (stuff)';
   };
 
+  /** A simple runner that only provides a scopeCheck */
+  function ScopeCheckRunner(){
+    this.scopeCheck = new ScopeCheck();
+  }
+
   /**
-   * Environment constructor take a list of scope objects.
-   * These can be ScopeId strings from the ScopeCheck
-   * (which store bindings to values in the interpreted language)
-   * or other objects whose properties will be accessible in the language.
+   * Environment constructor takes two lists of scope objects.
+   *
+   * Mutable scope can be either be a simple objects mapping names to values
+   * or a scope ID that reference existing mutable scopes.
+   * A scope ID requires that a runner be provided and for it to allow mutable state.
+   *
+   * Library scopes are objects whose properties will be accessible in
+   * the language but whose properties cannot be modified.
    * During lookup, properties which are functions will be bound to the
    * object they were looked up on so `this` can be used in them.
    * These objects should either be stateless or provide the methods
@@ -55,26 +64,60 @@
    * state then both behaviors will be required. For now there's no need
    * to save user input in this way because we're only stepping backwards.
    */
-  function Environment(scopes, runner, scopeCheck){
-    if (scopes === undefined){
-      if (scopeCheck === undefined){
-        scopeCheck = new ScopeCheck();
+  function Environment(mutableScope, libraryScopes, runner){
+
+    // this.mutableScope
+    if (mutableScope === undefined){
+      if (runner !== null && !(runner && runner.scopeCheck === null)){
+        runner = new ScopeCheckRunner();
+        this.mutableScope = runner.scopeCheck.new();
       }
-      scopes = [scopeCheck.new()];
+    } else if (mutableScope.constructor === Object){
+      if (runner === undefined){
+        runner = new ScopeCheckRunner();
+      }
+      if (runner === null){
+        throw Error('mutable scopes not allowed for Environments without a runner of null');
+      }
+      if (runner.scopeCheck === null){
+        throw Error('mutable scopes not allowed for Environments a runner with a scopeCheck of null');
+      }
+      var scopeId = runner.scopeCheck.new();
+      for (var name of Object.keys(mutableScope)){
+        runner.scopeCheck.define(scopeId, name, mutableScope[name]);
+      }
+      this.mutableScope = scopeId;
+    } else if (typeof mutableScope === 'number'){
+      if (runner === undefined || runner === null || runner.scopeCheck === null){
+        throw Error("ScopeID "+mutableScope+" cannot be used without a scopeCheck");
+      }
+      this.mutableScope = mutableScope;
+    } else if (mutableScope === null){
+      this.mutableScope = mutableScope;
+    } else {
+      //TODO temp error for refactoring
+      if (Array.isArray(mutableScope)){ throw Error("Environments don't take arrays anymore for first arg"); }
+      throw Error('Bad mutableScope: '+mutableScope);
     }
-    for (var scope of scopes){
+
+    // this.libraryScope
+    if (libraryScopes === undefined){
+      libraryScopes = [];
+    }
+    libraryScopes.forEach(scope => {
       if (scope.constructor === Object){
         console.log(scope);
-        throw Error('Environment constructed with non-scope args!');
+        throw Error('Environment libraryScopes should not be simple objects: '+scope);
       }
-    }
-    if (runner && runner.constructor.name !== 'Runner' &&
+    });
+    this.libraryScopes = libraryScopes;
+
+    //runner
+    if (runner && runner.constructor.name !== 'ScopeCheckRunner' &&
         runner.constructor.name !== 'BCRunner'){
       throw Error("Environment constructed with bad runner argument: ", runner);
     }
-    this.scopes = scopes;
     this.runner = runner || null;
-    this.scopeCheck = scopeCheck || null;
   }
 
   // testing methods
@@ -98,25 +141,23 @@
     return new Environment(scopes, runner, scopeCheck);
   };
   Environment.prototype.toObjects = function(){
-    return this.scopes.map(function(x){
-      return this.scopeCheck.toObject(x);
-    });
+    return this.runner.scopeCheck.toObject(this.mutableScope);
   };
 
   Environment.prototype.lookup = function(key, ast, defaultValue){
     var NotFound = {};
-    for (var i = this.scopes.length - 1; i >= 0; i--){
-      var scope = this.scopes[i];
-      var val;
-      if (typeof scope === 'number'){
-        var tmp = this.scopeCheck.lookup(scope, key);
-        val = tmp === ScopeCheck.NOTFOUND ? NotFound : tmp;
-      } else {
-        val = scope[key];
-        // Undefined is a valid value in this language, but it can't be stored
-        // in special scopes that aren't represented with Immutable.Maps.
-        val = val === undefined ? NotFound : val;
+    if (this.mutableScope){
+      var tmp = this.runner.scopeCheck.lookup(this.mutableScope, key);
+      if (tmp !== ScopeCheck.NOTFOUND){
+        return tmp;
       }
+    }
+    for (var i = this.libraryScopes.length - 1; i >= 0; i--){
+      var scope = this.scopes[i];
+      val = scope[key];
+      // Undefined is a valid value in this language, but it can't be stored
+      // in special scopes that aren't represented with Immutable.Maps.
+      val = val === undefined ? NotFound : val;
       if (val !== NotFound){
         if (typeof val === 'function'){
           var origName = val.name;
@@ -128,7 +169,7 @@
         return val;
       }
     }
-    if (this.runner && this.runner.functionExists(key)){
+    if (this.runner && this.runner.funs && this.runner.functionExists(key)){
       return new NamedFunctionPlaceholder(key);
     }
     if (defaultValue !== undefined){
@@ -139,29 +180,27 @@
     throw e;
   };
   Environment.prototype.set = function(key, value){
-    for (var i = this.scopes.length - 1; i >= 0; i--){
-      if (typeof this.scopes[i] === 'number'){
-        if(this.scopeCheck.set(this.scopes[i], key, value)){
-          return value;
-        }
-      } else if (this.scopes[i].hasOwnProperty(key)){
-        throw Error("Name '"+key+"' is in a special scope, so you can't change it");
+    if (this.mutableScope){
+      if(this.runner.scopeCheck.set(this.scopes[i], key, value)){
+        return value;
       }
     }
-    if (this.funs.hasOwnProperty(key)){
+    for (var i = this.scopes.length - 1; i >= 0; i--){
+      var scope = this.scopes[i];
+      if (this.scopes[i].hasOwnProperty(key)){
+        throw Error("Name '"+key+"' is in a library scope so can't be changed");
+      }
+    }
+    if (this.runner.funs.hasOwnProperty(key)){
       throw Error("Name '"+key+"' is in global functions, so you can't change it");
     }
     throw Error("Name '"+key+"' not found in environment"+this);
   };
   Environment.prototype.define = function(name, value){
-    var scope = this.scopes[this.scopes.length - 1];
-    if (typeof scope === 'number'){
-      this.scopeCheck.define(scope, name, value);
-    } else {
-      console.log(this.scopes);
-      console.log(scope.toJS());
-      throw Error("Innermost scope isn't an normal scopeId somehow:"+typeof scope + ':');
+    if (!this.mutableScope){
+      throw Error("No mutable scope available");
     }
+    this.runner.scopeCheck.define(this.mutableScope, name, value);
     return value;
   };
   Environment.prototype.setFunction = function(name, func){
@@ -187,30 +226,17 @@
     this.runner.saveState(name);
     return this.runner.getFunction(name);
   };
-  //TOMHERE TODO  next up: fixing NewWithScope to work with new thing
-  Environment.prototype.newWithScope = function(mapping, runner){
-    //TODO get rid of runner argument, why would that change?
+  Environment.prototype.newWithScope = function(mapping){
     if (mapping === undefined){
-      throw Error('Supply a mapping!');
+      throw Error('Supply a mapping as first argument! An empty object is fine.');
     }
-    if (runner === undefined){
-      runner = this.runner;
+    if (this.mutableScope){
+      var newScope = this.runner.scopeCheck.newFromScope(this.mutableScope, mapping);
+      var env = new Environment(newScope, this.libraryScopes, this.runner);
+      return env;
     }
-    //TODO What is this about?
-    if (Object.keys(mapping)[0] === 'undefined'){
-      throw Error('huh?');
-    }
-    var oldScope = this.scopes[this.scopes.length-1];
-    if (typeof oldScope === 'number'){
-      var newScope = this.scopeCheck.newFromScope(oldScope, mapping);
-      //TODO enforce no other scopes being numbers here
-      //because if there are we should be increffing them
-      var env = new Environment(this.scopes.slice(0, -1).concat([newScope]), runner, this.scopeCheck);
-    } else {
-      var newScope = this.scopeCheck.new();
-      var env = new Environment(this.scopes.concat([newScope]), runner, this.scopeCheck);
-    }
-    return env;
+    // If not mutable scope, there must not have been a runner or a runner.scopecheck
+    throw Error("can't run create new scope to run function because no mutable scope!");
   };
   Environment.prototype.makeEvalLambda = function(body, params, name){
     return new EvalFunction(body, params, this, name);
@@ -222,11 +248,11 @@
   };
   Environment.prototype.toString = function(){
     var s = '<Environment\n';
-    for (var i = this.scopes.length - 1; i>=0; i--){
-      var obj = (typeof this.scopes[i] === 'number' ?
-                 this.scopeCheck.keys(this.scopes[i]) :
-                 Object.keys(this.scopes[i]));
-      console.log('this line of Env toString will be the toString of:', obj);
+    if (this.mutableScope){
+      s += this.runner.scopeCheck.keys(this.mutableScope);
+    }
+    for (var i = this.libraryScopes.length - 1; i>=0; i--){
+      var obj = Object.keys(this.scopes[i]);
       s = s + obj;
       s = s + "\n";
     }
