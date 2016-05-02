@@ -158,6 +158,8 @@
     if (typeof scope === 'number'){
       this.scopeCheck.define(scope, name, value);
     } else {
+      console.log(this.scopes);
+      console.log(scope.toJS());
       throw Error("Innermost scope isn't an normal scopeId somehow:"+typeof scope + ':');
     }
     return value;

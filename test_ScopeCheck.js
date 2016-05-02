@@ -4,6 +4,8 @@ var assert = chai.assert;
 
 
 var ScopeCheck = require('./ScopeCheck.js').ScopeCheck;
+var bcexec = require('./bcexec.js');
+var Environment = require('./Environment.js');
 
 describe('ScopeCheck', function(){
   it('can be instantiated', function(){
@@ -54,4 +56,32 @@ describe('ScopeCheck', function(){
       }, /.*/);
     });
   });
+});
+
+function defaultMakeEnv(){
+  return new Environment.fromObjects(
+    [{'+': function(a, b){ return a + b; }}]);
+}
+describe('memory leaks', function(){
+  //TODO once everything is working, start decreffing in appropriate places
+  /*
+  it("are prevented by bytecode remembering to decref", function(){
+    var s =
+`(define foo (lambda (x)
+  (if (= x 0)
+      "done"
+      (foo (- x 1)))))
+(foo 10)`;
+
+    var sc = new ScopeCheck();
+    var env = new Environment.fromObjects([{
+      '+': function(a, b){ return a + b; },
+      '-': function(a, b){ return a - b; },
+      '=': function(a, b){ return a === b; }
+    }], null, sc);
+
+    bcexec(s, env, s);
+    assert.equal(sc.scopes.count(), 2);
+  });
+  */
 });

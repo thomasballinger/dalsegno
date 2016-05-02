@@ -71,8 +71,8 @@
   /** Returns a list of keys in a scope */
   ScopeCheck.prototype.keys = function(scopeId){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId); }
-    var result = this.scopes.get(scopeId).toJS();
-    console.log("got keys() for a scopecheck scope "+typeof scopeId + " "+scopeId, result);
+    var result = Object.keys(this.scopes.get(scopeId).get('data').toJS());
+    return result;
   };
 
   ScopeCheck.prototype.define = function(scopeId, name, value){
