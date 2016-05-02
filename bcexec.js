@@ -13,6 +13,7 @@
   var parse = require('./parse.js');
   var deepCopy = require('./deepCopy.js');
   var Environment = require('./Environment.js');
+  var ScopeCheck = require('./ScopeCheck.js');
   var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
   var compile = require('./compile.js');
   var compileFunctionBody = compile.compileFunctionBody;

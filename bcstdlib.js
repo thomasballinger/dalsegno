@@ -17,6 +17,8 @@
   var Environment = require('./Environment');
   var stdlibcode = require('./stdlibcode');
 
+  //TODO this will take some rethinking: is it ok if they use a different scopeCheck?
+  //I think so, but need to be careful about this
   var env = new Environment([new Environment.Scope(builtins), new Environment.Scope()], null);
 
   // Use lambdas so snapshots aren't tracked of them

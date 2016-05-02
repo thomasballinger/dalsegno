@@ -91,7 +91,7 @@
     return [obj, dist];
   }
 
-  var builtins = Immutable.Map({
+  var builtins = {
     '+': function(){
       return Array.prototype.slice.call(arguments).reduce(function(a, b){
         return a + b;
@@ -495,7 +495,7 @@
       }
       return val;
     }
-  });
+  };
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

@@ -12,10 +12,28 @@
   }
   var Immutable = require('./Immutable.js');
   var parse = require('./parse.js');
+  var ScopeCheck = require('./ScopeCheck.js');
+
+  /** Different from parse.Function in that body
+   * will be a tree of compile objects instead of
+   * being AST.
+   */
+  function EvalFunction(body, params, env, name){
+    if (name === undefined){
+      name = null; // anonymous function
+    }
+    this.name = name;      // string
+    this.body = body;      // ast with linenos
+    this.params = params;  // list of tokens with linenos
+    this.env = env;
+  }
+  Function.prototype.toString = function(){
+    return 'λ('+this.params+'): (stuff)';
+  };
 
   /**
    * Environment constructor take a list of scope objects.
-   * These can Scope instances
+   * These can be ScopeId strings from the ScopeCheck
    * (which store bindings to values in the interpreted language)
    * or other objects whose properties will be accessible in the language.
    * During lookup, properties which are functions will be bound to the
@@ -37,9 +55,12 @@
    * state then both behaviors will be required. For now there's no need
    * to save user input in this way because we're only stepping backwards.
    */
-  function Environment(scopes, runner){
+  function Environment(scopes, runner, scopeCheck){
     if (scopes === undefined){
-      scopes = [new Scope()];
+      if (scopeCheck === undefined){
+        scopeCheck = new ScopeCheck();
+      }
+      scopes = [scopeCheck.new()];
     }
     for (var scope of scopes){
       if (scope.constructor === Object){
@@ -53,32 +74,45 @@
     }
     this.scopes = scopes;
     this.runner = runner || null;
+    this.scopeCheck = scopeCheck || null;
   }
 
   // testing methods
-  Environment.fromObjects = function(arr, runner){
-    var scopes = arr.map(function(x){
-      if (x.constructor === Scope){
-        return x;
+  Environment.fromObjects = function(arr, runner, scopeCheck){
+    //TODO enforce only a single scopeId per Environment
+    //(put off because tests will have to be fixed)
+    if (scopeCheck === undefined){
+      scopeCheck = new ScopeCheck();
+    }
+    var scopes = [];
+    arr.forEach(function(x){
+      if (Immutable.Iterable.isIterable(x)){
+        throw Error("Environment.fromObjects called on stuff", arr);
       }
-      return new Scope(Immutable.Map(x));
+      var scopeId = scopes.length ? scopeCheck.newFromScope(scopes[scopes.length-1]) : scopeCheck.new();
+      for (var name of Object.keys(x)){
+        scopeCheck.define(scopeId, name, x[name]);
+      }
+      scopes.push(scopeId);
     });
-    return new Environment(scopes, runner);
+    return new Environment(scopes, runner, scopeCheck);
   };
   Environment.prototype.toObjects = function(){
     return this.scopes.map(function(x){
-      return x.data.toJS();
+      return this.scopeCheck.toObject(x);
     });
   };
 
   Environment.prototype.lookup = function(key, ast, defaultValue){
     var NotFound = {};
     for (var i = this.scopes.length - 1; i >= 0; i--){
+      var scope = this.scopes[i];
       var val;
-      if (this.scopes[i].constructor === Scope){
-        val = this.scopes[i].data.has(key) ? this.scopes[i].data.get(key) : NotFound;
+      if (typeof scope === 'number'){
+        var tmp = this.scopeCheck.lookup(scope, key);
+        val = tmp === ScopeCheck.NOTFOUND ? NotFound : tmp;
       } else {
-        val = this.scopes[i][key];
+        val = scope[key];
         // Undefined is a valid value in this language, but it can't be stored
         // in special scopes that aren't represented with Immutable.Maps.
         val = val === undefined ? NotFound : val;
@@ -86,7 +120,7 @@
       if (val !== NotFound){
         if (typeof val === 'function'){
           var origName = val.name;
-          var newfunc = val.bind(this.scopes[i]);
+          var newfunc = val.bind(scope);
           newfunc.origName = origName;
           newfunc.origFunc = val;
           return newfunc;
@@ -106,9 +140,8 @@
   };
   Environment.prototype.set = function(key, value){
     for (var i = this.scopes.length - 1; i >= 0; i--){
-      if (this.scopes[i].constructor === Scope){
-        if (this.scopes[i].data.has(key)){
-          this.scopes[i].data = this.scopes[i].data.set(key, value);
+      if (typeof this.scopes[i] === 'number'){
+        if(this.scopeCheck.set(this.scopes[i], key, value)){
           return value;
         }
       } else if (this.scopes[i].hasOwnProperty(key)){
@@ -122,12 +155,12 @@
   };
   Environment.prototype.define = function(name, value){
     var scope = this.scopes[this.scopes.length - 1];
-    if (scope.constructor !== Scope){
-      console.log(this.scopes);
-      console.log(scope.toJS());
-      throw Error("Innermost scope isn't an immutable map somehow:"+typeof scope + ':');
+    if (typeof scope === 'number'){
+      this.scopeCheck.define(scope, name, value);
+    } else {
+      throw Error("Innermost scope isn't an normal scopeId somehow:"+typeof scope + ':');
     }
-    scope.data = scope.data.set(name, value);
+    return value;
   };
   Environment.prototype.setFunction = function(name, func){
     if (this.runner === null){
@@ -152,33 +185,47 @@
     this.runner.saveState(name);
     return this.runner.getFunction(name);
   };
-  Environment.prototype.newWithScope = function(scope, runner){
-    if (scope === undefined){
-      throw Error('Supply a scope!');
+  //TOMHERE TODO  next up: fixing NewWithScope to work with new thing
+  Environment.prototype.newWithScope = function(mapping, runner){
+    //TODO get rid of runner argument, why would that change?
+    if (mapping === undefined){
+      throw Error('Supply a mapping!');
     }
     if (runner === undefined){
       runner = this.runner;
     }
-    if (Object.keys(scope)[0] === 'undefined'){
+    //TODO What is this about?
+    if (Object.keys(mapping)[0] === 'undefined'){
       throw Error('huh?');
     }
-    var env = new Environment(this.scopes.concat([new Scope(Immutable.Map(scope))]), runner);
+    var oldScope = this.scopes[this.scopes.length-1];
+    if (typeof oldScope === 'number'){
+      var newScope = this.scopeCheck.newFromScope(oldScope, mapping);
+      //TODO enforce no other scopes being numbers here
+      //because if there are we should be increffing them
+      var env = new Environment(this.scopes.slice(0, -1).concat([newScope]), runner, this.scopeCheck);
+    } else {
+      var newScope = this.scopeCheck.new();
+      var env = new Environment(this.scopes.concat([newScope]), runner, this.scopeCheck);
+    }
     return env;
   };
   Environment.prototype.makeEvalLambda = function(body, params, name){
-    return new parse.Function(body, params, this, name);
+    return new EvalFunction(body, params, this, name);
   };
   Environment.prototype.makeEvalNamedFunction = function(body, params, name){
-    var f = new parse.Function(body, params, this, name);
-    this.define(this.name, func);
+    var f = new parse.EvalFunction(body, params, this, name);
+    this.setFunction(name, f);
     return new NamedFunctionPlaceholder(f.name);
   };
   Environment.prototype.toString = function(){
     var s = '<Environment\n';
     for (var i = this.scopes.length - 1; i>=0; i--){
-      s = s + JSON.stringify(this.scopes[i].hasOwnProperty('data') ?
-                             Object.keys(this.scopes[i].data.toJS()) :
-                             Object.keys(this.scopes[i]));
+      var obj = (typeof this.scopes[i] === 'number' ?
+                 this.scopeCheck.keys(this.scopes[i]) :
+                 Object.keys(this.scopes[i]));
+      console.log('this line of Env toString will be the toString of:', obj);
+      s = s + obj;
       s = s + "\n";
     }
     if (this.runner){
@@ -190,24 +237,6 @@
     return s;
   };
 
-  function Scope(im){
-    if (im === undefined){
-      im = Immutable.Map();
-    }
-    if (!Immutable.Map.isMap(im)){
-      console.log(im);
-      throw Error('Scopes should be made with immutable maps');
-    }
-    this.data = im;
-  }
-  Scope.prototype.fromObject = function(obj){
-    return new Scope(Immutable.Map(obj));
-  };
-  Scope.prototype.copy = function(){
-    var s = new Scope(this.data);
-    return s;
-  };
-
   function NamedFunctionPlaceholder(name){
     this.name = name;
   }
@@ -216,7 +245,6 @@
   };
 
   Environment.Environment = Environment;
-  Environment.Scope = Scope;
   Environment.NamedFunctionPlaceholder = NamedFunctionPlaceholder;
 
   if (typeof exports !== 'undefined') {

@@ -37,6 +37,12 @@ describe('ScopeCheck', function(){
       var scopeTicket2 = sc.newFromScope(scopeTicket1);
       assert.equal(sc.lookup(scopeTicket2, 'a'), 1);
     });
+    it('can get names in a scope', function(){
+      var sc = new ScopeCheck();
+      var scopeTicket1 = sc.new();
+      sc.define(scopeTicket1, 'a', 1);
+      assert.deepEqual(sc.keys(scopeTicket1), ['a']);
+    });
   });
   describe("reference counting", function(){
     it('collects scopes decreffed to 0', function(){

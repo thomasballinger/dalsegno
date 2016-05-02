@@ -46,6 +46,20 @@ describe('compile', ()=>{
   });
 });
 
+describe('evaluator', ()=>{
+  /*
+  it.only('can create defns', ()=>{
+    var evalResult = evaluate('(defn foo (x) 1)', defaultMakeEnv());
+    var evalResult = evaluate('(defn foo (x) 1)\nfoo', defaultMakeEnv());
+  });
+  TODO try this with a runner, or test in the runner tests
+  */
+  it('can create new scopes', ()=>{
+    var evalResult = evaluate('(define foo (lambda (x) 1))\nfoo', defaultMakeEnv());
+    var evalResult = evaluate('(define foo (lambda (x) 1))\n(foo 2)', defaultMakeEnv());
+  });
+});
+
 describe('compiler and evaluator', ()=>{
   describe('without runner', ()=>{
     it('give the same results', ()=>{
@@ -62,6 +76,8 @@ describe('compiler and evaluator', ()=>{
             (define r 4))
           r)`);
       checkCompileAgainstEval('(do (define a 1) (set! a 2) a)');
+    });
+    it('give the the same result for new scopes', ()=>{
       checkCompileAgainstEval('(do (define f (lambda (x) (+ x 1))) (f 2))');
       checkCompileAgainstEval('(do (define f (lambda (x) (+ x 1) 2)) (f 2))');
     });

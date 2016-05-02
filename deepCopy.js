@@ -233,6 +233,8 @@
             }
           } else if (property === 'runner'){
             copy.runner = obj.runner;
+          } else if (property === 'scopeCheck'){
+            copy.scopeCheck = obj.scopeCheck ? obj.scopeCheck.copy() : obj.scopeCheck;
           } else if (property ===  '__obj_id'){
             // nop
           } else {

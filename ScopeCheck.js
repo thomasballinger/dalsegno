@@ -4,7 +4,6 @@
    * Scope Check is used to refcount immutable scopes.
    * Like this.funs, it'll be held by the runner.
    * Environments will hold a scope ticket to a scope, and
-   * 
    */
 
   var require;
@@ -23,6 +22,8 @@
     this.nextId = 1; // start at 1 because 0 would is falsy
   }
   ScopeCheck.NOTFOUND = {};
+
+  /** Each  */
   ScopeCheck.prototype.copy = function(){
     var copy = new ScopeCheck();
     copy.scopes = this.scopes;
@@ -34,11 +35,15 @@
       { refcount: 1, data: Immutable.Map(), parent: null }));
     return this.nextId++;
   };
-  ScopeCheck.prototype.newFromScope = function(scopeId){
+  ScopeCheck.prototype.newFromScope = function(scopeId, toAdd){
+    toAdd = toAdd || {};
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     this.scopes = this.scopes.set(this.nextId, Immutable.Map(
       { refcount: 1, data: Immutable.Map(), parent: scopeId }));
     this.incref(scopeId);
+    for (var name of Object.keys(toAdd)){
+      this.define(this.nextId, name, toAdd[name]);
+    }
     return this.nextId++;
   };
   ScopeCheck.prototype.incref = function(scopeId){
@@ -63,9 +68,15 @@
       this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e - 1);
     }
   };
+  /** Returns a list of keys in a scope */
+  ScopeCheck.prototype.keys = function(scopeId){
+    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId); }
+    var result = this.scopes.get(scopeId).toJS();
+    console.log("got keys() for a scopecheck scope "+typeof scopeId + " "+scopeId, result);
+  };
 
   ScopeCheck.prototype.define = function(scopeId, name, value){
-    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
+    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId+' when only scopes are '+Object.keys(this.scopes.toObject())); }
     this.scopes = this.scopes.setIn([scopeId, 'data', name], value);
   };
   ScopeCheck.prototype.lookup = function(scopeId, name){
@@ -83,14 +94,24 @@
   };
   ScopeCheck.prototype.set = function(scopeId, name, value){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
-    if (this.scopes.hasIn([scopesId, 'data', name])){
-      this.scopes = this.scopes.setIn([scopesId, 'data', name], value);
+    if (this.scopes.hasIn([scopeId, 'data', name])){
+      this.scopes = this.scopes.setIn([scopeId, 'data', name], value);
+      return true;
     } else if (this.scopes.getIn([scopeId, 'parent'])){
-      this.set(this.scopes.getIn([scopeId, 'parent']), name, value);
+      return this.set(this.scopes.getIn([scopeId, 'parent']), name, value);
     } else {
-      throw Error("can't find binding to modify for variable "+name);
+      return false;
     }
   };
+
+  ScopeCheck.prototype.toObject = function(scopeId){
+    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
+    return this.scopes.get(scopeId).get('data').toJS();
+  };
+
+  ScopeCheck.prototype.toString = function(){
+    return 'ScopeCheck';
+  }
 
   ScopeCheck.ScopeCheck = ScopeCheck;
 

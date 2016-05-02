@@ -17,12 +17,16 @@
   var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
   var bcexec = require('./bcexec.js');
 
-  function BCRunner(funs){
+  function BCRunner(funs, scopeCheck){
     if (funs === undefined){
       throw Error("Pass in an empty object for functions dictionary, or null for no defns");
     }
+    if (scopeCheck === undefined){
+
+    }
     this.statefuls = [];
     this.funs = funs;
+    this.scopeCheck = scopeCheck;
     this.counter = 0;
     this.savesByFunInvoke = {};
     this.rewindStates = [];

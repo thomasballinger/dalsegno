@@ -196,13 +196,15 @@
     }
   }
 
+  /** Returns the content fields of something*/
   function justContent(ast){
     if (ast === undefined){ return undefined; }
     if (Array.isArray(ast)){
       return ast.map(justContent);
     }
     if (!ast.hasOwnProperty('content')){
-      throw Error('justContent called on non-token: '+ast);
+      console.log(ast);
+      throw Error('justContent called on non-token (no content property): '+ast);
     }
     return ast.content;
   }
@@ -217,6 +219,7 @@
     this.env = env;
   }
   Function.prototype.toString = function(){
+    console.log('the scary thing to print:', this.body);
     return 'λ('+this.params+'): '+justContent(this.body);
   };
   Function.prototype.diff = function(other){
