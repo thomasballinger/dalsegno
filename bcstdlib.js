@@ -22,14 +22,21 @@
   //I think so, but need to be careful about this.
 
   // A new environment with these arguments will create its own ScopeCheck
-  var env = new Environment([builtins, {}], {});
+
+  var env = new Environment.fromMultipleMutables([builtins, {}]);
+
+  stdlibcode.forEach( code => bcrun(code, env));
 
   // Use lambdas so snapshots aren't tracked of them
   // Don't create any funs here! They won't work.
 
-  stdlibcode.forEach( code => bcrun(code, env));
-
-  var bcstdlib = env.scopes[1].data;
+  var bcstdlib = env.runner.scopeCheck.mapping(env.mutableScope);
+  // This can be used alone as a library scope, but it you want it
+  // to be a mutable scope its ScopeCheck needs to be consumed by the
+  // one you're using to do the mutation.
+  
+  console.log(bcstdlib);
+  console.log('keys:', Object.keys(bcstdlib));
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

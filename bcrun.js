@@ -84,6 +84,8 @@
     //We're going to swap out the bytecode anyway, so no need to save that.
     //It's really just the environments of each function that are important
     //to save.
+    console.log('copying!');
+    console.trace();
     var copy = deepCopy([this.context, this.funs]);
     return {counter: this.counter,
             funs: copy[1],
@@ -236,7 +238,8 @@
   };
   /** returns true if finished */
   BCRunner.prototype.runOneStep = function(){
-    this.rewindStates.push(this.copy());
+    //TODO turn this back on once we can make copies
+    //this.rewindStates.push(this.copy());
     bcexec.execBytecodeOneStep(this.context);
     if (this.debug && this.context.counterStack.count() &&
         this.context.bytecodeStack.count()){
@@ -259,8 +262,12 @@
   //TODO temp ship for compatibility with evalGen in tests
   BCRunner.prototype.next = BCRunner.prototype.runOneStep;
 
+  /** Run code to completion, no defns allowed */
   function bcrun(s, env){
-    var runner = new BCRunner(null);
+    // Environments have their own scopeChecks via a fake
+    // runner property by default
+    var sc = env.runner.scopeCheck;
+    var runner = new BCRunner(null, sc);
     return runner.runLibraryCode(s, env);
   }
 
@@ -277,6 +284,16 @@
   bcrun.bcrun = bcrun;
   bcrun.BCRunner = BCRunner;
   bcrun.runWithDefn = runWithDefn;
+
+
+  /** Ways things cna be run:
+   *
+   *  1. bcrun(s, env): uses env's ScopeCheck
+   *     No defns allowed.
+   *     
+   *
+   *
+   */
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

@@ -254,6 +254,7 @@
       //TODO update scope numbers - for now just hoping they don't collide
     }
   };
+
   Environment.prototype.makeEvalLambda = function(body, params, name){
     return new EvalFunction(body, params, this, name);
   };

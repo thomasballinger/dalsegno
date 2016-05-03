@@ -3,22 +3,25 @@ var chai = require('chai');
 var assert = chai.assert;
 
 var Environment = require('./Environment.js');
-var stdlibcode = require('./stdlibcode.js');
+var bcstdlib = require('./bcstdlib.js');
 var builtins = require('./builtins');
 var bcrun = require('./bcrun');
 
 
 var run = bcrun;
-var stdlibcode = stdlibcode;
 
-var stdlib = Environment(builtins);
+var stdlib = bcstdlib;
 
 describe('stdlib', function(){
-  var env = Environment.fromMultipeMutables([builtins, stdlib]);
+  var env = Environment.fromMultipleMutables([builtins, stdlib]);
+
+  console.log('--------',stdlib);
+
 
   describe('integration', function(){
     describe('reduce', function(){
       it('should sum numbers', function(){
+        console.log(env);
         assert.deepEqual(run('(reduce (lambda (a b) (+ a b)) (list 1 2 3) 0)', env), 6);
       });
     });

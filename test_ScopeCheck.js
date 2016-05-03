@@ -67,7 +67,6 @@ describe('ScopeCheck', function(){
       //TODO terrible idea, but quicker to implement than building the new id
       // mapping and recursively fixing them all.
       var sc2 = new ScopeCheck();
-      console.log(sc2);
       var id2 = sc2.new();
       sc2.incref(id2);
 
