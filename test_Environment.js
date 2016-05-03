@@ -64,4 +64,16 @@ describe('Environments', function(){
     env.set('a', 2);
     assert.equal(env.lookup('a'), 2);
   });
+  it('can build a mapping from its mutable scope', function(){
+    var env1 = new Environment();
+    env1.define('a', 1);
+    env1.define('b', 2);
+
+    var env2 = new Environment();
+    env2.define('a', 10);
+
+    var env3 = env2.newWithScopeFromEnv(env1);
+    assert.equal(env.lookup('a'), 2);
+    assert.equal(env.lookup('b'), 1);
+  });
 });

@@ -217,6 +217,7 @@
     this.runner.saveState(name);
     return this.runner.getFunction(name);
   };
+  //TODO rename to newWithMapping or similar
   Environment.prototype.newWithScope = function(mapping){
     if (mapping === undefined){
       throw Error('Supply a mapping as first argument! An empty object is fine.');
@@ -229,6 +230,18 @@
     // If not mutable scope, there must not have been a runner or a runner.scopecheck
     throw Error("can't run create new scope to run function because no mutable scope!");
   };
+  Environment.prototype.newWithScopeFromEnv = function(env){
+    if (env.constructor !== Environment){ throw Error("not an env"); }
+    if (!env.mutableScope){ throw Error("no mutable scope to build mapping with"); }
+    var mapping = env.runner.scopeCheck.mapping(env.mutableScope);
+    if (mapping.runner.scopeCheck === this.runner.scopeCheck){
+      return this.newWithScope(mapping);
+    } else {
+      // add all scopes in old runner to new runner
+      // update all environments in mapping to use our runner
+      // update scope numbers
+    }
+  };
   Environment.prototype.makeEvalLambda = function(body, params, name){
     return new EvalFunction(body, params, this, name);
   };
@@ -237,6 +250,7 @@
     this.setFunction(name, f);
     return new NamedFunctionPlaceholder(f.name);
   };
+
   Environment.prototype.toString = function(){
     var s = '<Environment\n';
     if (this.mutableScope){

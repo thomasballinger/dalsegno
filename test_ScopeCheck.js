@@ -56,6 +56,25 @@ describe('ScopeCheck', function(){
       }, /.*/);
     });
   });
+  describe("ingest", function(){
+    it('adds scopes', function(){
+      var sc1 = new ScopeCheck();
+      var id1 = sc1.new();
+      sc1.incref(id1);
+      sc1.incref(id1);
+      assert.equal(sc1.scopes.count(), 1);
+
+      //TODO terrible idea, but quicker to implement than building the new id
+      // mapping and recursively fixing them all.
+      var sc2 = new ScopeCheck(Math.ceil(Math.random() * Number.MAX_SAFE_INTEGER));
+      console.log(sc2);
+      var id2 = sc2.new();
+      sc2.incref(id2);
+
+      sc1.ingest(sc2);
+      assert.equal(sc1.scopes.count(), 2);
+    });
+  });
 });
 
 function defaultMakeEnv(){

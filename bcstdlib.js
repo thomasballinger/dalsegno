@@ -16,10 +16,13 @@
   var bcrun = require('./bcrun');
   var Environment = require('./Environment');
   var stdlibcode = require('./stdlibcode');
+  var ScopeCheck = require('./ScopeCheck');
 
   //TODO this will take some rethinking: is it ok if they use a different scopeCheck?
-  //I think so, but need to be careful about this
-  var env = new Environment([new Environment.Scope(builtins), new Environment.Scope()], null);
+  //I think so, but need to be careful about this.
+
+  // A new environment with these arguments will create its own ScopeCheck
+  var env = new Environment([builtins, {}], {});
 
   // Use lambdas so snapshots aren't tracked of them
   // Don't create any funs here! They won't work.
