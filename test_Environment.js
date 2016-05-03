@@ -71,9 +71,11 @@ describe('Environments', function(){
 
     var env2 = new Environment();
     env2.define('a', 10);
+    env2.define('c', 20);
 
     var env3 = env2.newWithScopeFromEnv(env1);
-    assert.equal(env.lookup('a'), 2);
-    assert.equal(env.lookup('b'), 1);
+    assert.equal(env3.lookup('a'), 1);
+    assert.equal(env3.lookup('b'), 2);
+    assert.equal(env3.lookup('c'), 20);
   });
 });

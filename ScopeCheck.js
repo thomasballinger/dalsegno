@@ -19,7 +19,7 @@
 
   function ScopeCheck(nextId){
     // start at 1 because 0 would is falsy
-    nextId = nextId === undefined ? 1 : nextId;
+    nextId = nextId || Math.ceil(Math.random() * Number.MAX_SAFE_INTEGER);
     this.scopes = Immutable.Map();
     this.nextId = nextId;
   }
@@ -76,7 +76,7 @@
     var result = Object.keys(this.scopes.get(scopeId).get('data').toJS());
     return result;
   };
-  ScopeCheck.prototype.mapping = function(scopeID){
+  ScopeCheck.prototype.mapping = function(scopeId){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId); }
     var immutableScope = this.scopes.get(scopeId).get('data');
     return immutableScope.toObject();
@@ -111,8 +111,13 @@
     }
   };
 
+  ScopeCheck.prototype.forEachValue = function(cb){
+    this.scopes.forEach( (scope, id) => {
+      scope.forEach(cb);
+    });
+  };
   ScopeCheck.prototype.ingest = function(other){
-    this.scopes = this.scopes.mergeWith( (us, them) => { throw Error('conflicting scopeIDs'); }, other.scopes);
+    this.scopes = this.scopes.mergeWith( (us, them) => { throw Error('conflicting scopeIds'); }, other.scopes);
   };
   ScopeCheck.prototype.toObject = function(scopeId){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }

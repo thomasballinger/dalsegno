@@ -234,12 +234,24 @@
     if (env.constructor !== Environment){ throw Error("not an env"); }
     if (!env.mutableScope){ throw Error("no mutable scope to build mapping with"); }
     var mapping = env.runner.scopeCheck.mapping(env.mutableScope);
-    if (mapping.runner.scopeCheck === this.runner.scopeCheck){
+    if (env.runner.scopeCheck === this.runner.scopeCheck){
       return this.newWithScope(mapping);
     } else {
+      var ourRunner = this.runner;
+      //find envs hiding in functions and update runners to point here.
+      env.runner.scopeCheck.forEachValue( value => {
+        if (value && value.env){
+          value.env.runner = ourRunner;
+          throw Error("Untested code: this is where envs' runners should be updated");
+        }
+      });
       // add all scopes in old runner to new runner
+      this.runner.scopeCheck.ingest(env.runner.scopeCheck);
       // update all environments in mapping to use our runner
-      // update scope numbers
+      var newEnv = this.newWithScope(mapping);
+      return newEnv;
+
+      //TODO update scope numbers - for now just hoping they don't collide
     }
   };
   Environment.prototype.makeEvalLambda = function(body, params, name){
