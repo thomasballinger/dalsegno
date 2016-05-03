@@ -15,13 +15,9 @@ var stdlib = bcstdlib;
 describe('stdlib', function(){
   var env = Environment.fromMultipleMutables([builtins, stdlib]);
 
-  console.log('--------',stdlib);
-
-
   describe('integration', function(){
     describe('reduce', function(){
       it('should sum numbers', function(){
-        console.log(env);
         assert.deepEqual(run('(reduce (lambda (a b) (+ a b)) (list 1 2 3) 0)', env), 6);
       });
     });

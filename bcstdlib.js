@@ -35,8 +35,6 @@
   // to be a mutable scope its ScopeCheck needs to be consumed by the
   // one you're using to do the mutation.
   
-  console.log(bcstdlib);
-  console.log('keys:', Object.keys(bcstdlib));
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
