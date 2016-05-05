@@ -124,15 +124,21 @@
   }
 
   // testing methods
-  Environment.fromMultipleMutables = function(arr){
-    var env = new Environment(arr[0]);
+  Environment.fromMultipleMutables = function(arr, runner){
+    var env = new Environment(arr[0], [], runner);
     for (var scope of arr.slice(1)){
       env = env.newWithScope(scope);
     }
     return env;
   };
   Environment.prototype.toObjects = function(){
-    return this.runner.scopeCheck.toObject(this.mutableScope);
+    var scopes = [];
+    var cur = this.mutableScope;
+    while (cur){
+      scopes.unshift(this.runner.scopeCheck.toObject(cur));
+      cur = this.runner.scopeCheck.getParent(cur);
+    }
+    return scopes;
   };
 
   Environment.prototype.lookup = function(key, ast, defaultValue){

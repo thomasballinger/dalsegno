@@ -211,26 +211,10 @@
       populate: function(obj, copy, memo){
         for (var property of Object.keys(obj)){
           //console.log('copying property', property, 'of', obj, ':', obj[property]);
-          if (property === 'scopes'){
-            copy.scopes = [];
-            for (var i = 0; i < obj.scopes.length; i++){
-              if (obj.scopes[i] === undefined){
-                throw Error("Scopes probably shouldn't be undefined");
-              } else if (obj.scopes[i].constructor === Object){
-                throw Error('Environment should not have simple objects as scopes');
-              } else if (obj.scopes[i].constructor.name === 'Scope') {
-                var scope = obj.scopes[i].copy(); // this should be cheap
-              } else {
-                // window and other non-object literals
-                var scope = obj.scopes[i];
-                if (scope.hasOwnProperty('savedScopeState')){
-                  // nop
-                } else if (typeof scope.saveState !== 'undefined'){
-                  scope.savedScopeState = scope.saveState();
-                }
-              }
-              copy.scopes.push(scope);
-            }
+          if (property === 'libraryScopes'){
+            copy.libraryScopes = obj.libraryScopes;
+          } else if (property === 'mutableScope'){
+            copy.mutableScope = obj.mutableScope;
           } else if (property === 'runner'){
             copy.runner = obj.runner;
           } else if (property === 'scopeCheck'){

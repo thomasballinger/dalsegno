@@ -53,6 +53,7 @@
     var self = this;
     this.envBuilder = ()=>{
       var env = callback();
+      self.scopeCheck = env.runner.scopeCheck;
       env.runner = self;
       return env;
     };
@@ -84,11 +85,10 @@
     //We're going to swap out the bytecode anyway, so no need to save that.
     //It's really just the environments of each function that are important
     //to save.
-    console.log('copying!');
-    console.trace();
     var copy = deepCopy([this.context, this.funs]);
     return {counter: this.counter,
             funs: copy[1],
+            scopeCheck: this.scopeCheck.copy(),
             context: copy[0],
             statefuls: this.statefuls.map( x => x.saveState() )};
 
@@ -169,6 +169,7 @@
     }
     if (env === undefined){
       env = new Environment();
+      this.scopeCheck = env.runner.scopeCheck;
     }
     //TODO use an interface for this instead
     env.runner = this;
@@ -266,8 +267,12 @@
   function bcrun(s, env){
     // Environments have their own scopeChecks via a fake
     // runner property by default
-    var sc = env.runner.scopeCheck;
-    var runner = new BCRunner(null, sc);
+    if (env !== undefined){
+      var sc = env.runner.scopeCheck;
+      var runner = new BCRunner(null, sc);
+    } else {
+      var runner = new BCRunner(null, undefined);
+    }
     return runner.runLibraryCode(s, env);
   }
 

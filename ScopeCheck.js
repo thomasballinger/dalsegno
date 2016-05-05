@@ -83,7 +83,7 @@
   };
 
   ScopeCheck.prototype.define = function(scopeId, name, value){
-    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId+' when only scopes are '+Object.keys(this.scopes.toObject())); }
+    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId+' when '+this.scopes.count()+' scopes present: '+Object.keys(this.scopes.toObject())); }
     this.scopes = this.scopes.setIn([scopeId, 'data', name], value);
   };
   ScopeCheck.prototype.lookup = function(scopeId, name){
@@ -109,6 +109,10 @@
     } else {
       return false;
     }
+  };
+  /** Returns scope id of parent scope or null is none exists */
+  ScopeCheck.prototype.getParent = function(scopeId){
+    return this.scopes.getIn([scopeId, 'parent']);
   };
 
   ScopeCheck.prototype.forEachValue = function(cb){
