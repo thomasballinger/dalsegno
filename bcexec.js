@@ -34,7 +34,7 @@
     this.name = name;
   }
   CompiledFunctionObject.prototype.toString = function(){
-    return 'λ('+this.params+'): '+pprint(this.code);
+    return 'λ('+ (this.params ? this.params : '') +'): '+pprint(this.code);
   };
 
   function Context(bytecode, env){
@@ -465,7 +465,7 @@
   function execAndVisualize(s, makeEnv){
     if (makeEnv === undefined){
       makeEnv = function() {
-        return new Environment.fromObjects(
+        return new Environment.fromMultipleMutables(
           [{'+': function(a, b){ return a + b; }}]);
       };
     }

@@ -13,7 +13,7 @@ var bcstdlib = require('./bcstdlib.js');
 
 var tests = function(run, Runner, stdlib){
   var buildEnv = function(){
-    return new Environment.fromObjects([builtins, stdlib, {}]);
+    return new Environment.fromMultipleMutables([builtins, stdlib, {}]);
   };
 
   return function(){
@@ -27,7 +27,14 @@ var tests = function(run, Runner, stdlib){
       it('and retrieve', function(){
         run.runWithDefn("(do (defn foo () 1) (foo))", buildEnv);
       });
-      it('global functions', function(){
+      it('global functions simple', function(){
+        run.runWithDefn("\n"+
+            "(do                                   \n"+
+            "  (defn foo (x) (do x x))               \n"+
+            "  (foo 1))",
+        buildEnv, true);
+      });
+      it.only('global functions', function(){
         run.runWithDefn("\n"+
             "(do                                   \n"+
             "  (defn foo (x) (do x x))               \n"+
@@ -35,7 +42,7 @@ var tests = function(run, Runner, stdlib){
             "    (foo 1)                           \n"+
             "    (map foo (list 1 2 3))))          \n"+
             "  (main))",
-        buildEnv);
+        buildEnv, true);
       });
       it('browser bug?', function(){
         run.runWithDefn(
@@ -48,7 +55,7 @@ var tests = function(run, Runner, stdlib){
 
     describe('interactive features', function(){
       it('updates functions', function(){
-        var env = new Environment.fromObjects([builtins, stdlib, {}]);
+        var env = new Environment.fromMultipleMutables([builtins, stdlib, {}]);
         var runner = new Runner({});
       });
       it('deepcopies closed-over state', function(){

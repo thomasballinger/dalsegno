@@ -32,6 +32,7 @@
     copy.nextId = this.nextId;
     return copy;
   };
+  ScopeCheck.prototype.deepCopy
   ScopeCheck.prototype.new = function(){
     this.scopes = this.scopes.set(this.nextId, Immutable.Map(
       { refcount: 1, data: Immutable.Map(), parent: null }));
@@ -121,6 +122,7 @@
     });
   };
   ScopeCheck.prototype.ingest = function(other){
+    if (this === other){ return; }
     this.scopes = this.scopes.mergeWith( (us, them) => { throw Error('conflicting scopeIds'); }, other.scopes);
   };
   ScopeCheck.prototype.toObject = function(scopeId){

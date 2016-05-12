@@ -226,6 +226,16 @@
           }
         }
       }
+    },
+    'ScopeCheck': {
+      byConstructorName: true,
+      canCopy: function(obj){
+        return obj.constructor.name === 'ScopeCheck';
+      },
+      create: function(obj){
+        return obj.copy();
+      },
+      populate: function(){}
     }
   };
   var copiersByConstructorName = {};
@@ -256,10 +266,10 @@
       var constructorName = constructor.name;
       copier = copiersByConstructorName[constructorName];
       if (copier === undefined){
-        console.log('looking for copier manually');
-        for (var name in copiers){
+        console.log('copier not found by constructor name for', constructorName, 'so looking for copier manually');
+        for (var name of Object.keys(copiers)){
           var candidateCopier = copiers[name];
-          if (copier.canCopy(x)){
+          if (candidateCopier.canCopy(x)){
             copier = candidateCopier;
             break;
           }

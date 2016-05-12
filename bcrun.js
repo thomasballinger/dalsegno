@@ -54,6 +54,8 @@
     this.envBuilder = ()=>{
       var env = callback();
       self.scopeCheck = env.runner.scopeCheck;
+      console.log('runner.envbuilder using scopecheck from env.runner');
+      console.log("and setting env's runner to this");
       env.runner = self;
       return env;
     };
@@ -73,6 +75,8 @@
   };
   //TODO shim for testing, get rid of this
   BCRunner.prototype.loadCode = function(s, env){
+    this.scopeCheck.ingest(env.runner.scopeCheck);
+    env.runner = this;
     this.ast = parse(s);
     // don't know why we skip finding old functions here
     var bytecode = bcexec.compileProgram(this.ast);
@@ -168,11 +172,12 @@
       throw Error("Library code can only be run with a runner not allowing defns");
     }
     if (env === undefined){
-      env = new Environment();
-      this.scopeCheck = env.runner.scopeCheck;
+      console.log('building new env');
+      env = new Environment(undefined, undefined, this);
+    } else {
+      this.scopeCheck.ingest(env.runner.scopeCheck);
+      env.runner = this;
     }
-    //TODO use an interface for this instead
-    env.runner = this;
 
     this.ast = parse(s);
     var bytecode = bcexec.compileProgram(this.ast);
@@ -204,6 +209,7 @@
     // also on the context.envStack.
     this.counter = state.counter;
     this.context = state.context;  // deepcopied because this mutates
+    console.log('restoring with restoreState');
     this.funs = state.funs;  // copied so we can update these
     this.statefuls.forEach( (s, i) => {
       s.restore(state.statefuls[i]);
@@ -229,7 +235,9 @@
   };
   BCRunner.prototype.value = function(){
     if (!this.context.done){
-      while(!this.runOneStep()){}
+      while(!this.runOneStep()){
+        console.log(!!this.funs);
+      }
     }
     var values = this.context.valueStack;
     if (values.count() !== 1){
@@ -267,12 +275,7 @@
   function bcrun(s, env){
     // Environments have their own scopeChecks via a fake
     // runner property by default
-    if (env !== undefined){
-      var sc = env.runner.scopeCheck;
-      var runner = new BCRunner(null, sc);
-    } else {
-      var runner = new BCRunner(null, undefined);
-    }
+    var runner = new BCRunner(null);
     return runner.runLibraryCode(s, env);
   }
 

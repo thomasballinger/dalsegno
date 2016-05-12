@@ -20,24 +20,24 @@ describe('Environments', function(){
       assert.deepEqual(env.lookup('a'), 1);
       assert.throws( () => env.setFunction('a', "Fake Function") );
     });
+    it("can't construct undefined mutable with runner of null", function(){
+      assert.throws( () => new Environment(undefined, undefined, null) );
+    });
     it("with runner of null can't define variables or use defns", function(){
-      var env = new Environment(undefined, undefined, null);
+      var env = new Environment(null, undefined, null);
       assert.throws( () => env.define('a', 1) );
       assert.throws( () => env.lookup('a') );
       assert.throws( () => env.setFunction('a', "Fake Function") );
     });
     it("with a runner with no funs can't use funs", function(){
-      var env1 = new Environment(undefined, undefined, new FakeRunner(null, null));
-      assert.throws( () => env1.setFunction('a', "Fake function") );
-
       var env2 = new Environment(undefined, undefined, new FakeRunner(null, new ScopeCheck()));
       assert.throws( () => env2.setFunction('a', "Fake function") );
     });
     it("with a runner with no scopeCheck can't define variables", function(){
-      var env1 = new Environment(undefined, undefined, new FakeRunner(null, null));
+      var env1 = new Environment(null, undefined, new FakeRunner(null, null));
       assert.throws( () => env1.define('a', 1) );
 
-      var env2 = new Environment(undefined, undefined, new FakeRunner({}, null));
+      var env2 = new Environment(null, undefined, new FakeRunner({}, null));
       assert.throws( () => env2.define('a', 1) );
     });
     it("with an object creates a mutable scope", function(){
@@ -56,6 +56,13 @@ describe('Environments', function(){
 
       innerEnv.define('c', 3);
       assert.equal(innerEnv.lookup('c'), 3);
+    });
+    it("with .newWithScope keep old runner", function(){
+      var env = new Environment(undefined, undefined, new FakeRunner({}, new ScopeCheck()));
+      env.define('a', 1);
+      var innerEnv = env.newWithScope({'b': 2});
+      assert.deepEqual(env.runner.funs, innerEnv.runner.funs);
+      assert.strictEqual(env.runner, innerEnv.runner);
     });
   });
   it('can set variables', function(){

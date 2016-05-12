@@ -73,11 +73,30 @@ describe('ScopeCheck', function(){
       sc1.ingest(sc2);
       assert.equal(sc1.scopes.count(), 2);
     });
+    it('ingesting self is a nop', function(){
+      var sc1 = new ScopeCheck();
+      var id1 = sc1.new();
+
+      sc1.ingest(sc1);
+    });
+  });
+  describe("copying", function(){
+    it('creates isolated scopechecks', function(){
+      var sc1 = new ScopeCheck();
+      var id1 = sc1.new();
+      sc1.define(id1, 'a', 1);
+      assert.equal(sc1.lookup(id1, 'a'), 1);
+
+      var sc2 = sc1.copy();
+      sc1.set(id1, 'a', 2);
+      assert.equal(sc1.lookup(id1, 'a'), 2);
+      assert.equal(sc2.lookup(id1, 'a'), 1);
+    });
   });
 });
 
 function defaultMakeEnv(){
-  return new Environment.fromObjects(
+  return Environment.fromMultipleMutable(
     [{'+': function(a, b){ return a + b; }}]);
 }
 describe('memory leaks', function(){
@@ -92,7 +111,7 @@ describe('memory leaks', function(){
 (foo 10)`;
 
     var sc = new ScopeCheck();
-    var env = new Environment.fromObjects([{
+    var env = new Environment.fromMultipleMutable([{
       '+': function(a, b){ return a + b; },
       '-': function(a, b){ return a - b; },
       '=': function(a, b){ return a === b; }

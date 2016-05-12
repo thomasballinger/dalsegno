@@ -27,8 +27,8 @@
     this.params = params;  // list of tokens with linenos
     this.env = env;
   }
-  Function.prototype.toString = function(){
-    return 'λ('+this.params+'): (stuff)';
+  EvalFunction.prototype.toString = function(){
+    return 'λ('+ ((this.params && this.params.length) ? this.params : '') +'):'+parse.justContent(this.body);
   };
 
   /** A simple runner that only provides a scopeCheck */
@@ -37,7 +37,7 @@
   }
 
   /**
-   * Environment constructor takes two lists of scope objects.
+   * Environment constructor takes two lists of scope objects and a runner.
    *
    * Mutable scope can be either be a simple objects mapping names to values
    * or a scope ID that reference existing mutable scopes.
@@ -51,6 +51,10 @@
    * saveState and restoreState for rewind. Either way, these non-Scope
    * objects shared between all saved snapshots including Environments
    * currently in use.
+   *
+   * If no runner is provided a runner will be created for its scopeCheck.
+   * If runner argument is null then this won't happen.
+   *
    *
    * saveState() should produce a deepcopy-able (preferrably immutable)
    * object that contains sufficient information for restoreState(state) to
@@ -71,10 +75,21 @@
 
     // this.mutableScope
     if (mutableScope === undefined){
-      if (runner !== null && !(runner && runner.scopeCheck === null)){
+      if (runner === null){
+        throw Error("can't have mutable scope with no runner");
+      } else if (runner && runner.scopeCheck === null) {
+        throw Error("can't have mutable scope with a runner with null as scopeCheck");
+      } else if (runner === undefined){
+        // make a simple runner just for its scopeCheck
         runner = new ScopeCheckRunner();
-        this.mutableScope = runner.scopeCheck.new();
+      } else if (runner) {
+        // NOP, we'll use this runner
+      } else {
+        throw Error("thought that was exhaustive");
       }
+      this.mutableScope = runner.scopeCheck.new();
+    } else if (mutableScope === null){
+      this.mutableScope = mutableScope;
     } else if (mutableScope.constructor === Object){
       if (runner === undefined){
         runner = new ScopeCheckRunner();
@@ -94,8 +109,6 @@
       if (runner === undefined || runner === null || runner.scopeCheck === null){
         throw Error("ScopeID "+mutableScope+" cannot be used without a scopeCheck");
       }
-      this.mutableScope = mutableScope;
-    } else if (mutableScope === null){
       this.mutableScope = mutableScope;
     } else {
       //TODO temp error for refactoring
@@ -124,6 +137,7 @@
   }
 
   // testing methods
+  // migrate Environment.fromObjects = function to this
   Environment.fromMultipleMutables = function(arr, runner){
     var env = new Environment(arr[0], [], runner);
     for (var scope of arr.slice(1)){
@@ -214,7 +228,7 @@
       throw Error("Can't look up function because environment doesn't have a runner");
     }
     if (this.runner.funs === null){
-      console.log(this.runner);
+      console.log('somehow this.runner.funs is null now!');
       throw Error("Runner doesn't allow named functions");
     }
     if (this.runner.funs[name] === undefined){
@@ -231,6 +245,8 @@
     if (this.mutableScope){
       var newScope = this.runner.scopeCheck.newFromScope(this.mutableScope, mapping);
       var env = new Environment(newScope, this.libraryScopes, this.runner);
+      console.log('built new scope with funs:', !!env.runner.funs);
+      console.log('old scope had funs:', !!this.runner.funs);
       return env;
     }
     // If not mutable scope, there must not have been a runner or a runner.scopecheck

@@ -4,7 +4,7 @@ var assert = chai.assert;
 
 
 var parse = require('./parse.js').parse;
-var withConsoleLogIgnored = require('testutils').withConsoleLogIgnored;
+var withConsoleLogIgnored = require('./testutils').withConsoleLogIgnored;
 var tokenize = parse.tokenize;
 var jc = parse.justContent;
 
