@@ -63,8 +63,8 @@
     if (refcount === 1){
       //TODO don't make many copies in this process
       var parent = this.scopes.getIn([scopeId, 'parent']);
+      this.scopes = this.scopes.delete(scopeId);
       if (parent !== null){
-        this.scopes = this.scopes.delete(scopeId);
         this.decref(parent);
       }
     } else {
@@ -114,6 +114,9 @@
   /** Returns scope id of parent scope or null is none exists */
   ScopeCheck.prototype.getParent = function(scopeId){
     return this.scopes.getIn([scopeId, 'parent']);
+  };
+  ScopeCheck.prototype.getCount = function(scopeId){
+    return this.scopes.getIn([scopeId, 'refcount']);
   };
 
   ScopeCheck.prototype.forEachValue = function(cb){

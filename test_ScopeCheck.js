@@ -46,14 +46,44 @@ describe('ScopeCheck', function(){
       assert.deepEqual(sc.keys(scopeTicket1), ['a']);
     });
   });
-  describe("reference counting", function(){
+  describe.only("reference counting", function(){
     it('collects scopes decreffed to 0', function(){
       var sc = new ScopeCheck();
       var scopeTicket1 = sc.new();
       sc.decref(scopeTicket1);
       assert.throws(function(){
-        sc.lookup(scopeTicket, 'a');
-      }, /.*/);
+        sc.lookup(scopeTicket1, 'a');
+      }, /bad.*scope.*id/i);
+    });
+    /*
+    it('decrefs when leaving scope', function(){
+    });
+    it('incref with each closure produced', function(){
+    });
+    it('decreffing child to 0 decrefs parent', function(){
+    });
+    it('decreffing child to 0 decrefs parent and this cascades', function(){
+    });
+    */
+  });
+  describe("code refcounts", function(){
+    it('lambda increfs', function(){
+      var env = new Environment();
+      assert.equal(sc.scopes.count(), 1);
+      assert.equal(sc.scopes.get(env.mutableScope).get('refcount'), 1);
+      bcexec('(lambda () 1)', env);
+      var sc = env.runner.scopeCheck;
+      assert.equal(sc.scopes.count(), 1);
+      assert.equal(sc.getCount(env.mutableScope), 2);
+    });
+    it('popped lambda decrefs', function(){
+      var env = new Environment();
+      assert.equal(sc.scopes.count(), 1);
+      assert.equal(sc.scopes.get(env.mutableScope).get('refcount'), 1);
+      bcexec('(lambda () 1)\n1', env);
+      var sc = env.runner.scopeCheck;
+      assert.equal(sc.scopes.count(), 1);
+      assert.equal(sc.getCount(env.mutableScope), 1);
     });
   });
   describe("ingest", function(){
