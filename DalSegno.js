@@ -27,7 +27,6 @@
   var MouseTracker = require("./MouseTracker.js");
   var KeyboardTracker = require("./KeyboardTracker.js");
   var stdlibcode = require("./stdlibcode.js");
-  var bcstdlib = require("./bcstdlib.js");
   var LazyCanvasCtx = require("./LazyCanvasCtx.js");
   var DrawHelpers = require("./DrawHelpers.js");
 
@@ -325,15 +324,17 @@
     this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
   };
   DalSegno.prototype.envBuilder = function(){
-    return new Environment([].concat(
-      [window, console],
-      this.canvas ? [this.canvas, this.lazyCanvasCtx, this.drawHelpers] : [],
-      this.mouseTracker ? [this.mouseTracker] : [],
-      this.keyboardTracker ? [this.keyboardTracker] : [],
-      this.console ? [this.console] : [backupConsole],
-      [new Environment.Scope(builtins),
-       new Environment.Scope(bcstdlib),
-       new Environment.Scope()]));
+    return bcrun.buildEnv(
+      [builtins,
+       stdlibcode,
+       {}],
+      [].concat(
+        [window, console],
+        this.canvas ? [this.canvas, this.lazyCanvasCtx, this.drawHelpers] : [],
+        this.mouseTracker ? [this.mouseTracker] : [],
+        this.keyboardTracker ? [this.keyboardTracker] : [],
+        this.console ? [this.console] : [backupConsole]),
+      this.runner);
   };
 
   function BackupConsole(){}
