@@ -3,17 +3,16 @@ var chai = require('chai');
 var assert = chai.assert;
 
 var Environment = require('./Environment.js');
-var bcstdlib = require('./bcstdlib.js');
+var stdlibcode = require('./stdlibcode.js');
 var builtins = require('./builtins');
 var bcrun = require('./bcrun');
 
 
 var run = bcrun;
 
-var stdlib = bcstdlib;
-
 describe('stdlib', function(){
-  var env = Environment.fromMultipleMutables([builtins, stdlib]);
+  var runner = new bcrun.BCRunner(null);
+  var env = bcrun.buildEnv([builtins, stdlibcode], [], runner);
 
   describe('integration', function(){
     describe('reduce', function(){

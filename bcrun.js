@@ -48,15 +48,11 @@
   //can make a copy of to be the original
   BCRunner.prototype.setEnvBuilder = function(callback){
     if (callback === undefined){
-      callback = function(){ return new Environment(); };
+      callback = function(runner){ return new Environment(undefined, undefined, runner); };
     }
-    var self = this;
-    this.envBuilder = ()=>{
-      var env = callback();
-      self.scopeCheck = env.runner.scopeCheck;
-      console.log('runner.envbuilder using scopecheck from env.runner');
-      console.log("and setting env's runner to this");
-      env.runner = self;
+    this.envBuilder = () => {
+      this.scopeCheck = new ScopeCheck();
+      var env = callback(this);
       return env;
     };
   };
@@ -168,8 +164,8 @@
 
   /** Run code with no defns allowed */
   BCRunner.prototype.runLibraryCode = function(s, env){
-    if (this.funs !== null){
-      throw Error("Library code can only be run with a runner not allowing defns");
+    if (s.indexOf('defn') !== -1){
+      throw Error('looks like there is a defn in this code! '+s);
     }
     if (env === undefined){
       console.log('building new env');
@@ -190,11 +186,10 @@
     if (this.context.done){ return !this.context.done; }
     numIterations = numIterations || 1;
     var start = this.counter;
-    try{
+    withErrback(errback, ()=>{
       while(this.counter < start + numIterations && !this.runOneStep()){}
-    }catch(e){
-      return errback(e);
-    }
+    });
+
     if (this.context.done){
       console.log('finished!', this.value());
     }
@@ -235,9 +230,7 @@
   };
   BCRunner.prototype.value = function(){
     if (!this.context.done){
-      while(!this.runOneStep()){
-        console.log(!!this.funs);
-      }
+      while(!this.runOneStep()){}
     }
     var values = this.context.valueStack;
     if (values.count() !== 1){
@@ -271,6 +264,57 @@
   //TODO temp ship for compatibility with evalGen in tests
   BCRunner.prototype.next = BCRunner.prototype.runOneStep;
 
+  function withErrback(errback, cb){
+    if (errback){
+      try{
+        return cb();
+      } catch (e) {
+        errback(e);
+      }
+    } else {
+      return cb();
+    }
+  }
+
+  /** Builds an environment from mappings and code */
+  function buildEnv(mutableScopes, libraryScopes, runner){
+    // If code is being run, a runner is required because
+    // code might create functions that have envs that need runners.
+    // If this becomes untenable then we'll need to recursively
+    // replace runners.
+    if (!runner){
+      throw Error("runner is required");
+    }
+    //TODO could allow no runner so long as no code is being run, but
+    //that's what Environment.fromMultipleMutables is for.
+    if (!Array.isArray(mutableScopes)){
+      throw Error('First arg to buildEnv should be an array of code strings or mappings');
+    }
+    if (mutableScopes.length < 1){
+      return new Environment(undefined, libraryScopes);
+    }
+    var env;
+    for (var scope of mutableScopes){
+      if (typeof scope === 'object'){
+        if (env){
+          env = env.newWithScope(scope);
+        } else {
+          env = new Environment(scope, libraryScopes, runner);
+        }
+      } else if (typeof scope === 'string'){
+        if (env){
+          env = env.newWithScope({});
+        } else {
+          env = new Environment({}, libraryScopes, runner);
+        }
+        runner.runLibraryCode(scope, env);
+      } else {
+        throw Error("bad scope value: " + scope);
+      }
+    }
+    return env;
+  }
+
   /** Run code to completion, no defns allowed */
   function bcrun(s, env){
     // Environments have their own scopeChecks via a fake
@@ -279,11 +323,20 @@
     return runner.runLibraryCode(s, env);
   }
 
+  /** EnvBuilder needs to take a runner arg */
+  function runWithoutDefn(s, envBuilder, debug){
+    var runner = new BCRunner(null);
+    if (debug){ runner.debug = s; }
+    runner.setEnvBuilder(envBuilder);
+    runner.loadUserCode(s);
+    return runner.value();
+  }
+
+
+  /** EnvBuilder needs to take a runner arg */
   function runWithDefn(s, envBuilder, debug){
     var runner = new BCRunner({});
-    if (debug){
-      runner.debug = s;
-    }
+    if (debug){ runner.debug = s; }
     runner.setEnvBuilder(envBuilder);
     runner.loadUserCode(s);
     return runner.value();
@@ -292,6 +345,7 @@
   bcrun.bcrun = bcrun;
   bcrun.BCRunner = BCRunner;
   bcrun.runWithDefn = runWithDefn;
+  bcrun.buildEnv = buildEnv;
 
 
   /** Ways things cna be run:

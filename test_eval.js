@@ -14,6 +14,13 @@ var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
 var justSumScope = {'+': function(a, b){return a + b; }};
 var justSum = new Environment(justSumScope);
 
+var lastAssignedEnv;
+var buildJustSum = function(runner){
+  var env = new Environment(justSumScope, undefined, runner);
+  lastAssignedEnv = env;
+  return env;
+};
+
 var run = bcrun;
 var Runner = bcrun.BCRunner;
 
@@ -26,10 +33,10 @@ describe('Evaluation with bytecode', function(){
   });
   describe('NamedFunction', function(){
     it('should work with Runner', function(){
-      run.runWithDefn('(defn foo (x y) (+ x y))', function(){ return justSum; });
-      assert.isDefined(justSum.runner.funs.foo);
+      run.runWithDefn('(defn foo (x y) (+ x y))', buildJustSum);
+      assert.isDefined(lastAssignedEnv.runner.funs.foo);
       assert.deepEqual(run.runWithDefn('(do (defn foo (x y) (+ x y)) (foo 1 2))',
-                                       function(){ return justSum; }), 3);
+                                       buildJustSum), 3);
     });
   });
   describe('Set', function(){
@@ -121,28 +128,33 @@ describe('Evaluation with bytecode', function(){
   describe("Runner object", function(){
     describe('Runs code', function(){
       it('should run code without defns', function(){
-        var tmpEnv = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1}]);
-        var tmpEnvBuilder = function(){return tmpEnv;};
+        var lastAssignedEnv;
+        var tmpEnvBuilder = function(runner){
+          var env = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1}], runner);
+          lastAssignedEnv = env;
+          return env;
+        };
+
         var runner = new Runner(null);
-        runner.runLibraryCode('(define b 2)', tmpEnv);
-        assert.throws(function(){ runner.runLibraryCode('(defn foo () 1)');}, /Runner doesn't allow named functions/);
-        assert.deepEqual(tmpEnv.toObjects()[1], {a: 1, b: 2});
+        runner.runLibraryCode('(define b 2)', tmpEnvBuilder());
+        assert.throws(function(){ runner.runLibraryCode('(defn foo () 1)');}, /defn/);
+        assert.deepEqual(lastAssignedEnv.toObjects()[1], {a: 1, b: 2});
         runner.setEnvBuilder(tmpEnvBuilder);
         runner.loadUserCode('(defn foo () 1)');
         assert.throws(function(){ runner.value(); }, /Runner doesn't allow named functions/);
         runner.funs = {};
         runner.value();
-        if (runner.funs.foo.body){
-          // currently CompiledFunctionObjects don't have ast bodies
-          assert.deepEqual(jc(runner.funs.foo.body), 1);
-        }
         assert.deepEqual(runner.funs.foo.name, 'foo');
         assert.deepEqual(runner.funs.foo.env.scopes,
-                         tmpEnv.scopes);
+                         lastAssignedEnv.scopes);
       });
       it('should load defn code', function(){
-        var tmpEnv = Environment.fromMultipleMutables([justSumScope, {a: 1}]);
-        var tmpEnvBuilder = function(){return tmpEnv;};
+        var lastAssignedEnv;
+        var tmpEnvBuilder = function(runner){
+          var env = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1}], runner);
+          lastAssignedEnv = env;
+          return env;
+        };
         var runner = new Runner({});
         runner.setEnvBuilder(tmpEnvBuilder);
         runner.loadUserCode('(do (defn foo () 1) (foo))');

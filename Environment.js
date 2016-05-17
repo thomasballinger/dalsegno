@@ -141,6 +141,9 @@
   Environment.fromMultipleMutables = function(arr, runner){
     var env = new Environment(arr[0], [], runner);
     for (var scope of arr.slice(1)){
+      if (typeof scope === 'object'){
+
+      }
       env = env.newWithScope(scope);
     }
     return env;
@@ -164,8 +167,8 @@
       }
     }
     for (var i = this.libraryScopes.length - 1; i >= 0; i--){
-      var scope = this.scopes[i];
-      val = scope[key];
+      var scope = this.libraryScopes[i];
+      var val = scope[key];
       // Undefined is a valid value in this language, but it can't be stored
       // in special scopes that aren't represented with Immutable.Maps.
       val = val === undefined ? NotFound : val;
@@ -245,8 +248,6 @@
     if (this.mutableScope){
       var newScope = this.runner.scopeCheck.newFromScope(this.mutableScope, mapping);
       var env = new Environment(newScope, this.libraryScopes, this.runner);
-      console.log('built new scope with funs:', !!env.runner.funs);
-      console.log('old scope had funs:', !!this.runner.funs);
       return env;
     }
     // If not mutable scope, there must not have been a runner or a runner.scopecheck

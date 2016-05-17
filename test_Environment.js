@@ -57,12 +57,12 @@ describe('Environments', function(){
       innerEnv.define('c', 3);
       assert.equal(innerEnv.lookup('c'), 3);
     });
-    it("with .newWithScope keep old runner", function(){
-      var env = new Environment(undefined, undefined, new FakeRunner({}, new ScopeCheck()));
-      env.define('a', 1);
-      var innerEnv = env.newWithScope({'b': 2});
-      assert.deepEqual(env.runner.funs, innerEnv.runner.funs);
-      assert.strictEqual(env.runner, innerEnv.runner);
+    describe("fromMultipleMutables", function(){
+      it('creates scopes from mappings', function(){
+        var env = new Environment.fromMultipleMutables([{a: 1, b: 2}, {b: 3}]);
+        assert.equal(env.lookup('a'), 1);
+        assert.equal(env.lookup('b'), 3);
+      });
     });
   });
   it('can set variables', function(){

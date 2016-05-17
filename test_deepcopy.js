@@ -55,9 +55,17 @@ describe('copyable execution trees', function(){
     describe('bytecode specific', function(){
       describe('runnner', function(){
         it('can be resumed after being cloned', function(){
-          var tmpEnv = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
-          var tmpEnvBuilder = function(){return tmpEnv;};
           var runner = new bcrun.BCRunner({});
+          var origScopeCheck = runner.scopeCheck;
+          var tmpEnv = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}], runner);
+
+          // So we can hold onto an environment and check in on it, creating a new environment
+          // preserves the old scopeCheck (the runner using a new one would invalidate the old
+          // stored env which holds a reference to this runner
+          var tmpEnvBuilder = function(){
+            runner.scopeCheck = origScopeCheck;
+            return tmpEnv;
+          };
           runner.setEnvBuilder(tmpEnvBuilder);
 
           runner.loadUserCode('(begin (defn foo () 1) (foo))');
