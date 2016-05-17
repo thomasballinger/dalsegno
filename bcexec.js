@@ -97,16 +97,10 @@
         c.valueStack = c.valueStack.push(arg);
         break;
       case BC.Return:
+        env.cleanup();
         c.bytecodeStack = c.bytecodeStack.pop();
         c.counterStack = c.counterStack.pop();
         c.envStack = c.envStack.pop();
-        if (c.bytecodeStack.count() === 0){
-          c.done = true;
-        } else {
-          counter = c.counterStack.peek();
-        }
-        break;
-      case BC.FunctionDone:
         if (c.bytecodeStack.count() === 0){
           c.done = true;
         } else {

@@ -120,7 +120,7 @@ describe('ScopeCheck', function(){
               (foo)`, env);
       console.log(''+sc);
       assert.equal(sc.scopes.count(), 1);
-      assert.equal(sc.getCount(env.mutableScope), 2);
+      assert.equal(sc.getCount(env.mutableScope), 1);
     });
     /*
     it('leaving scope cleans up closures in that scope', function(){
