@@ -32,7 +32,6 @@
     copy.nextId = this.nextId;
     return copy;
   };
-  ScopeCheck.prototype.deepCopy
   ScopeCheck.prototype.new = function(){
     this.scopes = this.scopes.set(this.nextId, Immutable.Map(
       { refcount: 1, data: Immutable.Map(), parent: null }));
@@ -43,7 +42,7 @@
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     this.scopes = this.scopes.set(this.nextId, Immutable.Map(
       { refcount: 1, data: Immutable.Map(), parent: scopeId }));
-    this.incref(scopeId);
+    this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
     for (var name of Object.keys(toAdd)){
       this.define(this.nextId, name, toAdd[name]);
     }
@@ -52,9 +51,10 @@
   ScopeCheck.prototype.incref = function(scopeId){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     //TODO do this mutably
-    this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
-    if (this.scopes.getIn([scopeId, 'parent'])){
-      this.incref(this.scopes.getIn([scopeId, 'parent']));
+    this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
+    var parent = this.scopes.getIn([scopeId, 'parent']);
+    if (parent){
+      this.scopes = this.scopes.updateIn([parent, 'refcount'], e => e + 1);
     }
   };
   ScopeCheck.prototype.decref = function(scopeId){
@@ -118,6 +118,14 @@
   ScopeCheck.prototype.getCount = function(scopeId){
     return this.scopes.getIn([scopeId, 'refcount']);
   };
+  ScopeCheck.prototype.getNumNames = function(scopeId){
+    return this.scopes.getIn([scopeId, 'data']).count();
+  };
+  ScopeCheck.prototype.getNames = function(scopeId){
+    var names = Array.from(this.scopes.getIn([scopeId, 'data']).keys());
+    names.sort();
+    return names.join(', ').slice(0, 100);
+  };
 
   ScopeCheck.prototype.forEachValue = function(cb){
     this.scopes.forEach( (scope, id) => {
@@ -134,7 +142,16 @@
   };
 
   ScopeCheck.prototype.toString = function(){
-    return 'ScopeCheck';
+    var output = 'ScopeCheck with ' + this.scopes.count()+' scopes';
+    if (this.scopes.count() === 0){
+      return output;
+    }
+    output += ':';
+    this.scopes.forEach( (scope, id) => {
+      output += '\n  '+id+' (refcount '+this.getCount(id)+') with '+this.getNumNames(id)+' names' +
+        (this.getNumNames(id) === 0 ? '' : (': ' + this.getNames(id)));
+    });
+    return output;
   };
 
   ScopeCheck.ScopeCheck = ScopeCheck;

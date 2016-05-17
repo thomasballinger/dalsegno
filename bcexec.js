@@ -33,6 +33,9 @@
     this.env = env;
     this.name = name;
   }
+  CompiledFunctionObject.prototype.cleanup = function(){
+    this.env.cleanup();
+  };
   CompiledFunctionObject.prototype.toString = function(){
     return 'λ('+ (this.params ? this.params : '') +'): '+pprint(this.code);
   };
@@ -122,6 +125,8 @@
         break;
       case BC.Pop:
         if (arg !== null){ throw Error('Pop arg should be null, was '+arg); }
+        var val = c.valueStack.peek();
+        if (val.cleanup){ val.cleanup(); }
         c.valueStack = c.valueStack.pop();
         break;
       case BC.NameLookup:
@@ -138,6 +143,7 @@
         var code = c.valueStack.peek();
         c.valueStack = c.valueStack.pop();
         var funcObj;
+        env.incref();
         if (arg === null){  // lambda function
           funcObj = new CompiledFunctionObject(params, code, env, null);
           c.valueStack = c.valueStack.push(funcObj);
