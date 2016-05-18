@@ -120,6 +120,7 @@
     if (libraryScopes === undefined){
       libraryScopes = [];
     }
+    if (!Array.isArray(libraryScopes)){ throw Error('second arg should be array'); }
     libraryScopes.forEach(scope => {
       if (scope.constructor === Object){
         console.log(scope);
@@ -278,7 +279,7 @@
     }
   };
   /** Decref mutable scope */
-  Environment.prototype.cleanup = function(){
+  Environment.prototype.decref = function(){
     this.runner.scopeCheck.decref(this.mutableScope);
   };
   Environment.prototype.incref = function(){

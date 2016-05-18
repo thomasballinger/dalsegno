@@ -325,7 +325,6 @@
    * and will decref that environment once finished */
   function compileProgram(ast){
     var code = buildProgram(ast).compile();
-    console.log('compile program output:', code);
     Object.freeze(code);
     return code;
   }

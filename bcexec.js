@@ -33,8 +33,11 @@
     this.env = env;
     this.name = name;
   }
-  CompiledFunctionObject.prototype.cleanup = function(){
-    this.env.cleanup();
+  CompiledFunctionObject.prototype.decref = function(){
+    this.env.decref();
+  };
+  CompiledFunctionObject.prototype.incref = function(){
+    this.env.incref();
   };
   CompiledFunctionObject.prototype.toString = function(){
     return 'λ('+ (this.params ? this.params : '') +'): '+pprint(this.code);
@@ -101,7 +104,7 @@
         c.valueStack = c.valueStack.push(arg);
         break;
       case BC.Return:
-        env.cleanup();
+        env.decref();
         console.log('because returning');
         c.bytecodeStack = c.bytecodeStack.pop();
         c.counterStack = c.counterStack.pop();
@@ -113,7 +116,8 @@
         }
         break;
       case BC.StoreNew:
-        env.define(arg, c.valueStack.peek());
+        var val = c.valueStack.peek();
+        env.define(arg, val);
         break;
       case BC.Store:
         env.set(arg, c.valueStack.peek());
@@ -126,8 +130,8 @@
         if (arg !== null){ throw Error('Pop arg should be null, was '+arg); }
         var val = c.valueStack.peek();
         // if it's a closure being popped off, decref its scopes
-        if (val && val.cleanup){
-          val.cleanup();
+        if (val && val.decref){
+          val.decref();
           console.log("because popping function object");
         }
         c.valueStack = c.valueStack.pop();
@@ -226,6 +230,8 @@
           var scope = {};
           args.forEach((x, i) => scope[func.params[i]] = x);
           var newEnv = func.env.newWithScope(scope, env.runner);
+          func.decref(); // done with the function object now that env created
+          console.log('because calling that function object so done with it');
 
           // off the top (-1) because counter++ at end of this tick
           counter = -1;

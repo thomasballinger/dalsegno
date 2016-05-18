@@ -42,6 +42,7 @@
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     this.scopes = this.scopes.set(this.nextId, Immutable.Map(
       { refcount: 1, data: Immutable.Map(), parent: scopeId }));
+    console.log('increfing', scopeId, 'because parent of new scope');
     this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
     for (var name of Object.keys(toAdd)){
       this.define(this.nextId, name, toAdd[name]);
@@ -50,7 +51,8 @@
   };
   ScopeCheck.prototype.incref = function(scopeId){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
-    console.log('increffing', scopeId);
+    var refcount = this.scopes.getIn([scopeId, 'refcount']);
+    console.log('increfing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount+1);
     //TODO do this mutably
     this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
     var parent = this.scopes.getIn([scopeId, 'parent']);
@@ -59,16 +61,16 @@
     }
   };
   ScopeCheck.prototype.decref = function(scopeId){
-    console.log('decreffing', scopeId);
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     var refcount = this.scopes.getIn([scopeId, 'refcount']);
+    console.log('decrefing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount-1);
     if (refcount === 1){
       //TODO don't make many copies in this process
       var parent = this.scopes.getIn([scopeId, 'parent']);
       this.scopes = this.scopes.delete(scopeId);
       if (parent !== null){
+        console.log('and its parent', parent);
         this.decref(parent);
-        console.log('and decreffing its parent', parent);
       }
     } else {
       this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e - 1);
@@ -88,8 +90,11 @@
 
   ScopeCheck.prototype.define = function(scopeId, name, value){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId+' when '+this.scopes.count()+' scopes present: '+Object.keys(this.scopes.toObject())); }
+    incref(value, 'stored by define');
+    decref(this.scopes.getIn([scopeId, 'data', name], undefined), 'displaced by define');
     this.scopes = this.scopes.setIn([scopeId, 'data', name], value);
   };
+  /** Looks up value and increfs it if it's a managed object */
   ScopeCheck.prototype.lookup = function(scopeId, name){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     var val = this.scopes.getIn([scopeId, 'data', name], ScopeCheck.NOTFOUND);
@@ -100,13 +105,15 @@
         return ScopeCheck.NOTFOUND;
       }
     } else {
-      return val;
+      return increfed(val, 'lookup');
     }
   };
   ScopeCheck.prototype.set = function(scopeId, name, value){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     if (this.scopes.hasIn([scopeId, 'data', name])){
+      decref(this.scopes.getIn([scopeId, 'data', name], undefined), 'displaced by set');
       this.scopes = this.scopes.setIn([scopeId, 'data', name], value);
+      incref(value, 'stored by set');
       return true;
     } else if (this.scopes.getIn([scopeId, 'parent'])){
       return this.set(this.scopes.getIn([scopeId, 'parent']), name, value);
@@ -156,6 +163,37 @@
     });
     return output;
   };
+
+  /** Increfs if managed object */
+  function incref(val, reason){
+    if (val && val.incref){
+      val.incref();
+      console.log('because', reason);
+    }
+  }
+  /** Decrefs if managed object */
+  function decref(val, reason){
+    if (val && val.decref){
+      val.decref();
+      console.log('because', reason);
+    }
+  }
+  /** Increfs if managed object and returns either way */
+  function increfed(val, reason){
+    if (val && val.incref){
+      val.incref();
+      console.log('because', reason);
+    }
+    return val;
+  }
+  /** Decrefs if managed object and returns either way */
+  function decrefed(val, reason){
+    if (val && val.decref){
+      val.decref();
+      console.log('because', reason);
+    }
+    return val;
+  }
 
   ScopeCheck.ScopeCheck = ScopeCheck;
 

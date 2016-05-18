@@ -47,7 +47,7 @@ describe('ScopeCheck', function(){
     });
   });
   describe("reference counting", function(){
-    it('collects scopes decreffed to 0', function(){
+    it('collects scopes decrefed to 0', function(){
       var sc = new ScopeCheck();
       var scopeTicket1 = sc.new();
       sc.decref(scopeTicket1);
@@ -55,7 +55,7 @@ describe('ScopeCheck', function(){
         sc.lookup(scopeTicket1, 'a');
       }, /bad.*scope.*id/i);
     });
-    it('decreffing child to 0 decrefs parent', function(){
+    it('decrefing child to 0 decrefs parent', function(){
       var sc = new ScopeCheck();
       var scopeTicket1 = sc.new();
       var scopeTicket2 = sc.newFromScope(scopeTicket1);
@@ -126,21 +126,28 @@ describe('ScopeCheck', function(){
               1`, env);
       assert.equal(sc.scopes.count(), 0);
     });
-    it('leaving scope decrefs that scope', function(){
+    it.only('leaving scope decrefs that scope', function(){
+      //TODO why are lambdas appearing as placeholders on the valueStack?
       var env = new Environment();
       var sc = env.runner.scopeCheck;
-      assert.equal(sc.scopes.count(), 1);
-      assert.equal(sc.getCount(env.mutableScope), 1);
-      bcexec(`(define foo (lambda () 1))
-              (foo)`, env);
+      var s = `(define foo (lambda () 1))
+             (foo)
+             1`;
+      bcexec(s, env, true);
+      console.log(s);
       console.log(''+sc);
-      assert.equal(sc.scopes.count(), 1);
-      assert.equal(sc.getCount(env.mutableScope), 1);
+      //TODO TOMHERE tests failing because global program scope contains a reference
+      //to a function which contains a reference to that scope!
+      //tests needed for returning from scopes that define one function (like this)
+      //or multiple functions to ensure whatever harebrained thing we come up with
+      //works for this common case.
+      //
+      //Ugh, I guess the proper way is cycle detection...
+      assert.equal(sc.scopes.count(), 0);
     });
     it('leaving scope cleans up closures in that scope', function(){
       function TermScope(){
         this.assertTwoScopes = function(){
-          console.log(''+sc);
           assert.equal(sc.scopes.count(), 2);
           assert.equal(sc.getCount(env.mutableScope), 3);
         };
@@ -157,7 +164,57 @@ describe('ScopeCheck', function(){
       assert.equal(sc.scopes.count(), 1);
       assert.equal(sc.getCount(env.mutableScope), 2);
     });
+    it('define decrefs when pushed off', function(){
+      var env = new Environment();
+      var sc = env.runner.scopeCheck;
+      bcexec('(define foo (lambda () 1))\n1', env);
+      assert.equal(sc.scopes.count(), 0);
+    });
+    it('closures are saved by define', function(){
+      function TermScope(){
+        this.assertTwoScopes = function(){
+          assert.equal(sc.scopes.count(), 2);
+        };
+      }
+      var env = new Environment(undefined, [new TermScope()]);
+      var sc = env.runner.scopeCheck;
+      bcexec(`(define foo
+                ((lambda ()
+                   (define x 1)
+                   (lambda () x))))
+              (assertTwoScopes)`, env);
+      //assert.equal(sc.scopes.count(), 0);
+    });
+    /*
+    it.only('closures are saved by set', function(){ });
+    it.only('closures are decrefed by set', function(){ });
+    it.only('closuers displaced by define are decrefed', function(){ });
+    it.only('looking up a closures increfs it', function(){ });
+    */
+    it('decrefs when making tail call', function(){
+      function TermScope(){
+        this.assertTwoScopes = function(){
+          assert.equal(sc.scopes.count(), 2);
+          assert.equal(sc.getCount(env.mutableScope), 3);
+        };
+      }
+      var env = new Environment(undefined, [new TermScope()]);
+      var sc = env.runner.scopeCheck;
+      bcexec(`(define foo (lambda () (bar)))
+              (define bar (lambda ()
+                (assertTwoScopes)
+                1))
+              (foo)`, env);
+      assert.equal(sc.scopes.count(), 1);
+      assert.equal(sc.getCount(env.mutableScope), 2);
+    });
   });
+  /*
+  describe("runner increfs named funs", function(){
+    it("increfs when storing", function(){
+    });
+  });
+  */
   describe("ingest", function(){
     it('adds scopes', function(){
       var sc1 = new ScopeCheck();
@@ -198,8 +255,8 @@ describe('ScopeCheck', function(){
 });
 
 describe('memory leaks', function(){
-  //TODO once everything is working, start decreffing in appropriate places
-  it.only("are prevented in simple recursive functions", function(){
+  //TODO once everything is working, start decrefing in appropriate places
+  it("are prevented in simple recursive functions", function(){
     var s =
 `(define foo (lambda (x)
   (if (= x 0)
