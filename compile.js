@@ -351,6 +351,8 @@
     return buildProgram(ast).eval(env);
   }
 
+  var compile = {};
+
   compile.compileProgram = compileProgram;
   compile.compileFunctionBody = compileFunctionBody;
   compile.evaluateAST = evaluateAST;

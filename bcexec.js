@@ -41,9 +41,9 @@
   };
 
   //TODO Context shouldn't add the return.
-  //Is the reason they don't currently is that tail calls don't need them?
-  //Maybe bcexec should strip the return statement?
-  //It could replace it with a "BC.ProgramDone" or something?
+  // Instead, have different compile methods (buildProgram, buildFunction)
+  // both add this return.
+  // Check out all the places Contexts are created to see if this is alright.
   function Context(bytecode, env){
     bytecode = [].concat(bytecode, [[BC.Return, null, undefined]]);
     this.counterStack  = Immutable.Stack([0]);
@@ -102,6 +102,7 @@
         break;
       case BC.Return:
         env.cleanup();
+        console.log('because returning');
         c.bytecodeStack = c.bytecodeStack.pop();
         c.counterStack = c.counterStack.pop();
         c.envStack = c.envStack.pop();

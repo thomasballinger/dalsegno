@@ -93,13 +93,13 @@ describe('ScopeCheck', function(){
     */
   });
   describe("code refcounts", function(){
-    it.only('ends a run with the scope collected', function(){
+    it('ends a run with the scope collected', function(){
       var env = new Environment();
       var sc = env.runner.scopeCheck;
       assert.equal(sc.scopes.count(), 1);
       assert.equal(sc.getCount(env.mutableScope), 1);
-      bcexec('1', env, true);
-      assert.equal(sc.scopes.count(), 1);
+      bcexec('1', env);
+      assert.equal(sc.scopes.count(), 0);
     });
     it('returned lambda increfs', function(){
       var env = new Environment();
@@ -111,16 +111,20 @@ describe('ScopeCheck', function(){
       assert.equal(sc.getCount(env.mutableScope), 1);
     });
     it('popped lambda decrefs', function(){
-      var env = new Environment();
+      function TestScope(){
+        this.assertOneScopeOneRef = function(){
+          assert.equal(sc.scopes.count(), 1);
+          assert.equal(sc.getCount(env.mutableScope), 1);
+        };
+      }
+      var env = new Environment(undefined, [new TestScope()]);
       var sc = env.runner.scopeCheck;
       assert.equal(sc.scopes.count(), 1);
       assert.equal(sc.scopes.get(env.mutableScope).get('refcount'), 1);
-      console.log(''+sc);
-      bcexec('(lambda () 1)\n1', env);
-      //TOMHERE TODO why am I not doing this?
-      console.log(''+sc);
-      assert.equal(sc.scopes.count(), 1);
-      assert.equal(sc.getCount(env.mutableScope), 1);
+      bcexec(`(lambda () 1)
+              (assertOneScopeOneRef)
+              1`, env);
+      assert.equal(sc.scopes.count(), 0);
     });
     it('leaving scope decrefs that scope', function(){
       var env = new Environment();
@@ -193,14 +197,9 @@ describe('ScopeCheck', function(){
   });
 });
 
-function defaultMakeEnv(){
-  return Environment.fromMultipleMutable(
-    [{'+': function(a, b){ return a + b; }}]);
-}
 describe('memory leaks', function(){
   //TODO once everything is working, start decreffing in appropriate places
-  /*
-  it("are prevented by bytecode remembering to decref", function(){
+  it.only("are prevented in simple recursive functions", function(){
     var s =
 `(define foo (lambda (x)
   (if (= x 0)
@@ -208,15 +207,15 @@ describe('memory leaks', function(){
       (foo (- x 1)))))
 (foo 10)`;
 
-    var sc = new ScopeCheck();
-    var env = new Environment.fromMultipleMutable([{
+    var env = Environment.fromMultipleMutables([{
       '+': function(a, b){ return a + b; },
       '-': function(a, b){ return a - b; },
       '=': function(a, b){ return a === b; }
-    }], null, sc);
+    }]);
+    var sc = env.runner.scopeCheck;
 
+    console.log(''+sc);
     bcexec(s, env, s);
     assert.equal(sc.scopes.count(), 2);
   });
-  */
 });
