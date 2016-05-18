@@ -40,6 +40,10 @@
     return 'λ('+ (this.params ? this.params : '') +'): '+pprint(this.code);
   };
 
+  //TODO Context shouldn't add the return.
+  //Is the reason they don't currently is that tail calls don't need them?
+  //Maybe bcexec should strip the return statement?
+  //It could replace it with a "BC.ProgramDone" or something?
   function Context(bytecode, env){
     bytecode = [].concat(bytecode, [[BC.Return, null, undefined]]);
     this.counterStack  = Immutable.Stack([0]);
@@ -120,7 +124,11 @@
       case BC.Pop:
         if (arg !== null){ throw Error('Pop arg should be null, was '+arg); }
         var val = c.valueStack.peek();
-        if (val.cleanup){ val.cleanup(); }
+        // if it's a closure being popped off, decref its scopes
+        if (val && val.cleanup){
+          val.cleanup();
+          console.log("because popping function object");
+        }
         c.valueStack = c.valueStack.pop();
         break;
       case BC.NameLookup:
@@ -138,6 +146,7 @@
         c.valueStack = c.valueStack.pop();
         var funcObj;
         env.incref();
+        console.log('because building function object');
         if (arg === null){  // lambda function
           funcObj = new CompiledFunctionObject(params, code, env, null);
           c.valueStack = c.valueStack.push(funcObj);
@@ -500,6 +509,7 @@
   }
 
   function bcexec(s, env, debugSource){
+    if (debugSource === true){ debugSource = s; }
     var ast = parse(s);
     var bytecode = compileProgram(ast);
     var result = execBytecode(bytecode, env, debugSource);

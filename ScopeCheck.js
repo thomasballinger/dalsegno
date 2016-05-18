@@ -50,6 +50,7 @@
   };
   ScopeCheck.prototype.incref = function(scopeId){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
+    console.log('increffing', scopeId);
     //TODO do this mutably
     this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
     var parent = this.scopes.getIn([scopeId, 'parent']);
@@ -58,6 +59,7 @@
     }
   };
   ScopeCheck.prototype.decref = function(scopeId){
+    console.log('decreffing', scopeId);
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     var refcount = this.scopes.getIn([scopeId, 'refcount']);
     if (refcount === 1){
@@ -66,6 +68,7 @@
       this.scopes = this.scopes.delete(scopeId);
       if (parent !== null){
         this.decref(parent);
+        console.log('and decreffing its parent', parent);
       }
     } else {
       this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e - 1);

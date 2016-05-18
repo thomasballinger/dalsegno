@@ -93,25 +93,36 @@ describe('ScopeCheck', function(){
     */
   });
   describe("code refcounts", function(){
-    it('lambda increfs', function(){
+    it.only('ends a run with the scope collected', function(){
+      var env = new Environment();
+      var sc = env.runner.scopeCheck;
+      assert.equal(sc.scopes.count(), 1);
+      assert.equal(sc.getCount(env.mutableScope), 1);
+      bcexec('1', env, true);
+      assert.equal(sc.scopes.count(), 1);
+    });
+    it('returned lambda increfs', function(){
       var env = new Environment();
       var sc = env.runner.scopeCheck;
       assert.equal(sc.scopes.count(), 1);
       assert.equal(sc.getCount(env.mutableScope), 1);
       bcexec('(lambda () 1)', env);
       assert.equal(sc.scopes.count(), 1);
-      assert.equal(sc.getCount(env.mutableScope), 2);
+      assert.equal(sc.getCount(env.mutableScope), 1);
     });
     it('popped lambda decrefs', function(){
       var env = new Environment();
       var sc = env.runner.scopeCheck;
       assert.equal(sc.scopes.count(), 1);
       assert.equal(sc.scopes.get(env.mutableScope).get('refcount'), 1);
+      console.log(''+sc);
       bcexec('(lambda () 1)\n1', env);
+      //TOMHERE TODO why am I not doing this?
+      console.log(''+sc);
       assert.equal(sc.scopes.count(), 1);
       assert.equal(sc.getCount(env.mutableScope), 1);
     });
-    it.only('leaving scope decrefs that scope', function(){
+    it('leaving scope decrefs that scope', function(){
       var env = new Environment();
       var sc = env.runner.scopeCheck;
       assert.equal(sc.scopes.count(), 1);
@@ -122,20 +133,26 @@ describe('ScopeCheck', function(){
       assert.equal(sc.scopes.count(), 1);
       assert.equal(sc.getCount(env.mutableScope), 1);
     });
-    /*
     it('leaving scope cleans up closures in that scope', function(){
-      var env = new Environment();
+      function TermScope(){
+        this.assertTwoScopes = function(){
+          console.log(''+sc);
+          assert.equal(sc.scopes.count(), 2);
+          assert.equal(sc.getCount(env.mutableScope), 3);
+        };
+      }
+      var env = new Environment(undefined, [new TermScope()]);
       var sc = env.runner.scopeCheck;
       assert.equal(sc.scopes.count(), 1);
-      assert.equal(sc.scopes.get(env.mutableScope).get('refcount'), 1);
+      assert.equal(sc.getCount(env.mutableScope), 1);
       bcexec(`(define foo (lambda ()
                  (define bar (lambda () 1))
+                 (assertTwoScopes)
                  1))
               (foo)`, env);
-      assert.equal(sc.scopes.count(), 2);
+      assert.equal(sc.scopes.count(), 1);
       assert.equal(sc.getCount(env.mutableScope), 2);
     });
-    */
   });
   describe("ingest", function(){
     it('adds scopes', function(){

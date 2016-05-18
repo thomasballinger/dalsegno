@@ -199,9 +199,9 @@
         return value;
       }
     }
-    for (var i = this.scopes.length - 1; i >= 0; i--){
-      var scope = this.scopes[i];
-      if (this.scopes[i].hasOwnProperty(key)){
+    for (var i = this.libraryScopes.length - 1; i >= 0; i--){
+      var scope = this.libraryScopes[i];
+      if (this.libraryScopes[i].hasOwnProperty(key)){
         throw Error("Name '"+key+"' is in a library scope so can't be changed");
       }
     }
@@ -300,10 +300,11 @@
       s += this.runner.scopeCheck.keys(this.mutableScope);
     }
     for (var i = this.libraryScopes.length - 1; i>=0; i--){
-      var obj = Object.keys(this.scopes[i]);
-      s = s + obj;
+      var obj = Object.keys(this.libraryScopes[i]);
       s = s + "\n";
+      s = s + obj;
     }
+    s = s + "\n";
     if (this.runner){
       s += 'with runner ';
       s += this.runner;

@@ -321,12 +321,11 @@
     throw e;
   }
 
-  function compile(){
-    throw Error("Deprecated; use compileProgram or compileFunctionBody");
-  }
-
+  /** Compiles a program which expects to be run with an environment
+   * and will decref that environment once finished */
   function compileProgram(ast){
     var code = buildProgram(ast).compile();
+    console.log('compile program output:', code);
     Object.freeze(code);
     return code;
   }
