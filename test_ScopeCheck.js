@@ -237,22 +237,26 @@ describe('ScopeCheck', function(){
 
       var unusedScope = sc.new();
 
-      var funcScope1 = sc.new();
-      var funcEnv1 = new Environment();
-      funcEnv1.runner.scopeCheck = sc;
-      funcEnv1.mutableScope = funcScope1;
-      var funcOnStack = new bcexec.CompiledFunctionObject([], [], funcEnv1, null);
-      c.valueStack = c.valueStack.push(funcOnStack);
+      function closure(){
+        var scope = sc.new();
+        var funcEnv = new Environment();
+        funcEnv.runner.scopeCheck = sc;
+        funcEnv.mutableScope = scope;
+        return new bcexec.CompiledFunctionObject([], [], funcEnv, null);
+      }
 
-      var funcScope2 = sc.new();
-      var funcEnv2 = new Environment();
-      funcEnv2.runner.scopeCheck = sc;
-      funcEnv2.mutableScope = funcScope2;
-      var funcInListOnStack = new bcexec.CompiledFunctionObject([], [], funcEnv2, null);
-      var list = Immutable.List([0, 1, 2, funcInListOnStack]);
+      var funcOnStack = closure();
+      c.valueStack = c.valueStack.push(funcOnStack);
+      var funcInListInListOnStack = closure();
+      var funcInListOnStack = closure();
+      var list = Immutable.List([0, 1, 2, funcInListOnStack,
+                                 Immutable.List([funcInListInListOnStack])]);
       c.valueStack = c.valueStack.push(list);
 
-      assert.sameMembers(c.getScopes(), [env.mutablescope, funcScope1, funcScope2]);
+      assert.sameMembers(c.getScopes(), [env.mutableScope,
+                                         funcOnStack.env.mutableScope,
+                                         funcInListOnStack.env.mutableScope,
+                                         funcInListInListOnStack.env.mutableScope]);
       //check that closures (function objects) on the stack
       //and list of closures on the stack get reported
     });

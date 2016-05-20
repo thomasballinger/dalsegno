@@ -41,7 +41,7 @@
   };
   CompiledFunctionObject.prototype.getScopes = function(){
     return this.env.getScopes();
-  }
+  };
   CompiledFunctionObject.prototype.toString = function(){
     return 'λ('+ (this.params ? this.params : '') +'): '+pprint(this.code);
   };
@@ -71,9 +71,19 @@
     var scopes = this.envStack.flatMap( env => {
       return env.getScopes();
     }).toJS();
-    this.valueStack
-    //TODO find scopes on the stack as well
-    return scopes;
+
+    /** Gets scopes from nested arrays */
+    function getScopes(val){
+      if (Immutable.Iterable.isIterable(val)){
+        return val.flatMap(getScopes).toJS();
+      } else if (val.getScopes){
+        return val.getScopes();
+      } else {
+        return [];
+      }
+    }
+    var moreScopes = this.valueStack.flatMap(getScopes).toJS();
+    return scopes.concat(moreScopes);
   };
   Context.prototype.pprint = function(){
     return {
