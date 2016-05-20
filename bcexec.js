@@ -132,6 +132,11 @@
         c.bytecodeStack = c.bytecodeStack.pop();
         c.counterStack = c.counterStack.pop();
         c.envStack = c.envStack.pop();
+        var scopesToKeep = c.getScopes();
+        console.log('gcing, keeping scopes', scopesToKeep);
+        env.runner.scopeCheck.gc(scopesToKeep);
+        console.log('because returning!');
+
         if (c.bytecodeStack.count() === 0){
           c.done = true;
         } else {
