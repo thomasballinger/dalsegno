@@ -40,7 +40,7 @@
     this.env.incref();
   };
   CompiledFunctionObject.prototype.getScopes = function(){
-    return this.env.getScopes();
+    return [this.env.mutableScope];
   };
   CompiledFunctionObject.prototype.toString = function(){
     return 'λ('+ (this.params ? this.params : '') +'): '+pprint(this.code);
@@ -67,10 +67,11 @@
     c.done          = done;
     return c;
   };
+  /** Gets scopes directly referenced in context
+   * Does not include parents or contained scopes */
   Context.prototype.getScopes = function(){
-    var scopes = this.envStack.flatMap( env => {
-      return env.getScopes();
-    }).toJS();
+    var envStackScopes = this.envStack.flatMap( env => env.mutableScope ? [env.mutableScope] : [] ).toJS();
+    console.log('scopes from envStack:', envStackScopes);
 
     /** Gets scopes from nested arrays */
     function getScopes(val){
@@ -82,8 +83,9 @@
         return [];
       }
     }
-    var moreScopes = this.valueStack.flatMap(getScopes).toJS();
-    return scopes.concat(moreScopes);
+    var valueStackScopes = this.valueStack.flatMap(getScopes).toJS();
+    console.log('scopes from valueStack:', valueStackScopes);
+    return envStackScopes.concat(valueStackScopes);
   };
   Context.prototype.pprint = function(){
     return {

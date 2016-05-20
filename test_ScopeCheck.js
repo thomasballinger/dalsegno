@@ -217,7 +217,7 @@ describe('ScopeCheck', function(){
     });
   });
   */
-  describe.only("garbage collection", function(){
+  describe("garbage collection:", function(){
     function closureMaker(sc){
       return (function(){
         var scope = sc.new();
@@ -228,7 +228,7 @@ describe('ScopeCheck', function(){
       });
     }
 
-    it('finds scopes in context in envs', function(){
+    it('context finds scopes in envs', function(){
       var env = new Environment();
       var sc = env.runner.scopeCheck;
       var s = `(blah blah fake source code)`;
@@ -237,7 +237,7 @@ describe('ScopeCheck', function(){
       var notUsedScope = sc.new({});
       var newEnv = env.newWithScope({});
       c.envStack = c.envStack.pop().push(newEnv);
-      assert.sameMembers(c.getScopes(), [originalScope, newEnv.mutableScope]);
+      assert.sameMembers(c.getScopes(), [newEnv.mutableScope]);
     });
     it('finds scopes in context in stack', function(){
       var env = new Environment();
@@ -281,15 +281,15 @@ describe('ScopeCheck', function(){
                       f2.env.mutableScope,
                       f3.env.mutableScope];
 
-      assert.sameMembers(sc.connectedScopes([f1.env.mutableScope]), expected);
-      assert.sameMembers(sc.connectedScopes([f2.env.mutableScope]), expected);
-      assert.sameMembers(sc.connectedScopes([f3.env.mutableScope]), expected);
+      assert.sameMembers(sc.getConnectedScopes([f1.env.mutableScope]), expected);
+      assert.sameMembers(sc.getConnectedScopes([f2.env.mutableScope]), expected);
+      assert.sameMembers(sc.getConnectedScopes([f3.env.mutableScope]), expected);
 
       var f4 = closure();
 
-      assert.sameMembers(sc.connectedScopes([f4.env.mutableScope]), [f4.env.mutableScope]);
+      assert.sameMembers(sc.getConnectedScopes([f4.env.mutableScope]), [f4.env.mutableScope]);
     });
-    it("a closure's scope's parents make it in", function(){
+    it("a closure's parent scopes make it in", function(){
       var env = new Environment();
       var sc = env.runner.scopeCheck;
       var closure = closureMaker(sc);
@@ -299,10 +299,21 @@ describe('ScopeCheck', function(){
       var childScope = sc.newFromScope(f1.env.mutableScope);
       f1.env.mutableScope = childScope;
 
-      assert.sameMembers(sc.connectedScopes([childScope]), [childScope, parentScope]);
+      assert.sameMembers(sc.getConnectedScopes([childScope]), [childScope, parentScope]);
     });
-    it('collects scopes that only access themselves', function(){ });
-    it('collects scopes that ', function(){ });
+    it('collects scopes that are only accessed by themselves', function(){ });
+      var env = new Environment();
+      var sc = env.runner.scopeCheck;
+      var closure = closureMaker(sc);
+
+      var f1 = closure();
+      f1.env.define('foo', f1);
+      var parentScope = f1.env.mutableScope;
+      var childScope = sc.newFromScope(f1.env.mutableScope);
+      f1.env.mutableScope = childScope;
+
+      assert.sameMembers(sc.gc([env.mutableScope]), [childScope, parentScope]);
+      assert.sameMembers([env.mutableScope], sc.scopes.keySeq().toArray());
   });
   describe("ingest", function(){
     it('adds scopes', function(){

@@ -82,6 +82,10 @@
     var result = Object.keys(this.scopes.get(scopeId).get('data').toJS());
     return result;
   };
+  ScopeCheck.prototype.values = function(scopeId){
+    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId); }
+    return this.scopes.get(scopeId).get('data').toList().toJS();
+  };
   ScopeCheck.prototype.mapping = function(scopeId){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId); }
     var immutableScope = this.scopes.get(scopeId).get('data');
@@ -136,8 +140,33 @@
     names.sort();
     return names.join(', ').slice(0, 100);
   };
-  ScopeCheck.prototype.getScopes = function(scopeId){
-    return [scopeId].concat(this.getParents(scopeId));
+  /** Returns the parents of a scope, the scopes contained in a scope,
+   * and the scopes contained in those parents */
+  ScopeCheck.prototype.getScopesInScopeAndParents = function(scopeId, ignoreParents){
+    function getScopes(val){
+      if (Immutable.Iterable.isIterable(val)){
+        return val.flatMap(getScopes).toJS();
+      } else if (val.getScopes){
+        // functions are the only thing that will have this
+        if (val.constructor.name !== 'CompiledFunctionObject'){
+          throw Error('found non-CompiledFunctionObject with .getScopes prop: '+val);
+        }
+        return val.getScopes();
+      } else {
+        return [];
+      }
+    }
+
+    if (ignoreParents){
+      var tmp = this.scopes.get(scopeId).get('data').toList().flatMap(getScopes).toJS();
+      return tmp;
+    }
+    var lineage = Immutable.List([scopeId].concat(this.getParents(scopeId)));
+    var contained = lineage.flatMap(x => this.values(x)).flatMap(getScopes).toJS();
+    return lineage.concat(contained).toJS();
+  };
+  ScopeCheck.prototype.getScopesInScope = function(scopeId){
+    return this.getScopesInScopeAndParents(scopeId, true);
   };
   ScopeCheck.prototype.getParents = function(scopeId){
     var parents = [];
@@ -148,9 +177,30 @@
     }
     return parents;
   };
-  scopeCheck.prototype.getConnectedScopes = function(seen){
-    seen = seen.slice();
-    return seen;
+  ScopeCheck.prototype.getConnectedScopes = function(seen){
+    if (seen.length < 1){ return []; }
+    var fringe = seen.slice();
+    seen = Immutable.Set([]).asMutable();
+    while (fringe.length > 0){
+      var cur = fringe.pop();
+      if (seen.includes(cur)){
+        continue;
+      }
+      seen.add(cur);
+      fringe.push.apply(fringe, this.getScopesInScopeAndParents(cur));
+    }
+    return seen.toArray();
+  };
+  /** Collects anything unreachable from reachable array
+   * and returns the scopes collected */
+  ScopeCheck.prototype.gc = function(reachable){
+    if (!Array.isArray(reachable)){ throw Error('gc needs an array of reachable scopes'); }
+    reachable = Immutable.Set(this.getConnectedScopes(reachable));
+    var toRemove = this.scopes.keySeq().toSet().subtract(reachable).toArray();
+    toRemove.forEach( scope => {
+      this.scopes = this.scopes.remove(scope);
+    });
+    return toRemove;
   };
 
   ScopeCheck.prototype.forEachValue = function(cb){
