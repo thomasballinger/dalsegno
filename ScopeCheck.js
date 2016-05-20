@@ -148,6 +148,10 @@
     }
     return parents;
   };
+  scopeCheck.prototype.getConnectedScopes = function(seen){
+    seen = seen.slice();
+    return seen;
+  };
 
   ScopeCheck.prototype.forEachValue = function(cb){
     this.scopes.forEach( (scope, id) => {

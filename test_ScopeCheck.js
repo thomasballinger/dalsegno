@@ -218,6 +218,16 @@ describe('ScopeCheck', function(){
   });
   */
   describe.only("garbage collection", function(){
+    function closureMaker(sc){
+      return (function(){
+        var scope = sc.new();
+        var funcEnv = new Environment();
+        funcEnv.runner.scopeCheck = sc;
+        funcEnv.mutableScope = scope;
+        return new bcexec.CompiledFunctionObject([], [], funcEnv, null);
+      });
+    }
+
     it('finds scopes in context in envs', function(){
       var env = new Environment();
       var sc = env.runner.scopeCheck;
@@ -237,14 +247,7 @@ describe('ScopeCheck', function(){
 
       var unusedScope = sc.new();
 
-      function closure(){
-        var scope = sc.new();
-        var funcEnv = new Environment();
-        funcEnv.runner.scopeCheck = sc;
-        funcEnv.mutableScope = scope;
-        return new bcexec.CompiledFunctionObject([], [], funcEnv, null);
-      }
-
+      var closure = closureMaker(sc);
       var funcOnStack = closure();
       c.valueStack = c.valueStack.push(funcOnStack);
       var funcInListInListOnStack = closure();
@@ -257,12 +260,47 @@ describe('ScopeCheck', function(){
                                          funcOnStack.env.mutableScope,
                                          funcInListOnStack.env.mutableScope,
                                          funcInListInListOnStack.env.mutableScope]);
-      //check that closures (function objects) on the stack
-      //and list of closures on the stack get reported
     });
     //TODO what about functions in the process of being constructed on the stack?
     //They're probably fine...
-    it('finds all accessible scopes', function(){ });
+    it("a closure's contents make it in", function(){
+      var env = new Environment();
+      var sc = env.runner.scopeCheck;
+      var closure = closureMaker(sc);
+
+      var f1 = closure();
+      var f2 = closure();
+      var f3 = closure();
+
+      // circular references
+      f1.env.define('a', f2);
+      f2.env.define('b', f3);
+      f3.env.define('c', f1);
+
+      var expected = [f1.env.mutableScope,
+                      f2.env.mutableScope,
+                      f3.env.mutableScope];
+
+      assert.sameMembers(sc.connectedScopes([f1.env.mutableScope]), expected);
+      assert.sameMembers(sc.connectedScopes([f2.env.mutableScope]), expected);
+      assert.sameMembers(sc.connectedScopes([f3.env.mutableScope]), expected);
+
+      var f4 = closure();
+
+      assert.sameMembers(sc.connectedScopes([f4.env.mutableScope]), [f4.env.mutableScope]);
+    });
+    it("a closure's scope's parents make it in", function(){
+      var env = new Environment();
+      var sc = env.runner.scopeCheck;
+      var closure = closureMaker(sc);
+
+      var f1 = closure();
+      var parentScope = f1.env.mutableScope;
+      var childScope = sc.newFromScope(f1.env.mutableScope);
+      f1.env.mutableScope = childScope;
+
+      assert.sameMembers(sc.connectedScopes([childScope]), [childScope, parentScope]);
+    });
     it('collects scopes that only access themselves', function(){ });
     it('collects scopes that ', function(){ });
   });
