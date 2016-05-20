@@ -128,43 +128,31 @@ describe('ScopeCheck', function(){
               1`, env);
       assert.equal(sc.scopes.count(), 0);
     });
-    it.only('leaving scope decrefs that scope', function(){
+    it('leaving scope decrefs that scope', function(){
       //TODO why are lambdas appearing as placeholders on the valueStack?
       var env = new Environment();
       var sc = env.runner.scopeCheck;
       var s = `(define foo (lambda () 1))
              (foo)
              1`;
-      bcexec(s, env, true);
-      console.log(s);
-      console.log(''+sc);
-      //TODO TOMHERE tests failing because global program scope contains a reference
-      //to a function which contains a reference to that scope!
-      //tests needed for returning from scopes that define one function (like this)
-      //or multiple functions to ensure whatever harebrained thing we come up with
-      //works for this common case.
-      //
-      //Ugh, I guess the proper way is cycle detection...
+      bcexec(s, env, false);
       assert.equal(sc.scopes.count(), 0);
     });
     it('leaving scope cleans up closures in that scope', function(){
       function TermScope(){
         this.assertTwoScopes = function(){
           assert.equal(sc.scopes.count(), 2);
-          assert.equal(sc.getCount(env.mutableScope), 3);
+          assert.equal(sc.getCount(env.mutableScope), 5);
         };
       }
       var env = new Environment(undefined, [new TermScope()]);
       var sc = env.runner.scopeCheck;
-      assert.equal(sc.scopes.count(), 1);
-      assert.equal(sc.getCount(env.mutableScope), 1);
       bcexec(`(define foo (lambda ()
                  (define bar (lambda () 1))
                  (assertTwoScopes)
                  1))
               (foo)`, env);
-      assert.equal(sc.scopes.count(), 1);
-      assert.equal(sc.getCount(env.mutableScope), 2);
+      assert.equal(sc.scopes.count(), 0);
     });
     it('define decrefs when pushed off', function(){
       var env = new Environment();

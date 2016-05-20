@@ -77,7 +77,7 @@
     function getScopes(val){
       if (Immutable.Iterable.isIterable(val)){
         return val.flatMap(getScopes).toJS();
-      } else if (val.getScopes){
+      } else if (val && val.getScopes){
         return val.getScopes();
       } else {
         return [];
