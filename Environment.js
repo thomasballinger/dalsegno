@@ -278,6 +278,12 @@
       //TODO update scope numbers - for now just hoping they don't collide
     }
   };
+
+  Environment.prototype.getScopes = function(){
+    if (this.mutableScope === null){ return []; }
+    return this.runner.scopeCheck.getScopes(this.mutableScope);
+  };
+
   /** Decref mutable scope */
   Environment.prototype.decref = function(){
     this.runner.scopeCheck.decref(this.mutableScope);

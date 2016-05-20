@@ -3,6 +3,8 @@ var chai = require('chai');
 var assert = chai.assert;
 
 
+var Immutable = require('./Immutable.js');
+var parse = require('./parse.js');
 var ScopeCheck = require('./ScopeCheck.js').ScopeCheck;
 var bcexec = require('./bcexec.js');
 var Environment = require('./Environment.js');
@@ -215,6 +217,51 @@ describe('ScopeCheck', function(){
     });
   });
   */
+  describe.only("garbage collection", function(){
+    it('finds scopes in context in envs', function(){
+      var env = new Environment();
+      var sc = env.runner.scopeCheck;
+      var s = `(blah blah fake source code)`;
+      var c = new bcexec.Context(bcexec.compileProgram(parse(s)), env);
+      var originalScope = env.mutableScope;
+      var notUsedScope = sc.new({});
+      var newEnv = env.newWithScope({});
+      c.envStack = c.envStack.pop().push(newEnv);
+      assert.sameMembers(c.getScopes(), [originalScope, newEnv.mutableScope]);
+    });
+    it('finds scopes in context in stack', function(){
+      var env = new Environment();
+      var sc = env.runner.scopeCheck;
+      var s = `(blah blah fake source code)`;
+      var c = new bcexec.Context(bcexec.compileProgram(parse(s)), env);
+
+      var unusedScope = sc.new();
+
+      var funcScope1 = sc.new();
+      var funcEnv1 = new Environment();
+      funcEnv1.runner.scopeCheck = sc;
+      funcEnv1.mutableScope = funcScope1;
+      var funcOnStack = new bcexec.CompiledFunctionObject([], [], funcEnv1, null);
+      c.valueStack = c.valueStack.push(funcOnStack);
+
+      var funcScope2 = sc.new();
+      var funcEnv2 = new Environment();
+      funcEnv2.runner.scopeCheck = sc;
+      funcEnv2.mutableScope = funcScope2;
+      var funcInListOnStack = new bcexec.CompiledFunctionObject([], [], funcEnv2, null);
+      var list = Immutable.List([0, 1, 2, funcInListOnStack]);
+      c.valueStack = c.valueStack.push(list);
+
+      assert.sameMembers(c.getScopes(), [env.mutablescope, funcScope1, funcScope2]);
+      //check that closures (function objects) on the stack
+      //and list of closures on the stack get reported
+    });
+    //TODO what about functions in the process of being constructed on the stack?
+    //They're probably fine...
+    it('finds all accessible scopes', function(){ });
+    it('collects scopes that only access themselves', function(){ });
+    it('collects scopes that ', function(){ });
+  });
   describe("ingest", function(){
     it('adds scopes', function(){
       var sc1 = new ScopeCheck();

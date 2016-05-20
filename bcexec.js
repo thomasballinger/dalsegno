@@ -39,6 +39,9 @@
   CompiledFunctionObject.prototype.incref = function(){
     this.env.incref();
   };
+  CompiledFunctionObject.prototype.getScopes = function(){
+    return this.env.getScopes();
+  }
   CompiledFunctionObject.prototype.toString = function(){
     return 'λ('+ (this.params ? this.params : '') +'): '+pprint(this.code);
   };
@@ -63,6 +66,14 @@
     c.valueStack    = valueStack;
     c.done          = done;
     return c;
+  };
+  Context.prototype.getScopes = function(){
+    var scopes = this.envStack.flatMap( env => {
+      return env.getScopes();
+    }).toJS();
+    this.valueStack
+    //TODO find scopes on the stack as well
+    return scopes;
   };
   Context.prototype.pprint = function(){
     return {
@@ -541,6 +552,7 @@
   bcexec.Context = Context;
   bcexec.execBytecodeOneStep = execBytecodeOneStep;
   bcexec.dis = dis;
+  bcexec.CompiledFunctionObject = CompiledFunctionObject;
   //TODO add functions needed by bcrun
 
   if (typeof exports !== 'undefined') {

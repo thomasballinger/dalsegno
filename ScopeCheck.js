@@ -136,6 +136,18 @@
     names.sort();
     return names.join(', ').slice(0, 100);
   };
+  ScopeCheck.prototype.getScopes = function(scopeId){
+    return [scopeId].concat(this.getParents(scopeId));
+  };
+  ScopeCheck.prototype.getParents = function(scopeId){
+    var parents = [];
+    var cur = this.scopes.getIn([scopeId, 'parent']);
+    while(cur){
+      parents.push(cur);
+      cur = this.scopes.getIn([cur, 'parent']);
+    }
+    return parents;
+  };
 
   ScopeCheck.prototype.forEachValue = function(cb){
     this.scopes.forEach( (scope, id) => {
