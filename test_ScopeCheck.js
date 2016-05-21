@@ -185,7 +185,6 @@ describe('ScopeCheck', function(){
       function TermScope(){
         this.assertTwoScopes = function(){
           assert.equal(sc.scopes.count(), 2);
-          assert.equal(sc.getCount(env.mutableScope), 3);
         };
       }
       var env = new Environment(undefined, [new TermScope()]);
@@ -195,8 +194,7 @@ describe('ScopeCheck', function(){
                 (assertTwoScopes)
                 1))
               (foo)`, env);
-      assert.equal(sc.scopes.count(), 1);
-      assert.equal(sc.getCount(env.mutableScope), 2);
+      assert.equal(sc.scopes.count(), 0);
     });
   });
   /*
@@ -360,7 +358,7 @@ describe('memory leaks', function(){
     var sc = env.runner.scopeCheck;
 
     console.log(''+sc);
-    bcexec(s, env, s);
-    assert.equal(sc.scopes.count(), 2);
+    bcexec(s, env, false);
+    assert.equal(sc.scopes.count(), 0);
   });
 });

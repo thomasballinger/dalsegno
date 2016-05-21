@@ -272,6 +272,12 @@
             c.bytecodeStack = c.bytecodeStack.pop().push(func.code);
             c.counterStack = c.counterStack.pop().push(counter);
             c.envStack = c.envStack.pop().push(newEnv);
+
+            var scopesToKeep = c.getScopes();
+            console.log('gcing, keeping scopes', scopesToKeep);
+            newEnv.runner.scopeCheck.gc(scopesToKeep);
+            console.log('because TCing!');
+
           } else { throw Error('nonexhaustive match'); }
         }
         break;
