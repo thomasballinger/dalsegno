@@ -71,7 +71,6 @@
    * Does not include parents or contained scopes */
   Context.prototype.getScopes = function(){
     var envStackScopes = this.envStack.flatMap( env => env.mutableScope ? [env.mutableScope] : [] ).toJS();
-    console.log('scopes from envStack:', envStackScopes);
 
     /** Gets scopes from nested arrays */
     function getScopes(val){
@@ -84,7 +83,6 @@
       }
     }
     var valueStackScopes = this.valueStack.flatMap(getScopes).toJS();
-    console.log('scopes from valueStack:', valueStackScopes);
     return envStackScopes.concat(valueStackScopes);
   };
   Context.prototype.pprint = function(){
@@ -128,14 +126,11 @@
         break;
       case BC.Return:
         env.decref();
-        console.log('because returning');
         c.bytecodeStack = c.bytecodeStack.pop();
         c.counterStack = c.counterStack.pop();
         c.envStack = c.envStack.pop();
         var scopesToKeep = c.getScopes();
-        console.log('gcing, keeping scopes', scopesToKeep);
         env.runner.scopeCheck.gc(scopesToKeep);
-        console.log('because returning!');
 
         if (c.bytecodeStack.count() === 0){
           c.done = true;
@@ -160,7 +155,6 @@
         // if it's a closure being popped off, decref its scopes
         if (val && val.decref){
           val.decref();
-          console.log("because popping function object");
         }
         c.valueStack = c.valueStack.pop();
         break;
@@ -179,7 +173,6 @@
         c.valueStack = c.valueStack.pop();
         var funcObj;
         env.incref();
-        console.log('because building function object');
         if (arg === null){  // lambda function
           funcObj = new CompiledFunctionObject(params, code, env, null);
           c.valueStack = c.valueStack.push(funcObj);
@@ -259,7 +252,6 @@
           args.forEach((x, i) => scope[func.params[i]] = x);
           var newEnv = func.env.newWithScope(scope, env.runner);
           func.decref(); // done with the function object now that env created
-          console.log('because calling that function object so done with it');
 
           // off the top (-1) because counter++ at end of this tick
           counter = -1;
@@ -274,9 +266,7 @@
             c.envStack = c.envStack.pop().push(newEnv);
 
             var scopesToKeep = c.getScopes();
-            console.log('gcing, keeping scopes', scopesToKeep);
             newEnv.runner.scopeCheck.gc(scopesToKeep);
-            console.log('because TCing!');
 
           } else { throw Error('nonexhaustive match'); }
         }

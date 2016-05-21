@@ -12,7 +12,7 @@ var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
 
 // environment with just an arity-2 sum function for testing
 var justSumScope = {'+': function(a, b){return a + b; }};
-var justSum = new Environment(justSumScope);
+var justSum = function(){ return new Environment(justSumScope); };
 
 var lastAssignedEnv;
 var buildJustSum = function(runner){
@@ -28,7 +28,7 @@ describe('Evaluation with bytecode', function(){
   describe('Lambda', function(){
     it('should work', function(){
       assert.deepEqual(run('((lambda () 1))'), 1);
-      assert.deepEqual(run('((lambda (a b) (+ a b)) 1 2)', justSum), 3);
+      assert.deepEqual(run('((lambda (a b) (+ a b)) 1 2)', justSum()), 3);
     });
   });
   describe('NamedFunction', function(){
@@ -41,9 +41,12 @@ describe('Evaluation with bytecode', function(){
   });
   describe('Set', function(){
     it('should change the rightmost occurence', function(){
+      var tmpScope = new function(){ this.assertion = function(){
+        assert.deepEqual(tmpEnv.toObjects(), [{a: 1}, {a: 3}]);
+      };};
       var tmpEnv = Environment.fromMultipleMutables([{a: 1}, {a: 2}]);
-      run('(set! a 3)', tmpEnv);
-      assert.deepEqual(tmpEnv.toObjects(), [{a: 1}, {a: 3}]);
+      tmpEnv.libraryScopes = [tmpScope];
+      run('(set! a 3)\n(assertion)', tmpEnv);
     });
   });
   describe('If', function(){
@@ -53,33 +56,43 @@ describe('Evaluation with bytecode', function(){
   });
   describe('Begin', function(){
     it('should run stuff in order', function(){
-      var tmpEnv = new Environment({a: 2});
-      run('(begin (set! a 3) (set! a 4))', tmpEnv);
-      assert.deepEqual(tmpEnv.toObjects(), [{a: 4}]);
+      var tmpScope = new function(){ this.assertion = function(){
+        assert.deepEqual(tmpEnv.toObjects(), [{a: 4}]);
+      };};
+      var tmpEnv = new Environment({a: 2}, [tmpScope]);
+      run('(begin (set! a 3) (set! a 4) (assertion))', tmpEnv);
     });
     it('should run all statements', function(){
-      var tmpEnv = new Environment({a: 2});
-      run('(begin (define b 3) (define c 4) (define d 5))', tmpEnv);
-      assert.deepEqual(tmpEnv.toObjects(), [{a: 2, b: 3, c: 4, d: 5}]);
+      var tmpScope = new function(){ this.assertion = function(){
+        assert.deepEqual(tmpEnv.toObjects(), [{a: 2, b: 3, c: 4, d: 5}]);
+      };};
+      var tmpEnv = new Environment({a: 2}, [tmpScope]);
+      run('(begin (define b 3) (define c 4) (define d 5) (assertion))', tmpEnv);
     });
     it('should run each statement once', function(){
+      var tmpScope = new function(){ this.assertion = function(){
+        assert.deepEqual(tmpEnv.toObjects()[1], {a: 2, b: 2, c: 2});
+      };};
       var tmpEnv = Environment.fromMultipleMutables([justSumScope, {a: 1, b: 1, c: 1}]);
-      run('(begin (set! a (+ a 1)) (set! b (+ b 1)) (set! c (+ c 1)))', tmpEnv);
-      assert.deepEqual(tmpEnv.toObjects()[1], {a: 2, b: 2, c: 2});
+      tmpEnv.libraryScopes = [tmpScope];
+      run('(begin (set! a (+ a 1)) (set! b (+ b 1)) (set! c (+ c 1)) (assertion))', tmpEnv);
     });
   });
   describe('define', function(){
     it('should create new variables in the local scope', function(){
+      var tmpScope = new function(){ this.assertion = function(){
+        assert.deepEqual(tmpEnv.toObjects(), [{a: 2}, {a: 3, b: 10}]);
+      };};
       var tmpEnv = Environment.fromMultipleMutables([{a: 2}, {a: 3}]);
-      run('(define b 10)', tmpEnv);
-      assert.deepEqual(tmpEnv.toObjects(), [{a: 2}, {a: 3, b: 10}]);
+      tmpEnv.libraryScopes = [tmpScope];
+      run('(define b 10)\n(assertion)', tmpEnv);
     });
   });
   describe('run', function(){
     it("should run code that doesn't contain defns", function(){
       assert.deepEqual(run('1'), 1);
       assert.deepEqual(run('"a"'), 'a');
-      assert.deepEqual(run('(+ 1 2)', justSum), 3);
+      assert.deepEqual(run('(+ 1 2)', justSum()), 3);
     });
   });
   describe('runWithDefn', function(){
@@ -128,25 +141,33 @@ describe('Evaluation with bytecode', function(){
   describe("Runner object", function(){
     describe('Runs code', function(){
       it('should run code without defns', function(){
-        var lastAssignedEnv;
         var tmpEnvBuilder = function(runner){
           var env = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1}], runner);
-          lastAssignedEnv = env;
+
+          var tmpScope = new function(){
+            this.assertion1 = function(){
+              assert.deepEqual(env.toObjects()[1], {a: 1, b: 2});
+            };
+          };
+          env.libraryScopes = [tmpScope];
           return env;
         };
 
         var runner = new Runner(null);
-        runner.runLibraryCode('(define b 2)', tmpEnvBuilder());
+
+        runner.runLibraryCode('(define b 2)\n(assertion1)', tmpEnvBuilder());
         assert.throws(function(){ runner.runLibraryCode('(defn foo () 1)');}, /defn/);
-        assert.deepEqual(lastAssignedEnv.toObjects()[1], {a: 1, b: 2});
         runner.setEnvBuilder(tmpEnvBuilder);
         runner.loadUserCode('(defn foo () 1)');
         assert.throws(function(){ runner.value(); }, /Runner doesn't allow named functions/);
         runner.funs = {};
         runner.value();
         assert.deepEqual(runner.funs.foo.name, 'foo');
-        assert.deepEqual(runner.funs.foo.env.scopes,
-                         lastAssignedEnv.scopes);
+        //TOMHERE once defn scope increfing is fixed, we're here
+        assert.deepEqual(runner.funs.foo.env.toObjects(),
+                         lastAssignedEnv.toObjects());
+        /*
+                         */
       });
       it('should load defn code', function(){
         var lastAssignedEnv;

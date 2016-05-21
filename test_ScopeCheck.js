@@ -8,6 +8,7 @@ var parse = require('./parse.js');
 var ScopeCheck = require('./ScopeCheck.js').ScopeCheck;
 var bcexec = require('./bcexec.js');
 var Environment = require('./Environment.js');
+var bcrun = require('./bcrun.js');
 
 describe('ScopeCheck', function(){
   it('can be instantiated', function(){
@@ -197,12 +198,26 @@ describe('ScopeCheck', function(){
       assert.equal(sc.scopes.count(), 0);
     });
   });
-  /*
   describe("runner increfs named funs", function(){
-    it("increfs when storing", function(){
+    it.only("increfs when storing", function(){
+      var runner = new bcrun.BCRunner({});
+      var tmpScope = new function(){
+        this.assertion = function(){
+          assert.equal(runner.scopeCheck.scopes.count(), 2); };
+      };
+
+      runner.setEnvBuilder(function(runner){
+        return new Environment(undefined, [tmpScope], runner);
+      });
+      runner.loadUserCode(`
+        ((lambda ()
+          (define a 1)
+          (defn foo () a)
+          1))
+        (assertion)`);
+      runner.value();
     });
   });
-  */
   describe("garbage collection:", function(){
     function closureMaker(sc){
       return (function(){

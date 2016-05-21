@@ -138,7 +138,7 @@
   }
 
   // testing methods
-  // migrate Environment.fromObjects = function to this
+  // TODO migrate Environment.fromObjects = function to this
   Environment.fromMultipleMutables = function(arr, runner){
     var env = new Environment(arr[0], [], runner);
     for (var scope of arr.slice(1)){

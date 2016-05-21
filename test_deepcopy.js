@@ -68,6 +68,9 @@ describe('copyable execution trees', function(){
           };
           runner.setEnvBuilder(tmpEnvBuilder);
 
+          // also prevent GC so the environment is still valide when we check it
+          runner.scopeCheck.gc = function(){};
+
           runner.loadUserCode('(begin (defn foo () 1) (foo))');
           assert.equal(false, runner.runABit(100));
           console.log('foo:', runner.getState('foo'));

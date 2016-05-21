@@ -42,7 +42,6 @@
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     this.scopes = this.scopes.set(this.nextId, Immutable.Map(
       { refcount: 1, data: Immutable.Map(), parent: scopeId }));
-    console.log('increfing', scopeId, 'because parent of new scope');
     this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
     for (var name of Object.keys(toAdd)){
       this.define(this.nextId, name, toAdd[name]);
@@ -52,7 +51,7 @@
   ScopeCheck.prototype.incref = function(scopeId){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     var refcount = this.scopes.getIn([scopeId, 'refcount']);
-    console.log('increfing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount+1);
+    //console.log('increfing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount+1);
     //TODO do this mutably
     this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
     var parent = this.scopes.getIn([scopeId, 'parent']);
@@ -63,13 +62,13 @@
   ScopeCheck.prototype.decref = function(scopeId){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     var refcount = this.scopes.getIn([scopeId, 'refcount']);
-    console.log('decrefing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount-1);
+    //console.log('decrefing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount-1);
     if (refcount === 1){
       //TODO don't make many copies in this process
       var parent = this.scopes.getIn([scopeId, 'parent']);
       this.scopes = this.scopes.delete(scopeId);
       if (parent !== null){
-        console.log('and its parent', parent);
+        //console.log('and its parent', parent);
         this.decref(parent);
       }
     } else {
@@ -234,21 +233,21 @@
   function incref(val, reason){
     if (val && val.incref){
       val.incref();
-      console.log('because', reason);
+      //console.log('because', reason);
     }
   }
   /** Decrefs if managed object */
   function decref(val, reason){
     if (val && val.decref){
       val.decref();
-      console.log('because', reason);
+      //console.log('because', reason);
     }
   }
   /** Increfs if managed object and returns either way */
   function increfed(val, reason){
     if (val && val.incref){
       val.incref();
-      console.log('because', reason);
+      //console.log('because', reason);
     }
     return val;
   }
@@ -256,7 +255,7 @@
   function decrefed(val, reason){
     if (val && val.decref){
       val.decref();
-      console.log('because', reason);
+      //console.log('because', reason);
     }
     return val;
   }
