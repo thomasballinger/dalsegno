@@ -225,6 +225,10 @@
     if (this.runner.funs === null){
       throw Error("Runner doesn't allow named functions");
     }
+    if (this.runner.funs[name]){
+      this.runner.funs[name].decref();
+    }
+    func.incref();
     this.runner.funs[name] = func;
   };
   Environment.prototype.retrieveFunction = function(name){
@@ -239,7 +243,9 @@
       throw Error("Named function "+name+" not found in " + Object.keys(this.funs));
     }
     this.runner.saveState(name);
-    return this.runner.getFunction(name);
+    var func = this.runner.getFunction(name);
+    func.incref();
+    return func;
   };
   //TODO rename to newWithMapping or similar
   Environment.prototype.newWithScope = function(mapping){

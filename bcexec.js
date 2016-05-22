@@ -129,7 +129,7 @@
         c.bytecodeStack = c.bytecodeStack.pop();
         c.counterStack = c.counterStack.pop();
         c.envStack = c.envStack.pop();
-        var scopesToKeep = c.getScopes();
+        var scopesToKeep = c.getScopes().concat(env.runner.getFunScopes());
         env.runner.scopeCheck.gc(scopesToKeep);
 
         if (c.bytecodeStack.count() === 0){
@@ -265,7 +265,7 @@
             c.counterStack = c.counterStack.pop().push(counter);
             c.envStack = c.envStack.pop().push(newEnv);
 
-            var scopesToKeep = c.getScopes();
+            var scopesToKeep = c.getScopes().concat(env.runner.getFunScopes());
             newEnv.runner.scopeCheck.gc(scopesToKeep);
 
           } else { throw Error('nonexhaustive match'); }

@@ -198,12 +198,17 @@ describe('ScopeCheck', function(){
       assert.equal(sc.scopes.count(), 0);
     });
   });
-  describe("runner increfs named funs", function(){
-    it.only("increfs when storing", function(){
+  describe("runner with named funs", function(){
+    it.only("increfs when storing and doesn't decref or gc", function(){
       var runner = new bcrun.BCRunner({});
       var tmpScope = new function(){
         this.assertion = function(){
-          assert.equal(runner.scopeCheck.scopes.count(), 2); };
+          console.log(runner.funs);
+          console.log(runner.scopeCheck);
+          assert.equal(runner.scopeCheck.scopes.count(), 2);
+        };
+        this.debugreport = function(){
+        };
       };
 
       runner.setEnvBuilder(function(runner){
@@ -215,6 +220,7 @@ describe('ScopeCheck', function(){
           (defn foo () a)
           1))
         (assertion)`);
+      runner.debug = true;
       runner.value();
     });
   });

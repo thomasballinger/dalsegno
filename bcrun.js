@@ -228,6 +228,10 @@
     }
     return this.funs[name];
   };
+  BCRunner.prototype.getFunScopes = function(){
+    if (!this.funs){ return []; }
+    return Object.keys(this.funs).map( name => this.funs[name].env.mutableScope );
+  };
   BCRunner.prototype.value = function(){
     if (!this.context.done){
       while(!this.runOneStep()){}
