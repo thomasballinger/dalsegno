@@ -231,7 +231,6 @@
             }
             err('first expression in form is not a function: '+func, ast);
           }
-          console.log('calling function:', func);
           if (func.name !== null){
 
             // It's important that this happens while the function object

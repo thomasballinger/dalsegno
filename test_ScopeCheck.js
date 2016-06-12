@@ -96,7 +96,7 @@ describe('ScopeCheck', function(){
     */
   });
   describe("code refcounts", function(){
-    it('ends a run with the scope collected', function(){
+    it.only('ends a run with the scope collected', function(){
       var env = new Environment();
       var sc = env.runner.scopeCheck;
       assert.equal(sc.scopes.count(), 1);
@@ -199,7 +199,7 @@ describe('ScopeCheck', function(){
     });
   });
   describe("runner with named funs", function(){
-    it.only("increfs when storing and doesn't decref or gc", function(){
+    it("increfs when storing and doesn't decref or gc", function(){
       var runner = new bcrun.BCRunner({});
       var tmpScope = new function(){
         this.assertion = function(){
@@ -211,7 +211,7 @@ describe('ScopeCheck', function(){
         this.innerAssertion = function(){
           assert.equal(runner.scopeCheck.scopes.count(), 2);
           this.childScope = runner.currentEnv().mutableScope;
-          assert.equal(runner.scopeCheck.getCount(this.childScope), 3);
+          assert.equal(runner.scopeCheck.getCount(this.childScope), 2);
         };
         this.childScope = undefined;
       };
@@ -225,7 +225,7 @@ describe('ScopeCheck', function(){
           (defn foo () a)
           (innerAssertion)))
         (assertion)`);
-      runner.debug = true;
+      //runner.debug = true;
 
       runner.value();
     });

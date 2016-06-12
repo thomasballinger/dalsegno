@@ -212,7 +212,6 @@
     throw Error("Name '"+key+"' not found in environment"+this);
   };
   Environment.prototype.define = function(name, value){
-    console.log('defining', name, 'in environment', this);
     if (!this.mutableScope){
       throw Error("No mutable scope available");
     }
