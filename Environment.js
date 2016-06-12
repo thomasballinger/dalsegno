@@ -191,7 +191,7 @@
       }
     }
     if (this.runner && this.runner.funs && this.runner.functionExists(key)){
-      return new NamedFunctionPlaceholder(key);
+      return new NamedFunctionPlaceholder(key, this.runner);
     }
     if (defaultValue !== undefined){
       return defaultValue;
@@ -237,7 +237,8 @@
     func.incref();
     this.runner.funs[name] = func;
   };
-  Environment.prototype.retrieveFunction = function(name){
+  /** Gets the actual fun from the runner */
+  Environment.prototype.retrieveNamedFunction = function(name){
     if (this.runner === undefined){
       throw Error("Can't look up function because environment doesn't have a runner");
     }

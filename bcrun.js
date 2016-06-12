@@ -168,7 +168,6 @@
       throw Error('looks like there is a defn in this code! '+s);
     }
     if (env === undefined){
-      console.log('building new env');
       env = new Environment(undefined, undefined, this);
     } else {
       this.scopeCheck.ingest(env.runner.scopeCheck);
@@ -230,7 +229,9 @@
   };
   BCRunner.prototype.getFunScopes = function(){
     if (!this.funs){ return []; }
-    return Object.keys(this.funs).map( name => this.funs[name].env.mutableScope );
+    return Object.keys(this.funs)
+      .filter(name => name !== '__obj_id')
+      .map( name => this.funs[name].env.mutableScope);
   };
   BCRunner.prototype.value = function(){
     if (!this.context.done){

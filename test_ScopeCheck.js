@@ -181,7 +181,7 @@ describe('ScopeCheck', function(){
     it.only('closures are saved by set', function(){ });
     it.only('closures are decrefed by set', function(){ });
     it.only('closuers displaced by define are decrefed', function(){ });
-    it.only('looking up a closures increfs it', function(){ });
+    it.only('looking up a closure increfs it', function(){ });
     */
     it('decrefs when making tail call', function(){
       function TermScope(){
@@ -369,7 +369,6 @@ describe('ScopeCheck', function(){
 });
 
 describe('memory leaks', function(){
-  //TODO once everything is working, start decrefing in appropriate places
   it("are prevented in simple recursive functions", function(){
     var s =
 `(define foo (lambda (x)

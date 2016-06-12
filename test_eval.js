@@ -120,19 +120,21 @@ describe('Evaluation with bytecode', function(){
     });
     describe("with runners", function(){
       it('should look up functions and non-functions', function(){
-        var runner = new Runner({'b': 'something'});
+        var fakeFunction = {incref: function(){}};
+        var runner = new Runner({'b': fakeFunction});
         var env = Environment.fromMultipleMutables([{a:1}, {a:2}, {}], runner);
         assert.deepEqual(env.lookup('a'), 2);
         assert.deepEqual(env.lookup('b'), new NamedFunctionPlaceholder('b', runner));
         assert.throws(function(){ env.lookup('c'); }, /not found in/);
-        assert.deepEqual(env.retrieveFunction('b'), 'something');
+        assert.deepEqual(env.retrieveNamedFunction('b'), fakeFunction);
       });
       it('should retrieve actual functions', function(){
-        var runner = new Runner({'b': 'something'});
+        var fakeFunction = {incref: function(){}};
+        var runner = new Runner({'b': fakeFunction});
         var env = Environment.fromMultipleMutables([{a:1}, {a:2}, {}], runner);
         env.runner = runner;
         assert.deepEqual(env.lookup('b'), new NamedFunctionPlaceholder('b', runner));
-        assert.deepEqual(env.retrieveFunction('b'), 'something');
+        assert.deepEqual(env.retrieveNamedFunction('b'), fakeFunction);
         assert.deepEqual(env.lookup('a'), 2);
       });
     });
@@ -141,8 +143,10 @@ describe('Evaluation with bytecode', function(){
   describe("Runner object", function(){
     describe('Runs code', function(){
       it('should run code without defns', function(){
+        var lastAssignedEnv;
         var tmpEnvBuilder = function(runner){
           var env = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1}], runner);
+          lastAssignedEnv = env;
 
           var tmpScope = new function(){
             this.assertion1 = function(){

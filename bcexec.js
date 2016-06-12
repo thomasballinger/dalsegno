@@ -239,8 +239,8 @@
             for (var i=0; i<arg; i++){
               c.valueStack = c.valueStack.push(args[i]);
             }
-            // call retrieveFunction now so this is the context that gets saved
-            func = env.retrieveFunction(func.name);
+            // call retrieveNamedFunction now so this is the context that gets saved
+            func = env.retrieveNamedFunction(func.name);
             // now take them back off
             for (var i=0; i<arg+1; i++){
               c.valueStack = c.valueStack.pop();
