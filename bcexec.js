@@ -129,7 +129,7 @@
         c.bytecodeStack = c.bytecodeStack.pop();
         c.counterStack = c.counterStack.pop();
         c.envStack = c.envStack.pop();
-        var scopesToKeep = c.getScopes().concat(env.runner.getFunScopes());
+        scopesToKeep = c.getScopes().concat(env.runner.getFunScopes());
         env.runner.scopeCheck.gc(scopesToKeep);
 
         if (c.bytecodeStack.count() === 0){

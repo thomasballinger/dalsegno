@@ -96,7 +96,7 @@ describe('ScopeCheck', function(){
     */
   });
   describe("code refcounts", function(){
-    it.only('ends a run with the scope collected', function(){
+    it('ends a run with the scope collected', function(){
       var env = new Environment();
       var sc = env.runner.scopeCheck;
       assert.equal(sc.scopes.count(), 1);
@@ -147,6 +147,7 @@ describe('ScopeCheck', function(){
         };
       }
       var env = new Environment(undefined, [new TermScope()]);
+      console.log(env.runner);
       var sc = env.runner.scopeCheck;
       bcexec(`(define foo (lambda ()
                  (define bar (lambda () 1))

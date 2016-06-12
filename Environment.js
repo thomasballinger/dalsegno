@@ -36,6 +36,12 @@
     this.scopeCheck = new ScopeCheck();
   }
 
+  ScopeCheckRunner.prototype.getFunScopes = function(){
+    // ScopeCheckRunner has no funs that need to be accounted for
+    // when recording marking scopes to be saved during GC
+    return [];
+  };
+
   /**
    * Environment constructor takes two lists of scope objects and a runner.
    *
