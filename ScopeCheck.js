@@ -194,8 +194,9 @@
    * and returns the scopes collected */
   //TODO use a technique that actually benefits from reference counting, or
   //get rid of reference counting altogether
-  ScopeCheck.prototype.gc = function(reachable){
-    if (!Array.isArray(reachable)){ throw Error('gc needs an array of reachable scopes'); }
+  ScopeCheck.prototype.gc = function(context, runner){
+    if (Math.random() > 0.001){ return; }
+    var reachable = context.getScopes().concat(runner ? runner.getFunScopes() : []);
     reachable = Immutable.Set(this.getConnectedScopes(reachable));
     var toRemove = this.scopes.keySeq().toSet().subtract(reachable).toArray();
     toRemove.forEach( scope => {
