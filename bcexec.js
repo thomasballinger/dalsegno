@@ -172,14 +172,17 @@
         var code = c.valueStack.peek();
         c.valueStack = c.valueStack.pop();
         var funcObj;
-        env.incref();
         if (arg === null){  // lambda function
+          env.incref();
           funcObj = new CompiledFunctionObject(params, code, env, null);
           c.valueStack = c.valueStack.push(funcObj);
         } else {  // defn named function
+          // no incref because NamedFunctionPlaceholders are weakrefs.
+          // They correspond to whatever is in runner.funs, which has a
+          // strong reference to its environment.
           funcObj = new CompiledFunctionObject(params, code, env, arg);
           env.setFunction(arg, funcObj);
-          c.valueStack = c.valueStack.push(new NamedFunctionPlaceholder(arg));
+          c.valueStack = c.valueStack.push(new NamedFunctionPlaceholder(arg, env.runner));
         }
         break;
       case BC.FunctionTailCall:
@@ -228,6 +231,7 @@
             }
             err('first expression in form is not a function: '+func, ast);
           }
+          console.log('calling function:', func);
           if (func.name !== null){
 
             // It's important that this happens while the function object

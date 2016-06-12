@@ -49,9 +49,9 @@
     return this.nextId++;
   };
   ScopeCheck.prototype.incref = function(scopeId){
-    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
+    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!: '+scopeId); }
     var refcount = this.scopes.getIn([scopeId, 'refcount']);
-    //console.log('increfing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount+1);
+    console.log('increfing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount+1);
     //TODO do this mutably
     this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
     var parent = this.scopes.getIn([scopeId, 'parent']);
@@ -62,7 +62,7 @@
   ScopeCheck.prototype.decref = function(scopeId){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     var refcount = this.scopes.getIn([scopeId, 'refcount']);
-    //console.log('decrefing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount-1);
+    console.log('decrefing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount-1);
     if (refcount === 1){
       //TODO don't make many copies in this process
       var parent = this.scopes.getIn([scopeId, 'parent']);
@@ -93,6 +93,7 @@
 
   ScopeCheck.prototype.define = function(scopeId, name, value){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId+' when '+this.scopes.count()+' scopes present: '+Object.keys(this.scopes.toObject())); }
+    console.log('about to call incref on', value);
     incref(value, 'stored by define');
     decref(this.scopes.getIn([scopeId, 'data', name], undefined), 'displaced by define');
     this.scopes = this.scopes.setIn([scopeId, 'data', name], value);
@@ -192,6 +193,8 @@
   };
   /** Collects anything unreachable from reachable array
    * and returns the scopes collected */
+  //TODO use a technique that actually benefits from reference counting, or
+  //get rid of reference counting altogether
   ScopeCheck.prototype.gc = function(reachable){
     if (!Array.isArray(reachable)){ throw Error('gc needs an array of reachable scopes'); }
     reachable = Immutable.Set(this.getConnectedScopes(reachable));
@@ -233,21 +236,21 @@
   function incref(val, reason){
     if (val && val.incref){
       val.incref();
-      //console.log('because', reason);
+      console.log('because', reason);
     }
   }
   /** Decrefs if managed object */
   function decref(val, reason){
     if (val && val.decref){
       val.decref();
-      //console.log('because', reason);
+      console.log('because', reason);
     }
   }
   /** Increfs if managed object and returns either way */
   function increfed(val, reason){
     if (val && val.incref){
       val.incref();
-      //console.log('because', reason);
+      console.log('because', reason);
     }
     return val;
   }
@@ -255,7 +258,7 @@
   function decrefed(val, reason){
     if (val && val.decref){
       val.decref();
-      //console.log('because', reason);
+      console.log('because', reason);
     }
     return val;
   }

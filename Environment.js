@@ -212,6 +212,7 @@
     throw Error("Name '"+key+"' not found in environment"+this);
   };
   Environment.prototype.define = function(name, value){
+    console.log('defining', name, 'in environment', this);
     if (!this.mutableScope){
       throw Error("No mutable scope available");
     }
@@ -322,12 +323,17 @@
     return s;
   };
 
-  function NamedFunctionPlaceholder(name){
+  function NamedFunctionPlaceholder(name, runner){
     this.name = name;
+    this.runner = runner;
   }
   NamedFunctionPlaceholder.prototype.toString = function(){
     return 'λ placeholder '+this.name+'(...?)';
   };
+  //NamedFunctionPlaceholders hold weak references to their closure.
+  //(or technically, don't hold a reference to their closure at all
+  //because they're just a reminder saying that there's a corresponding
+  //function in runner.funs
 
   Environment.Environment = Environment;
   Environment.NamedFunctionPlaceholder = NamedFunctionPlaceholder;

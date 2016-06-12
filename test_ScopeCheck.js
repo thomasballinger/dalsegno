@@ -203,12 +203,17 @@ describe('ScopeCheck', function(){
       var runner = new bcrun.BCRunner({});
       var tmpScope = new function(){
         this.assertion = function(){
-          console.log(runner.funs);
-          console.log(runner.scopeCheck);
+          //console.log(runner.funs);
+          //console.log(runner.scopeCheck);
           assert.equal(runner.scopeCheck.scopes.count(), 2);
+          assert.equal(runner.scopeCheck.getCount(this.childScope), 1);
         };
-        this.debugreport = function(){
+        this.innerAssertion = function(){
+          assert.equal(runner.scopeCheck.scopes.count(), 2);
+          this.childScope = runner.currentEnv().mutableScope;
+          assert.equal(runner.scopeCheck.getCount(this.childScope), 3);
         };
+        this.childScope = undefined;
       };
 
       runner.setEnvBuilder(function(runner){
@@ -218,9 +223,10 @@ describe('ScopeCheck', function(){
         ((lambda ()
           (define a 1)
           (defn foo () a)
-          1))
+          (innerAssertion)))
         (assertion)`);
       runner.debug = true;
+
       runner.value();
     });
   });
