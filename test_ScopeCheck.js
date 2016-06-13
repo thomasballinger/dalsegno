@@ -96,6 +96,8 @@ describe('ScopeCheck', function(){
     */
   });
   describe("code refcounts", function(){
+    beforeEach( () => { ScopeCheck.prototype.alwaysRunGC = true; });
+    afterEach( () => { delete ScopeCheck.prototype.alwaysRunGC; });
     it('ends a run with the scope collected', function(){
       var env = new Environment();
       var sc = env.runner.scopeCheck;
@@ -326,7 +328,7 @@ describe('ScopeCheck', function(){
       var childScope = sc.newFromScope(f1.env.mutableScope);
       f1.env.mutableScope = childScope;
 
-      assert.sameMembers(sc.gc([env.mutableScope]), [childScope, parentScope]);
+      assert.sameMembers(sc._gc([env.mutableScope]), [childScope, parentScope]);
       assert.sameMembers([env.mutableScope], sc.scopes.keySeq().toArray());
   });
   describe("ingest", function(){
@@ -369,6 +371,8 @@ describe('ScopeCheck', function(){
 });
 
 describe('memory leaks', function(){
+  beforeEach( () => { ScopeCheck.prototype.alwaysRunGC = true; });
+  afterEach( () => { delete ScopeCheck.prototype.alwaysRunGC; });
   it("are prevented in simple recursive functions", function(){
     var s =
 `(define foo (lambda (x)
