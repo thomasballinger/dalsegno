@@ -199,7 +199,7 @@
   ScopeCheck.prototype.gc = function(context, runner){
     if (this.alwaysRunGC){
       //pass
-    } else if (Math.random() > 0.001){
+    } else if (Math.random() > 0.00002){
       return;
     }
     var reachable = context.getScopes().concat(runner ? runner.getFunScopes() : []);
