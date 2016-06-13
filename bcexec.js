@@ -18,6 +18,7 @@
   var compile = require('./compile.js');
   var compileFunctionBody = compile.compileFunctionBody;
   var compileProgram = compile.compileProgram;
+  var compileInitialization = compile.compileInitialization;
   var BC = compile.BC;
   var Immutable = require('./Immutable.js');
 
@@ -46,12 +47,14 @@
     return 'λ('+ (this.params ? this.params : '') +'): '+pprint(this.code);
   };
 
+  //TOMHERE this is the next task:
   //TODO Context shouldn't add the return.
+  //
   // Instead, have different compile methods (buildProgram, buildFunction)
   // both add this return.
   // Check out all the places Contexts are created to see if this is alright.
   function Context(bytecode, env){
-    bytecode = [].concat(bytecode, [[BC.Return, null, undefined]]);
+    //bytecode = [].concat(bytecode, [[BC.Return, null, undefined]]);
     this.counterStack  = Immutable.Stack([0]);
     this.bytecodeStack = Immutable.Stack([bytecode]);
     this.envStack      = Immutable.Stack([env]);
@@ -126,6 +129,8 @@
         break;
       case BC.Return:
         env.decref();
+        /* falls through */
+      case BC.ReturnNoDecref:
         c.bytecodeStack = c.bytecodeStack.pop();
         c.counterStack = c.counterStack.pop();
         c.envStack = c.envStack.pop();
@@ -133,9 +138,11 @@
 
         if (c.bytecodeStack.count() === 0){
           c.done = true;
-        } else {
+        } else if (bc === BC.Return){
           counter = c.counterStack.peek();
-        }
+        } else if (bc === BC.ReturnNoDecref){
+          throw Error('ReturnNoDecref encountered, stack should be empty!');
+        } else { throw Error('thought that was exhaustive'); }
         break;
       case BC.StoreNew:
         var val = c.valueStack.peek();
@@ -561,6 +568,7 @@
   bcexec.execBytecode = execBytecode;
   bcexec.compileFunctionBody = compileFunctionBody;
   bcexec.compileProgram = compileProgram;
+  bcexec.compileInitialization = compileInitialization;
   bcexec.safelyParsesAndCompiles = safelyParsesAndCompiles;
   bcexec.evaluate = evaluate;
   bcexec.Context = Context;

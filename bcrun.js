@@ -179,6 +179,23 @@
     this.context = new bcexec.Context(bytecode, env);
     return this.value();
   };
+  /** Run code with no defns allowed, and keep env */
+  BCRunner.prototype.runInitializationCode = function(s, env){
+    if (s.indexOf('defn') !== -1){
+      throw Error('looks like there is a defn in this code! '+s);
+    }
+    if (env === undefined){
+      env = new Environment(undefined, undefined, this);
+    } else {
+      this.scopeCheck.ingest(env.runner.scopeCheck);
+      env.runner = this;
+    }
+
+    this.ast = parse(s);
+    var bytecode = bcexec.compileInitialization(this.ast);
+    this.context = new bcexec.Context(bytecode, env);
+    return this.value();
+  };
   /** Returns whether it is still running */
   BCRunner.prototype.runABit = function(numIterations, errback){
     if (!this.context){ return false; }
@@ -312,7 +329,7 @@
         } else {
           env = new Environment({}, libraryScopes, runner);
         }
-        runner.runLibraryCode(scope, env);
+        runner.runInitializationCode(scope, env);
       } else {
         throw Error("bad scope value: " + scope);
       }

@@ -16,6 +16,7 @@
     Return         : 11,  // done with this bytecode
     CloneTop       : 12,  // push on another of the top of the stack
     FunctionTailCall : 13,
+    ReturnNoDecref : 14, // stack is clear, done but don't decref
   };
 
   /** Construct a program builder for a list of expressions */
@@ -80,6 +81,7 @@
       code = [].concat(code, expr.compile(), [[BC.Pop, null, lineInfo(expr.ast)]]);
     }
     code.pop();  // don't need pop for last expression
+    code.push([BC.Return, null, undefined]);
     return code;
   };
 
@@ -329,6 +331,21 @@
     return code;
   }
 
+  /** Compiles a program which expects to be run with an environment
+   * and will not decref that environment once finished.
+   *
+   * Useful for using code to initalize environments */
+  function compileInitialization(ast){
+    var code = buildProgram(ast).compile();
+
+    // replace final return with a pop to discard the
+    // value but prevent the scope from being GC'd
+    var old = code.pop();
+    code.push([BC.ReturnNoDecref, null, old[2]]);
+    Object.freeze(code);
+    return code;
+  }
+
   function compileFunctionBody(ast){
     if (!Array.isArray(ast)){ throw Error("function ast should be a list of expressions"); }
     var code = [];
@@ -354,6 +371,7 @@
 
   compile.compileProgram = compileProgram;
   compile.compileFunctionBody = compileFunctionBody;
+  compile.compileInitialization = compileInitialization;
   compile.evaluateAST = evaluateAST;
   compile.BC = BC;
   compile.build = build;
