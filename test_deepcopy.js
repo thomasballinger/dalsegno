@@ -54,7 +54,7 @@ describe('copyable execution trees', function(){
 
     describe('bytecode specific', function(){
       describe('runnner', function(){
-        it('can be resumed after being cloned', function(){
+        it.only('can be resumed after being cloned', function(){
           var runner = new bcrun.BCRunner({});
           var origScopeCheck = runner.scopeCheck;
           var tmpEnv = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}], runner);
@@ -73,10 +73,10 @@ describe('copyable execution trees', function(){
 
           runner.loadUserCode('(begin (defn foo () 1) (foo))');
           assert.equal(false, runner.runABit(100));
-          console.log('foo:', runner.getState('foo'));
           assert.equal(runner.getState('foo').context.counterStack.peek(), 6);
           runner.update('(begin (defn foo () 2) (foo))');
           /*
+           * TODO
           assert.deepEqual(jc(runner.getState('foo').delegate.env.runner.funs.foo.body), 2);
           assert.deepEqual(jc(runner.funs['foo'].body), 2);
           assert.deepEqual(jc(runner.delegate.env.runner.funs['foo'].body), 2);

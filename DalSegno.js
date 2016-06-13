@@ -174,7 +174,7 @@
       this.shouldRestart = false;
       if (bcexec.safelyParsesAndCompiles(s, e => this.errback(e))){
         this.runner.update(s);
-        this.currentlyRunning = this.runner.runABit(1, e => this.errback(e));
+        this.currentlyRunning = this.runner.runABit(1, this.DEBUGMODE ? undefined : e => this.errback(e));
       } else {
         this.currentlyRunning = false;
         return;
@@ -189,7 +189,7 @@
     }
     if (DalSegno.activeWidget === this) {
       if (this.currentlyRunning){
-        this.currentlyRunning = this.runner.runABit(this.speed, e => this.errback(e) );
+        this.currentlyRunning = this.runner.runABit(this.speed, this.DEBUGMODE ? undefined : e => this.errback(e));
         if (this.currentlyRunning) {
           setTimeout( () => this.runABit(), 0);
         } else if (!this.inErrorState){
@@ -213,7 +213,7 @@
     DalSegno.activeWidget = this;
 
     var s = this.editor.getValue();
-    if (!bcexec.safelyParsesAndCompiles(s, e => this.errback(e))){
+    if (!bcexec.safelyParsesAndCompiles(s, this.DEBUGMODE ? undefined : e => this.errback(e))){
       if (this.lastResumeCleanupFunction){ this.lastResumeCleanupFunction(); }
       this.lastProgram = '';
       this.currentlyRunning = false;

@@ -9,6 +9,7 @@ var jc = parse.justContent;
 var bcrun = require('./bcrun');
 var Environment = require('./Environment.js');
 var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
+var compile = require('./compile.js');
 
 // environment with just an arity-2 sum function for testing
 var justSumScope = {'+': function(a, b){return a + b; }};
@@ -192,6 +193,19 @@ describe('Evaluation with bytecode', function(){
       runner.funs.a = "hi";
       assert.deepEqual(runner.functionExists('a'), true);
       assert.deepEqual(runner.functionExists('b'), false);
+    });
+  });
+
+  describe("compilation types: ", function(){
+    describe("initialization code", function(){
+      it("doesn't decref scope", function(){
+        var runner = new Runner({});
+        var tmpEnv = new Environment({a: 2}, []);
+        runner.runInitializationCode('(define b 2)', tmpEnv);
+        assert.equal(runner.scopeCheck.scopes.count(), 1);
+        runner.runInitializationCode('(define c 3)', tmpEnv);
+        assert.equal(runner.scopeCheck.scopes.count(), 1);
+      });
     });
   });
 });
