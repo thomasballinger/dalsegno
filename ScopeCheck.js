@@ -145,6 +145,8 @@
     function getScopes(val){
       if (Immutable.Iterable.isIterable(val)){
         return val.flatMap(getScopes).toJS();
+      } else if (val === null || val === undefined){
+        return [];
       } else if (val.getScopes){
         // functions are the only thing that will have this
         if (val.constructor.name !== 'CompiledFunctionObject'){
