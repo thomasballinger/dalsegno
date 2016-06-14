@@ -17,9 +17,15 @@
   }
   var Immutable = require('./Immutable.js');
 
-  function ScopeCheck(nextId){
+  function ScopeCheck(nextId, log){
     // start at 1 because 0 would is falsy
+    if (nextId === 0){
+      throw Error('cannot use 0 for inital nextId');
+    }
     nextId = nextId || Math.ceil(Math.random() * Number.MAX_SAFE_INTEGER);
+    if (log){
+      this.log = ['created, nextId is '+nextId];
+    }
     this.scopes = Immutable.Map();
     this.nextId = nextId;
   }
@@ -30,11 +36,18 @@
     var copy = new ScopeCheck();
     copy.scopes = this.scopes;
     copy.nextId = this.nextId;
+    if(this.log){
+      copy.log = this.log.concat(['copied! This is the copy.']);
+      this.log.push(['copied! This is the original.']);
+    }
     return copy;
   };
-  ScopeCheck.prototype.new = function(){
+  ScopeCheck.prototype.new = function(reason){
     this.scopes = this.scopes.set(this.nextId, Immutable.Map(
       { refcount: 1, data: Immutable.Map(), parent: null }));
+    if (this.log){
+      this.log.push('new scope '+this.nextId+' created because '+reason);
+    }
     return this.nextId++;
   };
   ScopeCheck.prototype.newFromScope = function(scopeId, toAdd){
@@ -46,12 +59,17 @@
     for (var name of Object.keys(toAdd)){
       this.define(this.nextId, name, toAdd[name]);
     }
+    if (this.log){
+      this.log.push(['new scope '+this.nextId+' created with mapping '+this.keys(this.nextId)]);
+    }
     return this.nextId++;
   };
-  ScopeCheck.prototype.incref = function(scopeId){
+  ScopeCheck.prototype.incref = function(scopeId, reason){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     var refcount = this.scopes.getIn([scopeId, 'refcount']);
-    //console.log('increfing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount+1);
+    if (this.log){
+      this.log.push('increfing ' + scopeId + ':' + this.keys(scopeId) + ' from ' + refcount + ' to ' + (refcount+1) + ' because ' + reason);
+    }
     //TODO do this mutably
     this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
     var parent = this.scopes.getIn([scopeId, 'parent']);
@@ -59,16 +77,21 @@
       this.scopes = this.scopes.updateIn([parent, 'refcount'], e => e + 1);
     }
   };
-  ScopeCheck.prototype.decref = function(scopeId){
+  ScopeCheck.prototype.decref = function(scopeId, reason){
     if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
     var refcount = this.scopes.getIn([scopeId, 'refcount']);
-    //console.log('decrefing', scopeId, ':', this.keys(scopeId), 'from', refcount, 'to', refcount-1);
+    if (this.log){
+      this.log.push('decrefing ' + scopeId + ':' + this.keys(scopeId) + ' from ' + refcount + ' to ' + (refcount-1) + ' because ' + reason);
+    }
     if (refcount === 1){
       //TODO don't make many copies in this process
       var parent = this.scopes.getIn([scopeId, 'parent']);
       this.scopes = this.scopes.delete(scopeId);
+      if (this.log){ this.log.push('deleting ' + scopeId); }
       if (parent !== null){
-        //console.log('and its parent', parent);
+        if (this.log){
+          this.log.push('and its parent ' + parent);
+        }
         this.decref(parent);
       }
     } else {

@@ -368,6 +368,31 @@ describe('ScopeCheck', function(){
       assert.equal(sc2.lookup(id1, 'a'), 1);
     });
   });
+  describe.only("reflog", function(){
+    it('logs creation and new scope', function(){
+      var sc1 = new ScopeCheck(1, true);
+      var id1 = sc1.new('testing');
+      assert.deepEqual(sc1.log, [
+        'created, nextId is 1',
+        'new scope 1 created because testing',
+      ]);
+    });
+    it('logs increfs and decrefs', function(){
+      var sc1 = new ScopeCheck(1, true);
+      var id1 = sc1.new('testing');
+      sc1.incref(id1, 'test1');
+      sc1.decref(id1, 'test2');
+      sc1.decref(id1, 'test3');
+      assert.deepEqual(sc1.log, [
+        'created, nextId is 1',
+        'new scope 1 created because testing',
+        'increfing 1: from 1 to 2 because test1',
+        'decrefing 1: from 2 to 1 because test2',
+        'decrefing 1: from 1 to 0 because test3',
+        'deleting 1',
+      ]);
+    });
+  });
 });
 
 describe('memory leaks', function(){

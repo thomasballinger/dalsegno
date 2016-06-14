@@ -13,7 +13,7 @@
     Push           : 8,
     StoreNew       : 9,   // arg is variable name, saves TOS
     Store          : 10,  // arg is variable name, saves TOS
-    Return         : 11,  // done with this bytecode
+    Return         : 11,  // done with this bytecode, arg is text reason
     CloneTop       : 12,  // push on another of the top of the stack
     FunctionTailCall : 13,
     ReturnNoDecref : 14, // stack is clear, done but don't decref
@@ -81,7 +81,7 @@
       code = [].concat(code, expr.compile(), [[BC.Pop, null, lineInfo(expr.ast)]]);
     }
     code.pop();  // don't need pop for last expression
-    code.push([BC.Return, null, undefined]);
+    code.push([BC.Return, 'program', undefined]);
     return code;
   };
 
@@ -196,7 +196,7 @@
       code = [].concat(code, expr.compile(), [[BC.Pop, null, lineInfo(expr.ast)]]);
     }
     code.pop();  // don't need pop for last expression
-    code.push([BC.Return, null, lineInfo(this.ast)]);
+    code.push([BC.Return, 'fun '+this.name, lineInfo(this.ast)]);
     return [
         [BC.Push, code, lineInfo(this.ast)],
         [BC.Push, this.params, lineInfo(this.ast)],
@@ -231,7 +231,7 @@
       code = [].concat(code, expr.compile(), [[BC.Pop, null, lineInfo(expr.ast)]]);
     }
     code.pop();  // don't need BC.Pop for last expression
-    code.push([BC.Return, null, lineInfo(this.ast)]);
+    code.push([BC.Return, 'lambda', lineInfo(this.ast)]);
     return [
       [BC.Push, code, lineInfo(this.bodyAST)],
       [BC.Push, this.params, lineInfo(this.ast)],
@@ -356,7 +356,7 @@
       code = [].concat(code, expr.compile(), [[BC.Pop, null, lineInfo(expr.ast)]]);
     }
     code.pop();  // don't need pop for last expression
-    code.push([BC.Return, null, {
+    code.push([BC.Return, 'funcBody', {
       lineStart: ast[0].lineStart, lineEnd: ast[ast.length-1].lineEnd,
       colStart:  ast[0].colStart,  colEnd: ast[ast.length-1].colEnd}]);
     Object.freeze(code);

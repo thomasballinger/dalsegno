@@ -293,11 +293,11 @@
   };
 
   /** Decref mutable scope */
-  Environment.prototype.decref = function(){
-    this.runner.scopeCheck.decref(this.mutableScope);
+  Environment.prototype.decref = function(reason){
+    this.runner.scopeCheck.decref(this.mutableScope, reason);
   };
-  Environment.prototype.incref = function(){
-    this.runner.scopeCheck.incref(this.mutableScope);
+  Environment.prototype.incref = function(reason){
+    this.runner.scopeCheck.incref(this.mutableScope, reason);
   };
 
   Environment.prototype.makeEvalLambda = function(body, params, name){

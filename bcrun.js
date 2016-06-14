@@ -144,6 +144,8 @@
 
     console.log('restoring from last invocation of function', earliestGen);
     // making a copy because we're about to munge it with new defn bodies
+    // TODO we need to incref whenever we make copies or put functions on the stack
+    // TODO we need to decref whenever we clear the current stack
     this.restoreState(deepCopy(this.savesByFunInvoke[earliestGen]));
 
     // For each defn form in the current code

@@ -10,6 +10,7 @@ var bcrun = require('./bcrun');
 var Environment = require('./Environment');
 var builtins = require('./builtins.js');
 var stdlibcode = require('./stdlibcode.js');
+var ScopeCheck = require('./ScopeCheck');
 
 var buildEnv = function(runner){
   return bcrun.buildEnv([builtins, stdlibcode, {}], [], runner);
@@ -175,37 +176,49 @@ describe('reload bug', function(){
       (defn main ()
         (terrain 1)
         (terrain 2)
-        (stopRunning))
+        (stopRunning)
+        (thisNeverRuns))
       (main)`);
 
     var runner = new Runner({});
 
     var keepRunning = true;
-    function scopeObj(){
-      this.stopRunning = function(){
-        keepRunning = false;
-      };
-      this.assertion1 = function(){
-        assert.isTrue(true);
-      };
-    }
+    function ScopeObj(){}
+    ScopeObj.prototype.stopRunning = function(){ console.log("setting keepRunning to false"); keepRunning = false; };
+    ScopeObj.prototype.assertion1 = function(){ assert.isTrue(true); };
+    ScopeObj.prototype.thisNeverRuns = function(){ assert.fail("this line shouldn't have run"); };
 
     var lastEnv;
     runner.setEnvBuilder( runner => {
-      lastEnv = bcrun.buildEnv([builtins, stdlibcode, {}], [new scopeObj()], runner);
+      runner.scopeCheck.log = [];
+      lastEnv = bcrun.buildEnv([builtins, stdlibcode, {}], [new ScopeObj()], runner);
       return lastEnv;
     });
+
     runner.loadUserCode(prog);
     runner.debug = prog;
 
     while (keepRunning){
+      console.log('keepRunning is', keepRunning);
       runner.runOneStep();
     }
     runner.update(prog.replace('hello', 'goodbye'));
     keepRunning = true;
+
+
+    runner.runOneStep();
+    runner.runOneStep();
+    runner.runOneStep();
+    runner.runOneStep();
+    runner.runOneStep();
+    console.log(runner.scopeCheck.log.join('\n'));
+
+    runner.runOneStep();
+    /*
     while (keepRunning){
       runner.runOneStep();
     }
+    */
   });
 });
 

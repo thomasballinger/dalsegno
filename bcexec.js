@@ -34,12 +34,11 @@
     this.env = env;
     this.name = name;
   }
-  CompiledFunctionObject.prototype.decref = function(){
-    //console.log('decrefing', this.name);
-    this.env.decref();
+  CompiledFunctionObject.prototype.decref = function(reason){
+    this.env.decref(this.name+': '+reason);
   };
-  CompiledFunctionObject.prototype.incref = function(){
-    this.env.incref();
+  CompiledFunctionObject.prototype.incref = function(reason){
+    this.env.incref(this.name+': '+reason);
   };
   CompiledFunctionObject.prototype.getScopes = function(){
     return [this.env.mutableScope];
@@ -129,7 +128,7 @@
         c.valueStack = c.valueStack.push(arg);
         break;
       case BC.Return:
-        env.decref();
+        env.decref('returning from '+arg);
         /* falls through */
       case BC.ReturnNoDecref:
         c.bytecodeStack = c.bytecodeStack.pop();
@@ -161,7 +160,7 @@
         var val = c.valueStack.peek();
         // if it's a closure being popped off, decref its scopes
         if (val && val.decref){
-          val.decref();
+          val.decref('popping '+val);
         }
         c.valueStack = c.valueStack.pop();
         break;
@@ -180,7 +179,7 @@
         c.valueStack = c.valueStack.pop();
         var funcObj;
         if (arg === null){  // lambda function
-          env.incref();
+          env.incref('creating lambda function object');
           funcObj = new CompiledFunctionObject(params, code, env, null);
           c.valueStack = c.valueStack.push(funcObj);
         } else {  // defn named function
@@ -261,7 +260,9 @@
           var scope = {};
           args.forEach((x, i) => scope[func.params[i]] = x);
           var newEnv = func.env.newWithScope(scope, env.runner);
-          func.decref(); // done with the function object now that env created
+
+          // done with the function object now that env created
+          func.decref('done with func obj '+func);
 
           // off the top (-1) because counter++ at end of this tick
           counter = -1;
