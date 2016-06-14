@@ -15,6 +15,36 @@ var buildEnv = function(runner){
   return bcrun.buildEnv([builtins, stdlibcode, {}], [], runner);
 };
 
+function dedent(s){
+  function numLeadingSpaces(s){
+    return /^[ ]*/.exec(s)[0].length;
+  }
+  var minIndent = Math.min.apply(null, s.split('\n')
+    .filter(x => x.length > 0)
+    .map(numLeadingSpaces));
+  // might be Infinity if empty, but that works fine
+  return s.split('\n').map(x => x.slice(minIndent)).join('\n');
+}
+
+describe('main helpers', function(){
+  describe('dedent', function(){
+    it('leaves unindented code unchanged', function(){
+      assert.equal(dedent('hello\nthere'), 'hello\nthere');
+      assert.equal(dedent('hello\n\nthere'), 'hello\n\nthere');
+      assert.equal(dedent('hello\n  there'), 'hello\n  there');
+    });
+    it('dedents indented code', function(){
+      assert.equal(dedent('  hello\n  there'), 'hello\nthere');
+      assert.equal(dedent('  hello\n\n  there'), 'hello\n\nthere');
+      assert.equal(dedent('  hello\n  \n  there'), 'hello\n\nthere');
+      assert.equal(dedent('  hello\n    there'), 'hello\n  there');
+    });
+    it('works for empty strings', function(){
+      assert.equal(dedent('\n\n\n'), '\n\n\n');
+    });
+  });
+});
+
 var run = bcrun;
 var Runner = bcrun.BCRunner;
 
@@ -50,28 +80,28 @@ describe('integration', function(){
     run.runWithDefn("(do (defn foo () 1) (foo))", buildEnv);
   });
   it('global functions simple', function(){
-    run.runWithDefn("\n"+
-        "(do                                   \n"+
-        "  (defn foo (x) (do x x))               \n"+
-        "  (foo 1))",
+    run.runWithDefn(dedent(`
+      (do
+        (defn foo (x) (do x x))
+        (foo 1))`),
     buildEnv, false);
   });
   it('global functions', function(){
-    run.runWithDefn("\n"+
-        "(do                                   \n"+
-        "  (defn foo (x) (do x x))               \n"+
-        "  (defn main () (do                      \n"+
-        "    (foo 1)                           \n"+
-        "    (map foo (list 1 2 3))))          \n"+
-        "  (main))",
+    run.runWithDefn(dedent(`
+      (do
+        (defn foo (x) (do x x))
+        (defn main () (do
+          (foo 1)
+          (map foo (list 1 2 3))))
+        (main))`),
     buildEnv, false);
   });
   it('browser bug?', function(){
-    run.runWithDefn(
-      "(do"+
-      "(defn game () (do "+
-        '"game" "started"))'+
-      "(game))", buildEnv);
+    run.runWithDefn(dedent(`
+      (do
+      (defn game () (do
+        "game" "started"))
+      (game))`), buildEnv);
   });
 });
 
@@ -138,15 +168,15 @@ describe('interactive features', function(){
 
 describe('reload bug', function(){
   it.only('inner defn ok on reload', function(){
-    var prog = `
-(defn terrain (n)
-  "hello"
-  (defn gradual-slope (x) 1))
-(defn main ()
-  (terrain 1)
-  (terrain 2)
-  (stopRunning))
-(main)`;
+    var prog = dedent(`
+      (defn terrain (n)
+        "hello"
+        (defn gradual-slope (x) 1))
+      (defn main ()
+        (terrain 1)
+        (terrain 2)
+        (stopRunning))
+      (main)`);
 
     var runner = new Runner({});
 
