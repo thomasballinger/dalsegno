@@ -136,3 +136,46 @@ describe('interactive features', function(){
   });
 });
 
+describe('reload bug', function(){
+  it.only('inner defn ok on reload', function(){
+    var prog = `
+(defn terrain (n)
+  "hello"
+  (defn gradual-slope (x) 1))
+(defn main ()
+  (terrain 1)
+  (terrain 2)
+  (stopRunning))
+(main)`;
+
+    var runner = new Runner({});
+
+    var keepRunning = true;
+    function scopeObj(){
+      this.stopRunning = function(){
+        keepRunning = false;
+      };
+      this.assertion1 = function(){
+        assert.isTrue(true);
+      };
+    }
+
+    var lastEnv;
+    runner.setEnvBuilder( runner => {
+      lastEnv = bcrun.buildEnv([builtins, stdlibcode, {}], [new scopeObj()], runner);
+      return lastEnv;
+    });
+    runner.loadUserCode(prog);
+    runner.debug = prog;
+
+    while (keepRunning){
+      runner.runOneStep();
+    }
+    runner.update(prog.replace('hello', 'goodbye'));
+    keepRunning = true;
+    while (keepRunning){
+      runner.runOneStep();
+    }
+  });
+});
+

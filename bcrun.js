@@ -56,6 +56,7 @@
       return env;
     };
   };
+  /** Load user code, building a new the initial environment with a new scopeCheck */
   BCRunner.prototype.loadUserCode = function(s){
     if (this.funs === null){
       console.log('warning: maybe you wanted to set up a function dictionary on the runner before running user code?');

@@ -35,6 +35,7 @@
     this.name = name;
   }
   CompiledFunctionObject.prototype.decref = function(){
+    //console.log('decrefing', this.name);
     this.env.decref();
   };
   CompiledFunctionObject.prototype.incref = function(){
