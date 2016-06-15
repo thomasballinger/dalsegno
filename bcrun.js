@@ -269,7 +269,10 @@
   /** returns true if finished */
   BCRunner.prototype.runOneStep = function(){
     //TODO turn this back on once we can make copies
-    //this.rewindStates.push(this.copy());
+    this.rewindStates.push(this.copy());
+    if (this.rewindStates.length > 100){
+      this.rewindStates.shift();
+    }
     bcexec.execBytecodeOneStep(this.context);
     if (this.debug && this.context.counterStack.count() &&
         this.context.bytecodeStack.count()){
@@ -290,7 +293,8 @@
     } else {
       this.currentRewindIndex = Math.max(0, this.currentRewindIndex - 1);
     }
-    this.restoreState(this.rewindStates[this.currentRewindState]);
+    console.log('restoring', this.rewindStates[this.currentRewindIndex]);
+    this.restoreState(this.rewindStates[this.currentRewindIndex]);
 
   };
   //TODO temp ship for compatibility with evalGen in tests

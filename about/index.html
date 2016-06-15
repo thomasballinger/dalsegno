@@ -102,9 +102,9 @@ div.content {
 </div>
 <a id="fullscreen2" href="#">Open fullscreen</a>
 execution speed:
-<input type="range" id="speed2">
+<input type="range" id="speed2" min="100" max="600"/>
 replay:
-<input type="range" id="scrubber2">
+<input type="range" id="scrubber2"/>
 <script>
 var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', 'scrubber2', window.golfProgram)
 embed2.speed = 50;  // how many ticks to run at a time, default is 500
@@ -115,8 +115,8 @@ embed2.onChangeIfValid = function(){
 embed2.onChangeIfValid(embed2.initialContent);
 document.getElementById(embed2.editorId).style.fontSize='14px';
 document.getElementById('speed2').addEventListener('input', function(){
-  console.log("setting speed to", this.value);
   embed2.speed = parseInt(this.value);
+  console.log("setting speed to", embed2.speed);
 })
 </script>
 <h2>Language</h2>
