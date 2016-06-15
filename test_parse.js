@@ -8,16 +8,6 @@ var withConsoleLogIgnored = require('./testutils').withConsoleLogIgnored;
 var tokenize = parse.tokenize;
 var jc = parse.justContent;
 
-function withConsoleLogIgnored(cb){
-  var orig = global.console.log
-  global.console.log = function(){};
-  try{
-    return cb();
-  } finally {
-    global.console.log = orig;
-  }
-}
-
 describe('parse', function(){
   describe('tokenize', function(){
     it('should tokenize simple literals', function(){

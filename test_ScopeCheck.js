@@ -368,7 +368,7 @@ describe('ScopeCheck', function(){
       assert.equal(sc2.lookup(id1, 'a'), 1);
     });
   });
-  describe.only("reflog", function(){
+  describe("reflog", function(){
     it('logs creation and new scope', function(){
       var sc1 = new ScopeCheck(1, true);
       var id1 = sc1.new('testing');

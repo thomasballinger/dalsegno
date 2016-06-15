@@ -74,11 +74,15 @@
     this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e + 1);
     var parent = this.scopes.getIn([scopeId, 'parent']);
     if (parent){
+      if (this.log){
+        var from = this.scopes.getIn([parent, 'refcount']);
+        this.log.push('and increfing its parent ' + parent + ':' + this.keys(parent)+' from ' + from + ' to ' + (from + 1));
+      }
       this.scopes = this.scopes.updateIn([parent, 'refcount'], e => e + 1);
     }
   };
   ScopeCheck.prototype.decref = function(scopeId, reason){
-    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId!'); }
+    if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId); }
     var refcount = this.scopes.getIn([scopeId, 'refcount']);
     if (this.log){
       this.log.push('decrefing ' + scopeId + ':' + this.keys(scopeId) + ' from ' + refcount + ' to ' + (refcount-1) + ' because ' + reason);
@@ -90,9 +94,9 @@
       if (this.log){ this.log.push('deleting ' + scopeId); }
       if (parent !== null){
         if (this.log){
-          this.log.push('and its parent ' + parent);
+          this.log.push('and it has a parent: ' + parent);
         }
-        this.decref(parent);
+        this.decref(parent, 'child scope deleted');
       }
     } else {
       this.scopes = this.scopes.updateIn([scopeId, 'refcount'], e => e - 1);
@@ -268,30 +272,26 @@
   /** Increfs if managed object */
   function incref(val, reason){
     if (val && val.incref){
-      val.incref();
-      //console.log('because', reason);
+      val.incref(reason);
     }
   }
   /** Decrefs if managed object */
   function decref(val, reason){
     if (val && val.decref){
-      val.decref();
-      //console.log('because', reason);
+      val.decref(reason);
     }
   }
   /** Increfs if managed object and returns either way */
   function increfed(val, reason){
     if (val && val.incref){
-      val.incref();
-      //console.log('because', reason);
+      val.incref(reason);
     }
     return val;
   }
   /** Decrefs if managed object and returns either way */
   function decrefed(val, reason){
     if (val && val.decref){
-      val.decref();
-      //console.log('because', reason);
+      val.decref(reason);
     }
     return val;
   }

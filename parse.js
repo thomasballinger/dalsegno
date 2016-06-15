@@ -310,9 +310,12 @@
     return funcs;
   }
 
+  /** Returns a mapping where keys are functions that have changed.
+   *
+   * functions only in the second set are not included.
+   * functions oly in the first set are not included, 
+   */
   function diffFunctions(oldFuncs, newFuncs){
-    // returns an array of functions that have changed
-    // doesn't include new functions, because that would have changed the ast of an ourside function.
     // doesn't include deleted functions, though eventually should so snapshots can be discarded
     //
     // If the only thing about a defn ast that has changed is

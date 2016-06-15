@@ -18,12 +18,15 @@
   var bcexec = require('./bcexec.js');
   var ScopeCheck = require('./ScopeCheck.js');
 
-  function BCRunner(funs, scopeCheck){
+  function BCRunner(funs, scopeCheck, debug){
     if (funs === undefined){
       throw Error("Pass in an empty object for functions dictionary, or null for no defns");
     }
+    if (debug){
+      this.debug = debug;
+    }
     if (scopeCheck === undefined){
-      scopeCheck = new ScopeCheck();
+      scopeCheck = new ScopeCheck(undefined, this.debug ? true : false);
     } else if (scopeCheck === null){
       // no mutable variables allowed!
     } else if (scopeCheck.constructor !== ScopeCheck){
@@ -51,7 +54,7 @@
       callback = function(runner){ return new Environment(undefined, undefined, runner); };
     }
     this.envBuilder = () => {
-      this.scopeCheck = new ScopeCheck();
+      this.scopeCheck = new ScopeCheck(undefined, this.debug ? true : false);
       var env = callback(this);
       return env;
     };
@@ -80,19 +83,19 @@
     this.context = new bcexec.Context(bytecode, env);
   };
   BCRunner.prototype.copy = function(){
-    //TODO Why do w have to make a copy of funs? Isn't is global
-    //to all snapshots? I guess the envs associated with each function
-    //need to be preserved but not the bodies?
-    //We're going to swap out the bytecode anyway, so no need to save that.
+    //funs are copied so the envs associated with each function are preserved
+    //TODO We're going to swap out the bytecode anyway, so no need to save that!
     //It's really just the environments of each function that are important
     //to save.
+    //Wait... why do you copy the scopecheck?
+    //Because we make mutable changes to scopes dummy!
     var copy = deepCopy([this.context, this.funs]);
-    return {counter: this.counter,
-            funs: copy[1],
-            scopeCheck: this.scopeCheck.copy(),
-            context: copy[0],
-            statefuls: this.statefuls.map( x => x.saveState() )};
-
+    var c = {counter: this.counter,
+             funs: copy[1],
+             scopeCheck: this.scopeCheck.copy(),
+             context: copy[0],
+             statefuls: this.statefuls.map( x => x.saveState() )};
+    return c;
   };
   BCRunner.prototype.restart = function(){
     var bytecode = bcexec.compileProgram(this.ast);
@@ -144,8 +147,6 @@
 
     console.log('restoring from last invocation of function', earliestGen);
     // making a copy because we're about to munge it with new defn bodies
-    // TODO we need to incref whenever we make copies or put functions on the stack
-    // TODO we need to decref whenever we clear the current stack
     this.restoreState(deepCopy(this.savesByFunInvoke[earliestGen]));
 
     // For each defn form in the current code
@@ -215,6 +216,12 @@
     return !this.context.done;
   };
   BCRunner.prototype.saveState = function(name){
+    var copy = this.copy();
+    // need to incref closures from this state
+
+    if (this.savesByFunInvoke){
+      // need to decref closures from this state!
+    }
     this.savesByFunInvoke[name] = this.copy();
   };
   BCRunner.prototype.restoreState = function(state){
@@ -225,6 +232,7 @@
     this.context = state.context;  // deepcopied because this mutates
     console.log('restoring with restoreState');
     this.funs = state.funs;  // copied so we can update these
+    this.scopeCheck = state.scopeCheck;
     this.statefuls.forEach( (s, i) => {
       s.restore(state.statefuls[i]);
     });
@@ -270,6 +278,10 @@
     bcexec.execBytecodeOneStep(this.context);
     if (this.debug && this.context.counterStack.count() &&
         this.context.bytecodeStack.count()){
+      if (this.scopeCheck.log){
+        console.log(this.scopeCheck.log.join('\n'));
+        this.scopeCheck.log = [];
+      }
       bcexec.dis(this.context,
                  typeof this.debug === 'string' ? this.debug : undefined);
     }

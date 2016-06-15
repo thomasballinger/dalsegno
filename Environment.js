@@ -231,10 +231,10 @@
     if (this.runner.funs === null){
       throw Error("Runner doesn't allow named functions");
     }
+    func.incref('storing new version of named function '+name);
     if (this.runner.funs[name]){
-      this.runner.funs[name].decref();
+      this.runner.funs[name].decref('tossing old version of named function '+name);
     }
-    func.incref();
     this.runner.funs[name] = func;
   };
   /** Gets the actual fun from the runner */

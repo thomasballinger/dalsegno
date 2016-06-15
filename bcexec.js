@@ -179,7 +179,7 @@
         c.valueStack = c.valueStack.pop();
         var funcObj;
         if (arg === null){  // lambda function
-          env.incref('creating lambda function object');
+          env.incref('creating lambda function object defined in this scope');
           funcObj = new CompiledFunctionObject(params, code, env, null);
           c.valueStack = c.valueStack.push(funcObj);
         } else {  // defn named function
