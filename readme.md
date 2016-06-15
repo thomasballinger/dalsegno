@@ -151,10 +151,9 @@ means that embedding requires a long list of script tags.
 The ES5/6 features in the code are limited to those implemented
 in Chrome, Firefox, and Node without requiring any flags.
 
-I'd be open to adding a build system if you write the PR,
-if I do it myself it's going to be Webpack.
+I'd love to move to webpack, I just haven't prioritized it.
 
-Ideas for improvements
+potential todos
 
 * Scrubber for viewing preview states and play button to resume
   execution at that arbitrary point
@@ -186,7 +185,7 @@ Ideas for improvements
     a build system)
 * Use a better syntax for beginners - something like http://codelauren.com/
   * `=`, `->` or `<-` for assignment
-  * Lisp 2 (have to use apply for first element of a form to be dynamically
+  * Lisp 2 (require apply for first element of a form to be dynamically
     evaluated) for compile-time arity checking
   * parens after function calls
 
