@@ -43,6 +43,7 @@
     this.propStateAtLastClear = this.getPropState();
     this.testCtx = document.createElement('canvas').getContext('2d');
     this.renderTimes = [];
+    this.requestRender = null;
     this._lazy = lazy;
 
     var self = this;
@@ -142,6 +143,9 @@
     this.propStateAtLastClear = this.getPropState();
     this.operationsSinceLastClear = this.operationsSinceLastClear.clear();
   };
+  LazyCanvasCtx.prototype.setRenderRequester = function(f){
+    this.requestRender = f;
+  };
   LazyCanvasCtx.prototype.getPropState = function(){
     var properties = ['fillStyle'];
     var propState = {};
@@ -184,6 +188,9 @@
       this.ctx.fillText("fps: "+fps,this.canvasElement.width-100, 20);
       this.ctx.font = oldFont;
       this.ctx.fillStyle = oldFillStyle;
+    }
+    if (this.requestRender){
+      this.requestRender();
     }
     return returnValue;
   };

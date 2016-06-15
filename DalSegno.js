@@ -40,7 +40,7 @@
     this.inErrorState = false;  // in error state the only way to restart is to edit
     this.lastProgram = '';  // string of the currently running program's AST
                             // or an empty string if the program doesn't parse
-    this.speed = 500;  // number of bytecode steps run per this.runABit()
+    this.speed = 500;  // number of bytecode steps run per this.startRunning()
     this.badSpot = undefined;  // currently highlighted ace Range of source code
     this.DEBUGMODE = true;  // throw errors properly so we see tracebacks
     this.onChangeIfValid = function(s){};  // called after valid parse with new program
@@ -70,6 +70,7 @@
     if (this.scrubberId){ this.initScrubber(); }
 
     this.runner.registerStateful(this.lazyCanvasCtx);
+    this.runner.registerRenderRequester(this.lazyCanvasCtx);
 
     this.initWindowWatcher();
     this.setMouseinToPlay();
@@ -77,10 +78,13 @@
   DalSegno.activeWidget = undefined;
   DalSegno.windowWatcherSet = false;
   DalSegno.prototype.go = function(){
-    if (this.currentlyRunning && DalSegno.activeWidget === this){ return; }
+    if (this.currentlyRunning && DalSegno.activeWidget === this){
+      // prevents double-running
+      return;
+    }
     DalSegno.activeWidget = this;
     this.currentlyRunning = true;
-    this.runABit();
+    this.startRunning();
   };
   DalSegno.prototype.link = function(){
     //TODO links to versions without editors or with a console
@@ -165,7 +169,8 @@
     this.canvas.addEventListener('click', clearAndGo);
     this.lastResumeCleanupFunction = cleanup;
   };
-  DalSegno.prototype.runABit = function(){
+  DalSegno.prototype.startRunning = function(){
+    //console.log('called startRunning');
     var s = this.editor.getValue();
     if (this.shouldReload){
       this.clearError();
@@ -174,7 +179,13 @@
       this.shouldRestart = false;
       if (bcexec.safelyParsesAndCompiles(s, e => this.errback(e))){
         this.runner.update(s);
-        this.currentlyRunning = this.runner.runABit(1, this.DEBUGMODE ? undefined : e => this.errback(e));
+        this.runner.runABit(1,
+          (unfinished)=>{
+            this.currentlyRunning = unfinished;
+            this.afterStartRunning();
+          },
+          this.DEBUGMODE ? undefined : e => this.errback(e));
+        return;
       } else {
         this.currentlyRunning = false;
         return;
@@ -187,14 +198,25 @@
     } else if (this.inErrorState){
       return;  // don't do anything until enough change is made that shouldReload is triggered.
     }
+    //console.log('calling the direct, non-timeout version of afterStartRunning');
+    this.afterStartRunning();
+  };
+  DalSegno.prototype.afterStartRunning = function(){
+    //console.log('aftertStartRunning');
     if (DalSegno.activeWidget === this) {
       if (this.currentlyRunning){
-        this.currentlyRunning = this.runner.runABit(this.speed, this.DEBUGMODE ? undefined : e => this.errback(e));
-        if (this.currentlyRunning) {
-          setTimeout( () => this.runABit(), 0);
-        } else if (!this.inErrorState){
-          this.setClickToRestart();
-        }
+        this.runner.runABit(this.speed,
+          (unfinished)=>{
+            //console.log('after runABit with ', this.speed, 'unfinished is', unfinished);
+            this.currentlyRunning = unfinished;
+            if (this.currentlyRunning) {
+              //console.log('setting timeout for startRunning again!');
+              setTimeout( () => this.startRunning(), 0);
+            } else if (!this.inErrorState){
+              this.setClickToRestart();
+            }
+          },
+          this.DEBUGMODE ? undefined : e => this.errback(e));
       }
     } else {
       this.setMouseinToPlay();
@@ -230,7 +252,7 @@
     this.shouldReload = true;
     if (!this.currentlyRunning){
       this.currentlyRunning = true;
-      this.runABit();
+      this.startRunning();
     }
   };
   DalSegno.prototype.errback = function(e){

@@ -102,7 +102,7 @@ div.content {
 </div>
 <a id="fullscreen2" href="#">Open fullscreen</a>
 execution speed:
-<input type="range" id="speed2" min="100" max="600"/>
+<input type="range" id="speed2" min="1" max="200"/>
 replay:
 <input type="range" id="scrubber2"/>
 <script>
@@ -128,6 +128,7 @@ document.getElementById('speed2').addEventListener('input', function(){
 <script>
 var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, undefined, window.simpleProgram)
 embed.editor.setTheme("ace/theme/dawn");
+embed.speed = 7;
 </script>
 
 <div class="content">

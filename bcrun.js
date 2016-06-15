@@ -39,6 +39,7 @@
     this.savesByFunInvoke = {};
     this.rewindStates = [];
     this.currentRewindIndex = null;
+    this.renderRequested = false;
   }
   /** Add object to be saved and restored with state during saves and restores */
   BCRunner.prototype.registerStateful = function(obj){
@@ -47,6 +48,12 @@
     if (Object.keys(this.savesByFunInvoke).length > 0){ throw Error("Stateful objects can't be added once states have been saved"); }
     this.statefuls.push(obj);
   };
+  BCRunner.prototype.registerRenderRequester = function(obj){
+    if (typeof obj.setRenderRequester === 'undefined'){ throw Error('RenderRequester object need a setRenderRequester method'); }
+    obj.setRenderRequester( ()=>{
+      this.renderRequested = true;
+    });
+  }
   //TODO instead of using an envBuilder, pass in an env the runner
   //can make a copy of to be the original
   BCRunner.prototype.setEnvBuilder = function(callback){
@@ -196,19 +203,36 @@
     return this.value();
   };
   /** Returns whether it is still running */
-  BCRunner.prototype.runABit = function(numIterations, errback){
-    if (!this.context){ return false; }
-    if (this.context.done){ return !this.context.done; }
+  BCRunner.prototype.runABit = function(numIterations, cb, errback){
+    //console.log('runABit', numIterations, 'count is currently:', this.counter);
+    if (!this.context){ cb(false); }
+    if (this.context.done){ cb(!this.context.done); }
     numIterations = numIterations || 1;
     var start = this.counter;
-    withErrback(errback, ()=>{
-      while(this.counter < start + numIterations && !this.runOneStep()){}
+    var shouldRunCallback = true;
+    withErrback(false, ()=>{
+      while(true){
+        if (this.counter >= start + numIterations){ break; }
+        var finished = this.runOneStep();
+        if (finished){ break; }
+        if (this.renderRequested && this.counter < start + numIterations){
+          var ticksLeft = start + numIterations - this.counter;
+          //console.log('breaking early to deal with a renderRequest! '+ticksLeft+' ticks left');
+          setTimeout( ()=>{ this.runABit(ticksLeft, cb, errback); }, 0);
+          shouldRunCallback = false;  // we just scheduled it here
+          this.renderRequested = false;
+          break;
+        }
+      }
     });
+    this.renderRequested = false;
 
     if (this.context.done){
-      console.log('finished!', this.value());
+      //console.log('finished!', this.value());
     }
-    return !this.context.done;
+    if (shouldRunCallback){
+      cb(!this.context.done);
+    }
   };
   BCRunner.prototype.saveState = function(name){
     var copy = this.copy();
