@@ -84,11 +84,6 @@
   };
   BCRunner.prototype.copy = function(){
     //funs are copied so the envs associated with each function are preserved
-    //TODO We're going to swap out the bytecode anyway, so no need to save that!
-    //It's really just the environments of each function that are important
-    //to save.
-    //Wait... why do you copy the scopecheck?
-    //Because we make mutable changes to scopes dummy!
     var copy = deepCopy([this.context, this.funs]);
     var c = {counter: this.counter,
              funs: copy[1],
