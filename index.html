@@ -48,7 +48,6 @@
 <script src="examples/spacelight.js" type="text/javascript" charset="utf-8"></script>
 <script src="examples/golf.js" type="text/javascript" charset="utf-8"></script>
 <script src="examples/simple.js" type="text/javascript" charset="utf-8"></script>
-<script src="examples/goback.js" type="text/javascript" charset="utf-8"></script>
 
 
 <canvas id="canvas" width="1" height="1"></canvas>
@@ -103,7 +102,7 @@ embed.onChangeIfValid = function(){
 embed.lastResumeCleanupFunction();
 embed.go();
 
-embed.speed = 600;  // how many ticks to run at a time, default is 500
+embed.speed = 500;  // how many ticks to run at a time, default is 500
 if (getParameterByName('vim')){
   embed.editor.setKeyboardHandler("ace/keyboard/vim");
 }
