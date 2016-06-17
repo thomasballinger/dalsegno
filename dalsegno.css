@@ -56,3 +56,8 @@ div.dalsegno {
   z-index:20;
   background-color:#F4B9B7;
 }
+.curSpotHighlight{
+  position:absolute;
+  z-index:20;
+  background-color:#22FF33;
+}

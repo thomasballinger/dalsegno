@@ -97,6 +97,11 @@
       done: this.done
     };
   };
+  Context.prototype.getCurrentAST = function(){
+    var bytecode = this.bytecodeStack.peek();
+    var counter = this.counterStack.peek();
+    return bytecode[counter][2];
+  };
 
   //TODO Firm up undefined vs null: Null exists in this language, undefined
   //does not (so its presence indicates a bug in the language implementation)
@@ -105,7 +110,7 @@
   //HOWEVER, a bunch of the builtin functions return undefined!
   //If there's going to be nice interop, that should be the value that
   //gets returned! Environment lookup will need to be fixed to account for this,
-  //currenty a variable set to undefined is though not to exist!
+  //currently a variable set to undefined is though not to exist!
   //It sure would be nice to get rid of one of these, and Null sounds easier
   //to get rid of in the language.
 

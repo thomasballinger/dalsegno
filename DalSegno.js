@@ -41,7 +41,8 @@
     this.lastProgram = '';  // string of the currently running program's AST
                             // or an empty string if the program doesn't parse
     this.speed = 500;  // number of bytecode steps run per this.startRunning()
-    this.badSpot = undefined;  // currently highlighted ace Range of source code
+    this.badSpot = undefined;  // currently highlighted ace Range of source code for error
+    this.curSpot = undefined;  // currently highlighted ace Range of source code for cur
     this.DEBUGMODE = true;  // throw errors properly so we see tracebacks
     this.onChangeIfValid = function(s){};  // called after valid parse with new program
 
@@ -211,6 +212,7 @@
             this.currentlyRunning = unfinished;
             if (this.currentlyRunning) {
               //console.log('setting timeout for startRunning again!');
+              this.highlightCurSpot(this.runner.getCurrentAST());
               setTimeout( () => this.startRunning(), 0);
             } else if (!this.inErrorState){
               this.setClickToRestart();
@@ -284,6 +286,20 @@
       this.editor.getSession().removeMarker(this.badSpot);
       this.badSpot = undefined;
     }
+  };
+  DalSegno.prototype.highlightCurSpot = function(spot){
+    if (this.curSpot){
+      this.editor.getSession().removeMarker(this.curSpot);
+    }
+    if (!spot){ return; }
+    Range = ace.require("ace/range").Range;
+    //TODO investigate error annotations instead of markers
+    this.curSpot = this.editor.session.addMarker(new Range(
+      spot.lineStart-1,
+      spot.colStart-1,
+      spot.lineEnd-1,
+      spot.colEnd), "curSpotHighlight");
+    console.log('marker added at', spot);
   };
   DalSegno.prototype.initEditor = function(){
     this.editor = ace.edit(this.editorId);

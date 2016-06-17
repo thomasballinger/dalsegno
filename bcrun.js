@@ -290,13 +290,18 @@
     }
     return values.peek();
   };
+  BCRunner.prototype.getCurrentAST = function(){
+    return this.context.getCurrentAST();
+  };
   /** returns true if finished */
   BCRunner.prototype.runOneStep = function(){
     //TODO turn this back on once we can make copies
+    /*
     this.rewindStates.push(this.copy());
     if (this.rewindStates.length > 100){
       this.rewindStates.shift();
     }
+    */
     bcexec.execBytecodeOneStep(this.context);
     if (this.debug && this.context.counterStack.count() &&
         this.context.bytecodeStack.count()){
