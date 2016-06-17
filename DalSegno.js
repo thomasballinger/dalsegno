@@ -30,6 +30,37 @@
   var LazyCanvasCtx = require("./LazyCanvasCtx.js");
   var DrawHelpers = require("./DrawHelpers.js");
 
+
+  //Player State enums
+  function State(state){ this.state = state; }
+  State.prototype.toString = function(){ return this.state + ': '+this.msg; };
+  // Always use object identity to compare these (===)
+  var PS = {
+    Error: new State('Error', `Error message up, AST highlighted, execution paused`),
+    // Error transitions to ShouldReload on edit.
+    Running: new State('Running', `Currently running (or running scheduled in setTimeout) and more program left to run.`),
+    // Running transitions to
+    //  Should Reload on edit,
+    //  NotActiveWidget on losing focus,
+    //  Finished on finish,
+    //  and Error on error.
+    Finished: new State('Finished', ``),
+    // Finished transitions to ShouldRestart on mousein or focus
+    ShouldRestart: new State('ShouldRestart', `Source code is up to date, but should be rerun`),
+    // ShouldRestart transitions to Running almost immediately
+    ShouldReload: new State('ShouldReload', `The editor has a different AST than is being run!`),
+    // ShouldReload transitions to Running almost immediately
+    RunningNotActiveWidget: new State('NotActiveWidget', `This DalSegno widget is inactive, waiting for mouseover or edit`),
+    // NotActiveWidget transitions to Running on mousein or focus
+    ErrorNotActiveWidget: new State('NotActiveWidget', `This DalSegno widget is inactive and an error is up`),
+    // NotActiveWidget transitions to Running on mousein or focus
+  };
+  /*
+   * Legal state transitions: 
+   * Error to running
+   * Error to 
+   */
+
   //TODO Was this better as a closure? It feels weird as an object.
   function DalSegno(editorId, canvasId, errorBarId, consoleId, scrubberId, initialProgramId){
     this.shouldReload = true;  // whether the editor has a different AST
@@ -38,12 +69,13 @@
     this.currentlyRunning = false;  // whether there's more of the currently
                                     // loaded program to run
     this.inErrorState = false;  // in error state the only way to restart is to edit
+    this.playerState = PS.ShouldReload;
     this.lastProgram = '';  // string of the currently running program's AST
                             // or an empty string if the program doesn't parse
     this.speed = 500;  // number of bytecode steps run per this.startRunning()
     this.badSpot = undefined;  // currently highlighted ace Range of source code for error
     this.curSpot = undefined;  // currently highlighted ace Range of source code for cur
-    this.DEBUGMODE = true;  // throw errors properly so we see tracebacks
+    this.DEBUGMODE = false;  // throw errors properly so we see tracebacks
     this.onChangeIfValid = function(s){};  // called after valid parse with new program
 
     this.editorId = editorId;
@@ -212,7 +244,7 @@
             this.currentlyRunning = unfinished;
             if (this.currentlyRunning) {
               //console.log('setting timeout for startRunning again!');
-              this.highlightCurSpot(this.runner.getCurrentAST());
+              //this.highlightCurSpot(this.runner.getCurrentAST());
               setTimeout( () => this.startRunning(), 0);
             } else if (!this.inErrorState){
               this.setClickToRestart();

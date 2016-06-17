@@ -210,7 +210,7 @@
     numIterations = numIterations || 1;
     var start = this.counter;
     var shouldRunCallback = true;
-    withErrback(false, ()=>{
+    withErrback(errback, ()=>{
       while(true){
         if (this.counter >= start + numIterations){ break; }
         var finished = this.runOneStep();
