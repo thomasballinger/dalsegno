@@ -413,7 +413,6 @@ describe('memory leaks', function(){
     }]);
     var sc = env.runner.scopeCheck;
 
-    console.log(''+sc);
     bcexec(s, env, false);
     assert.equal(sc.scopes.count(), 0);
   });

@@ -73,7 +73,9 @@ describe('copyable execution trees', function(){
           runner.scopeCheck.gc = function(){};
 
           runner.loadUserCode('(begin (defn foo () 1) (foo))');
-          assert.equal(false, runner.runABit(100));
+          runner.runABit(100, function(unfinished){
+            assert.equal(unfinished, false);
+          });
           assert.equal(runner.getState('foo').context.counterStack.peek(), 6);
           withConsoleLogIgnored(()=>{
             runner.update('(begin (defn foo () 2) (foo))');

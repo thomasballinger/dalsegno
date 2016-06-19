@@ -146,15 +146,19 @@ describe('interactive features', function(){
     };
     runner.setEnvBuilder(returnEnv);
 
+    function assertNotDone(unfinished){
+      assert.equal(unfinished, true);
+    }
+
     env.define('c', 0);
     runner.loadUserCode(program);
-    runner.runABit(100);
+    runner.runABit(100, assertNotDone);
 
     env.set('c', 1);
-    runner.runABit(100);
+    runner.runABit(100, assertNotDone);
     var save = runner.savesByFunInvoke['on-c'];
 
-    runner.runABit(100);
+    runner.runABit(100, assertNotDone);
 
     var beforeRestore = runner.currentEnv().lookup('x');
 
@@ -162,7 +166,7 @@ describe('interactive features', function(){
     runner.funs = save.funs;
     runner.scopeCheck = save.scopeCheck;
 
-    runner.runABit(100);
+    runner.runABit(100, assertNotDone);
 
     assert.isTrue(runner.currentEnv().lookup('x') < beforeRestore);
   });
@@ -235,7 +239,9 @@ describe('reload bugs', function(){
     ScopeObj.prototype.assert2 = function(){ timesAssert2Run += 1; };
     ScopeObj.prototype.assert3 = function(){ timesAssert3Run += 1; };
 
-    runner.update(prog);
+    withConsoleLogIgnored(() => {
+      runner.update(prog);
+    });
     //runner.debug = prog;
 
     while (keepRunning){
@@ -245,7 +251,9 @@ describe('reload bugs', function(){
     assert.equal(timesAssert2Run, 0);
 
     var newProg = prog.replace('assert1', 'assert3');
-    runner.update(newProg);
+    withConsoleLogIgnored(() => {
+      runner.update(newProg);
+    });
     //runner.debug = newProg;
     keepRunning = true;
     while (keepRunning){
