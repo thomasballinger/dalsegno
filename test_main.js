@@ -211,7 +211,7 @@ describe('reload bugs', function(){
       runner.runOneStep();
     }
   });
-  it.only('updating a function causes it to rerun with new code the first time', function(){
+  it.only('updating a tail-called function uses the new code immediately', function(){
     var prog = dedent(`
       (define x 0)
       (defn recur ()
@@ -232,10 +232,11 @@ describe('reload bugs', function(){
     function ScopeObj(){}
     ScopeObj.prototype.stopRunning = function(){ keepRunning = false; };
     ScopeObj.prototype.assert1 = function(){ timesAssert1Run += 1; };
-    ScopeObj.prototype.assert2 = function(){ timesAssert1Run += 1; };
-    ScopeObj.prototype.assert3 = function(){ timesAssert1Run += 1; };
+    ScopeObj.prototype.assert2 = function(){ timesAssert2Run += 1; };
+    ScopeObj.prototype.assert3 = function(){ timesAssert3Run += 1; };
 
     runner.update(prog);
+    //runner.debug = prog;
 
     while (keepRunning){
       runner.runOneStep();
@@ -243,7 +244,9 @@ describe('reload bugs', function(){
     assert.equal(timesAssert1Run, 1);
     assert.equal(timesAssert2Run, 0);
 
-    runner.update(prog.replace('assert1', 'assert3'));
+    var newProg = prog.replace('assert1', 'assert3');
+    runner.update(newProg);
+    //runner.debug = newProg;
     keepRunning = true;
     while (keepRunning){
       runner.runOneStep();
