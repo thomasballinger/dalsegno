@@ -51,14 +51,6 @@
 
   function DalSegno(editorId, canvasId, errorBarId, consoleId, scrubberId, initialProgramId){
     //These are the four important state properties
-    Object.defineProperty(this, 'playerState', {
-      get: () => this._playerState,
-      set: (x) => {
-        this._playerState = x;
-        console.log('playerState set to', x);
-        console.trace();
-      }
-    });
     this.playerState = PS.Initial;
     this.runSomeScheduled = false;
     this.editorMessage = null;
@@ -244,8 +236,6 @@
    * to determine what to do.
    * */
   DalSegno.prototype.runSome = function(){
-    //TODO rename method
-
     // Check Queued Events
     if (this.editorMessage === EM.SyntacticDifference){
       console.log('difference in editor is only syntactic, nothing special to do');
@@ -298,14 +288,12 @@
         if (moreToRun === 'error'){
           this.playerState = PS.Error;
         } else if (moreToRun){
-          console.log('there is more to run');
           this.playerState = PS.Unfinished;
         } else {
-          console.log('no more to run, moreToRun was', moreToRun);
           this.playerState = PS.Finished;
         }
         // long-running loop, so use setTimeout to allow other JS to run
-        setTimeout( () => this.runSome(), 1000);
+        setTimeout( () => this.runSome(), 0);
       },
       this.DEBUGMODE ? undefined : e => this.onRuntimeOrSyntaxError(e));
   };

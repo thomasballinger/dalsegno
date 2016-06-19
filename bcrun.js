@@ -204,7 +204,6 @@
   };
   /** Calls callback with whether it is still running */
   BCRunner.prototype.runABit = function(numIterations, cb, onRuntimeError){
-    console.log('runABit', numIterations, 'count is currently:', this.counter);
     if (!this.context){
       console.log('no context!');
       return cb(false);

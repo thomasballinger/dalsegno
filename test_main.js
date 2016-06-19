@@ -211,7 +211,7 @@ describe('reload bugs', function(){
       runner.runOneStep();
     }
   });
-  it.only('updating a tail-called function uses the new code immediately', function(){
+  it('updating a tail-called function uses the new code immediately', function(){
     var prog = dedent(`
       (define x 0)
       (defn recur ()
