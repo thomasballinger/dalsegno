@@ -118,25 +118,9 @@
   DalSegno.windowWatcherSet = false;
   /** User wants to see something */
   DalSegno.prototype.go = function(){
-    console.log('go called!');
     this.isActive = true;
-    if (this.playerState === PS.Initial){
-      // start
-      var s = this.editor.getValue();
-      this.runner.update(s);
-      this.playerState = PS.Unfinished;
-    } else if (this.playerState === PS.Unfinished){
-      // resume
-    } else if (this.playerState === PS.Finished){
-      // restart
-      this.playerState = PS.Unfinished;
-      this.runner.restart();
-    } else if (this.playerState === PS.Error){
-      // recover?
-      console.log('nothing to do, error!');
-    }
-    this.runSome();
-  };
+    this.ensureRunSomeScheduled();
+  }
   DalSegno.prototype.link = function(){
     //TODO links to versions without editors or with a console
     var base = 'http://dalsegno.ballingt.com/';
@@ -242,7 +226,9 @@
   };
 
   DalSegno.prototype.recover = function(){
-    this.clearError();
+    if (this.playerState === PS.Error){
+      this.clearError();
+    }
     var s = this.editor.getValue();
     if (bcexec.safelyParsesAndCompiles(s, e => this.onRuntimeOrSyntaxError(e))){
       this.playerState = PS.Unfinished;
@@ -319,7 +305,7 @@
           this.playerState = PS.Finished;
         }
         // long-running loop, so use setTimeout to allow other JS to run
-        setTimeout( () => this.runSome(), 10);
+        setTimeout( () => this.runSome(), 1000);
       },
       this.DEBUGMODE ? undefined : e => this.onRuntimeOrSyntaxError(e));
   };
@@ -358,7 +344,7 @@
     if (msg === EM.SyntaxError){
       this.playerState = PS.Error;
     }
-    this.go();
+    this.ensureRunSomeScheduled();
   };
   DalSegno.prototype.initWindowWatcher = function(){
     if (DalSegno.windowWatcherSet){ return; }

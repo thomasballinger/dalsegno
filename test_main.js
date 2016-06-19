@@ -210,8 +210,48 @@ describe('reload bugs', function(){
     while (keepRunning){
       runner.runOneStep();
     }
-    /*
-    */
+  });
+  it.only('updating a function causes it to rerun with new code the first time', function(){
+    var prog = dedent(`
+      (define x 0)
+      (defn recur ()
+        (assert1)
+        (stopRunning)
+        (assert2)
+        (recur))
+      (recur)`);
+
+    var runner = new Runner({});
+    runner.setEnvBuilder( runner =>
+      bcrun.buildEnv([builtins, stdlibcode, {}], [new ScopeObj()], runner));
+
+    var keepRunning = true;
+    var timesAssert1Run = 0;
+    var timesAssert2Run = 0;
+    var timesAssert3Run = 0;
+    function ScopeObj(){}
+    ScopeObj.prototype.stopRunning = function(){ keepRunning = false; };
+    ScopeObj.prototype.assert1 = function(){ timesAssert1Run += 1; };
+    ScopeObj.prototype.assert2 = function(){ timesAssert1Run += 1; };
+    ScopeObj.prototype.assert3 = function(){ timesAssert1Run += 1; };
+
+    runner.update(prog);
+
+    while (keepRunning){
+      runner.runOneStep();
+    }
+    assert.equal(timesAssert1Run, 1);
+    assert.equal(timesAssert2Run, 0);
+
+    runner.update(prog.replace('assert1', 'assert3'));
+    keepRunning = true;
+    while (keepRunning){
+      runner.runOneStep();
+    }
+
+    assert.equal(timesAssert1Run, 1);
+    assert.equal(timesAssert2Run, 0);
+    assert.equal(timesAssert3Run, 1);
   });
 });
 
