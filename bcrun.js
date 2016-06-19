@@ -53,7 +53,7 @@
     obj.setRenderRequester( ()=>{
       this.renderRequested = true;
     });
-  }
+  };
   //TODO instead of using an envBuilder, pass in an env the runner
   //can make a copy of to be the original
   BCRunner.prototype.setEnvBuilder = function(callback){
@@ -202,15 +202,21 @@
     this.context = new bcexec.Context(bytecode, env);
     return this.value();
   };
-  /** Returns whether it is still running */
-  BCRunner.prototype.runABit = function(numIterations, cb, errback){
-    //console.log('runABit', numIterations, 'count is currently:', this.counter);
-    if (!this.context){ cb(false); }
-    if (this.context.done){ cb(!this.context.done); }
+  /** Calls callback with whether it is still running */
+  BCRunner.prototype.runABit = function(numIterations, cb, onRuntimeError){
+    console.log('runABit', numIterations, 'count is currently:', this.counter);
+    if (!this.context){
+      console.log('no context!');
+      return cb(false);
+    }
+    if (this.context.done){
+      console.log('finished');
+      return cb(false);
+    }
     numIterations = numIterations || 1;
     var start = this.counter;
     var shouldRunCallback = true;
-    withErrback(errback, ()=>{
+    var errorless = withErrorHandler(onRuntimeError, ()=>{
       while(true){
         if (this.counter >= start + numIterations){ break; }
         var finished = this.runOneStep();
@@ -218,7 +224,7 @@
         if (this.renderRequested && this.counter < start + numIterations){
           var ticksLeft = start + numIterations - this.counter;
           //console.log('breaking early to deal with a renderRequest! '+ticksLeft+' ticks left');
-          setTimeout( ()=>{ this.runABit(ticksLeft, cb, errback); }, 0);
+          setTimeout( ()=>{ this.runABit(ticksLeft, cb, onRuntimeError); }, 0);
           shouldRunCallback = false;  // we just scheduled it here
           this.renderRequested = false;
           break;
@@ -227,11 +233,12 @@
     });
     this.renderRequested = false;
 
-    if (this.context.done){
-      //console.log('finished!', this.value());
-    }
     if (shouldRunCallback){
-      cb(!this.context.done);
+      if (!errorless){
+        cb('error');
+      } else {
+        cb(!this.context.done);
+      }
     }
   };
   BCRunner.prototype.saveState = function(name){
@@ -329,15 +336,21 @@
   //TODO temp ship for compatibility with evalGen in tests
   BCRunner.prototype.next = BCRunner.prototype.runOneStep;
 
-  function withErrback(errback, cb){
-    if (errback){
+  /** Runs cb using errback to handle errors if provided
+   *
+   * Returns true if no errors occured, otherwise false */
+  function withErrorHandler(errorHandler, cb){
+    if (errorHandler){
       try{
-        return cb();
+        cb();
+        return true;
       } catch (e) {
-        errback(e);
+        errorHandler(e);
+        return false;
       }
     } else {
-      return cb();
+      cb();
+      return true;
     }
   }
 

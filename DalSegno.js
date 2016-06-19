@@ -36,42 +36,48 @@
   State.prototype.toString = function(){ return this.state + ': '+this.msg; };
   // Always use object identity to compare these (===)
   var PS = {
-    Error: new State('Error', `Error message up, AST highlighted, execution paused`),
-    // Error transitions to ShouldReload on edit.
-    Running: new State('Running', `Currently running (or running scheduled in setTimeout) and more program left to run.`),
-    // Running transitions to
-    //  Should Reload on edit,
-    //  NotActiveWidget on losing focus,
-    //  Finished on finish,
-    //  and Error on error.
-    Finished: new State('Finished', ``),
-    // Finished transitions to ShouldRestart on mousein or focus
-    ShouldRestart: new State('ShouldRestart', `Source code is up to date, but should be rerun`),
-    // ShouldRestart transitions to Running almost immediately
-    ShouldReload: new State('ShouldReload', `The editor has a different AST than is being run!`),
-    // ShouldReload transitions to Running almost immediately
-    RunningNotActiveWidget: new State('NotActiveWidget', `This DalSegno widget is inactive, waiting for mouseover or edit`),
-    // NotActiveWidget transitions to Running on mousein or focus
-    ErrorNotActiveWidget: new State('NotActiveWidget', `This DalSegno widget is inactive and an error is up`),
-    // NotActiveWidget transitions to Running on mousein or focus
+    Initial: new State('Initial', `mousein to start`),
+    Unfinished: new State('Unfinished', `mousein to resume`),
+    Finished: new State('Finished', `click to restart`),
+    Error: new State('Error', `No handlers needed, editor onChange has got it`),
   };
-  /*
-   * Legal state transitions: 
-   * Error to running
-   * Error to 
-   */
 
-  //TODO Was this better as a closure? It feels weird as an object.
+  // Editor messages
+  var EM = {
+    SyntaxError: new State('SyntaxError', `the source code is obviously invalid`),
+    SyntacticDifference: new State('SyntacticDifference', `the source code has unimportant changes like more whitespace`),
+    SemanticDifference: new State('SemanticDifference', ``),
+  };
+
   function DalSegno(editorId, canvasId, errorBarId, consoleId, scrubberId, initialProgramId){
-    this.shouldReload = true;  // whether the editor has a different AST
-                               // than the one last executed
-    this.shouldRestart = false;  // despite same source code, run again
-    this.currentlyRunning = false;  // whether there's more of the currently
-                                    // loaded program to run
-    this.inErrorState = false;  // in error state the only way to restart is to edit
-    this.playerState = PS.ShouldReload;
+    //These are the four important state properties
+    Object.defineProperty(this, 'playerState', {
+      get: () => this._playerState,
+      set: (x) => {
+        this._playerState = x;
+        console.log('playerState set to', x);
+        console.trace();
+      }
+    });
+    this.playerState = PS.Initial;
+    this.runSomeScheduled = false;
+    this.editorMessage = null;
+    this.mouseMessage = null;
+    Object.defineProperty(this, "isActive", {
+      get: () => DalSegno.activeWidget === this,
+      set: (x) => {
+        if (x === true){
+          DalSegno.activeWidget = this;
+        } else if (x === false){
+          throw Error("can't unset isActive");
+        } else {
+          throw Error("bad value for isActive property: "+x); }
+      }
+    });
+
     this.lastProgram = '';  // string of the currently running program's AST
                             // or an empty string if the program doesn't parse
+    this.lastCleanupFunction = undefined; // cleans up message over canvas
     this.speed = 500;  // number of bytecode steps run per this.startRunning()
     this.badSpot = undefined;  // currently highlighted ace Range of source code for error
     this.curSpot = undefined;  // currently highlighted ace Range of source code for cur
@@ -110,14 +116,26 @@
   }
   DalSegno.activeWidget = undefined;
   DalSegno.windowWatcherSet = false;
+  /** User wants to see something */
   DalSegno.prototype.go = function(){
-    if (this.currentlyRunning && DalSegno.activeWidget === this){
-      // prevents double-running
-      return;
+    console.log('go called!');
+    this.isActive = true;
+    if (this.playerState === PS.Initial){
+      // start
+      var s = this.editor.getValue();
+      this.runner.update(s);
+      this.playerState = PS.Unfinished;
+    } else if (this.playerState === PS.Unfinished){
+      // resume
+    } else if (this.playerState === PS.Finished){
+      // restart
+      this.playerState = PS.Unfinished;
+      this.runner.restart();
+    } else if (this.playerState === PS.Error){
+      // recover?
+      console.log('nothing to do, error!');
     }
-    DalSegno.activeWidget = this;
-    this.currentlyRunning = true;
-    this.startRunning();
+    this.runSome();
   };
   DalSegno.prototype.link = function(){
     //TODO links to versions without editors or with a console
@@ -126,6 +144,7 @@
     var encoded = encodeURI(this.editor.getValue());
     return base + '?code='+encoded;
   };
+
   DalSegno.prototype.canvasMessage = function(strings, align){
     align = align || 'center';
     var ctx = this.canvas.getContext("2d");
@@ -166,95 +185,178 @@
   DalSegno.prototype.setMouseinToPlay = function(){
     var ctx = this.canvas.getContext("2d");
     this.savedImage = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-    this.canvasMessage(['Mouse over canvas',
-                        'or edit source',
-                        this.currentlyRunning ? 'to resume program.' : 'to start program.']);
+    var msg = ['Mouse over canvas', 'or edit source'];
+    if (this.playerState === PS.Initial){
+      msg.push('to start program.');
+    } else if (this.playerState === PS.Finished){
+      msg.push('to restart program.');
+    } else if (this.playerState === PS.Unfinished){
+      msg.push('to resume program.');
+    } else {
+      throw Error('called in wrong state: '+this.playerState);
+    }
+    this.canvasMessage(msg);
     var self = this;
     function cleanup(){
-      self.canvas.removeEventListener('mouseenter', clearAndHideAndGo);
+      console.log('calling cleanup function set by setMouseinToPlay');
+      self.canvas.removeEventListener('mouseenter', handler);
       ctx.putImageData(self.savedImage, 0, 0);
+      self.lastCleanupFunction = undefined;
     }
-    function clearAndHideAndGo(){
-      cleanup();
-      self.lastResumeCleanupFunction = undefined;
-      self.go();
+    self.lastCleanupFunction = cleanup;
+    function handler(){
+      console.log('running handler set by setMouseinToPlay');
+      debugger;
+      self.mouseMessage = true;
+      self.ensureRunSomeScheduled();
     }
-    this.canvas.addEventListener('mouseenter', clearAndHideAndGo);
-    this.lastResumeCleanupFunction = cleanup;
+    this.canvas.addEventListener('mouseenter', handler);
   };
   DalSegno.prototype.setClickToRestart = function(){
     var ctx = this.canvas.getContext("2d");
+    if (this.playerState !== PS.Finished){
+      throw Error('called in wrong state: '+this.playerState);
+    }
     this.canvasMessage(['Program finished.',
                         'Click canvas or',
                         'edit source',
                         'to run it again.'], 'lowerRight');
     var self = this;
     function cleanup(){
-      self.canvas.removeEventListener('click', clearAndGo);
+      console.log('calling cleanup function set by setClickToRestart');
+      self.canvas.removeEventListener('click', handler);
       ctx.clearRect(0, 0, 10000, 10000);
+      self.lastCleanupFunction = undefined;
     }
-    function clearAndGo(){
-      cleanup();
-      self.lastResumeCleanupFunction = undefined;
-      self.shouldRestart = true;
-      self.go();
+    self.lastCleanupFunction = cleanup;
+    function handler(){
+      self.mouseMessage = true;
+      self.ensureRunSomeScheduled();
     }
-    this.canvas.addEventListener('click', clearAndGo);
-    this.lastResumeCleanupFunction = cleanup;
+    this.canvas.addEventListener('click', handler);
   };
-  DalSegno.prototype.startRunning = function(){
-    //console.log('called startRunning');
+
+  DalSegno.prototype.ensureRunSomeScheduled = function(){
+    if (!this.runSomeScheduled){
+      this.runSome();
+    }
+  };
+
+  DalSegno.prototype.recover = function(){
+    this.clearError();
     var s = this.editor.getValue();
-    if (this.shouldReload){
-      this.clearError();
-      this.shouldReload = false;
-      // in case the editor source changed when a restart was intended
-      this.shouldRestart = false;
-      if (bcexec.safelyParsesAndCompiles(s, e => this.errback(e))){
-        this.runner.update(s);
-        this.runner.runABit(1,
-          (unfinished)=>{
-            this.currentlyRunning = unfinished;
-            this.afterStartRunning();
-          },
-          this.DEBUGMODE ? undefined : e => this.errback(e));
-        return;
-      } else {
-        this.currentlyRunning = false;
-        return;
-      }
-    } else if (this.shouldRestart){
-      // for the case when the program finished successfully and we want to run it again
-      this.shouldRestart = false;
-      this.runner.restart();
-      this.currentlyRunning = true;
-    } else if (this.inErrorState){
-      return;  // don't do anything until enough change is made that shouldReload is triggered.
-    }
-    //console.log('calling the direct, non-timeout version of afterStartRunning');
-    this.afterStartRunning();
-  };
-  DalSegno.prototype.afterStartRunning = function(){
-    //console.log('aftertStartRunning');
-    if (DalSegno.activeWidget === this) {
-      if (this.currentlyRunning){
-        this.runner.runABit(this.speed,
-          (unfinished)=>{
-            //console.log('after runABit with ', this.speed, 'unfinished is', unfinished);
-            this.currentlyRunning = unfinished;
-            if (this.currentlyRunning) {
-              //console.log('setting timeout for startRunning again!');
-              //this.highlightCurSpot(this.runner.getCurrentAST());
-              setTimeout( () => this.startRunning(), 0);
-            } else if (!this.inErrorState){
-              this.setClickToRestart();
-            }
-          },
-          this.DEBUGMODE ? undefined : e => this.errback(e));
-      }
+    if (bcexec.safelyParsesAndCompiles(s, e => this.onRuntimeOrSyntaxError(e))){
+      this.playerState = PS.Unfinished;
+      this.runner.update(s);
     } else {
-      this.setMouseinToPlay();
+      this.playerState = PS.Error;
     }
+  };
+  /** Advance the state of the program.
+   *
+   * This function can be scheduled to be run later,
+   * so it must inspect the state of the DalSegno object
+   * to determine what to do.
+   * */
+  DalSegno.prototype.runSome = function(){
+    debugger;
+    //TODO rename method
+
+    // Queued Events
+    if (this.editorMessage === EM.SyntacticDifference){
+      console.log('difference in editor is only syntactic, nothing special to do');
+      this.editorMessage = null;
+      this.isActive = true;
+    } else if (this.editorMessage === EM.SemanticDifference){
+      this.clearError();
+      var s = this.editor.getValue();
+      this.runner.update(s);
+      this.playerState = PS.Unfinished;
+      this.editorMessage = null;
+      this.isActive = true;
+    } else if (this.editorMessage === EM.Error){
+      this.playerState = PS.Error;
+      this.editorMessage = null;
+      this.isActive = true;
+    } else if (this.mouseMessage){
+      if (!this.lastCleanupFunction){
+        throw Error('mouse message but no cleanup function');
+      }
+      this.lastCleanupFunction();
+      this.mouseMessage = null;
+      this.isActive = true;
+    }
+
+    if (this.playerState === PS.Initial){
+      var s = this.editor.getValue();
+      this.runner.update(s);
+      this.playerState = PS.Unfinished;
+    } else if (this.playerState === PS.Error){
+      // nop, and don't schedule this.
+      return;
+    } else if (this.playerState === PS.Finished){
+      this.setClickToRestart();
+      return;
+    }
+
+    if (!this.isActive){
+      console.log("Won't reschedule runSome because this widget is inactive!");
+      this.setMouseinToPlay();
+      return;
+    }
+
+    this.runSomeScheduled = true;
+    this.runner.runABit(this.speed,
+      (moreToRun)=>{
+        if (moreToRun === 'error'){
+          this.playerState = PS.Error;
+        } else if (moreToRun){
+          console.log('there is more to run');
+        } else {
+          console.log('no more to run, moreToRun was', moreToRun);
+          this.playerState = PS.Finished;
+        }
+        // long-running loop, so use setTimeout to allow other JS to run
+        setTimeout( () => this.runSome(), 1000);
+      },
+      this.DEBUGMODE ? undefined : e => this.onRuntimeOrSyntaxError(e));
+  };
+
+  /** Invoked only by change handler */
+  DalSegno.prototype.onChange = function(e){
+    console.log('onChange running');
+    var s = this.editor.getValue();
+    var safelyParses = false;
+    try {
+      safelyParses = bcexec.safelyParsesAndCompiles(s, this.DEBUGMODE ? undefined : e => this.onRuntimeOrSyntaxError(e));
+    } finally {
+      // try/finally so message still sent in debug mode
+      if (!safelyParses){
+        this.sendMessageFromEditor(EM.SyntaxError);
+        return;
+      }
+    }
+
+    this.onChangeIfValid(s);
+
+    if (JSON.stringify(parse(s)) === this.lastProgram){
+      this.lastProgram = s;
+      this.sendMessageFromEditor(EM.SyntacticDifference);
+    } else {
+      this.lastProgram = s;
+      this.sendMessageFromEditor(EM.SemanticDifference);
+    }
+  };
+  DalSegno.prototype.sendMessageFromEditor = function(msg){
+    this.isActive = true;
+    this.editorMessage = msg;
+    if (this.runSomeScheduled){
+      return;
+    }
+    if (msg === EM.SyntaxError){
+      this.playerState = PS.Error;
+    }
+    this.go();
   };
   DalSegno.prototype.initWindowWatcher = function(){
     if (DalSegno.windowWatcherSet){ return; }
@@ -264,35 +366,8 @@
     });
     DalSegno.windowWatcherSet = true;
   };
-  DalSegno.prototype.onChange = function(e){
-    console.log('onChange running');
-    DalSegno.activeWidget = this;
-
-    var s = this.editor.getValue();
-    if (!bcexec.safelyParsesAndCompiles(s, this.DEBUGMODE ? undefined : e => this.errback(e))){
-      if (this.lastResumeCleanupFunction){ this.lastResumeCleanupFunction(); }
-      this.lastProgram = '';
-      this.currentlyRunning = false;
-      return;
-    }
-
-    var newProgram = JSON.stringify(parse(s));
-    if (newProgram === this.lastProgram){
-      return;
-    }
-    if (this.lastResumeCleanupFunction){ this.lastResumeCleanupFunction(); }
-    this.onChangeIfValid(s);
-    this.lastProgram = newProgram;
-    this.shouldReload = true;
-    if (!this.currentlyRunning){
-      this.currentlyRunning = true;
-      this.startRunning();
-    }
-  };
-  DalSegno.prototype.errback = function(e){
+  DalSegno.prototype.onRuntimeOrSyntaxError = function(e){
     console.log(e.stack);
-    this.currentlyRunning = false;
-    this.inErrorState = true;
     this.errorbar.innerText = ''+e;
     this.errorbar.classList.remove('is-hidden');
     if (e.ast){
@@ -310,9 +385,9 @@
       this.editor.scrollToLine(e.ast.lineStart-1, true, true, function(){});
       //this.editor.gotoLine(e.ast.lineStart-1, e.ast.colEnd-1);
     }
+    this.playerState = PS.Error;
   };
   DalSegno.prototype.clearError = function(){
-    this.inErrorState = false;
     this.errorbar.classList.add('is-hidden');
     if (this.badSpot){
       this.editor.getSession().removeMarker(this.badSpot);
