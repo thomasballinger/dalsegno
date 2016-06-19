@@ -206,7 +206,6 @@
     self.lastCleanupFunction = cleanup;
     function handler(){
       console.log('running handler set by setMouseinToPlay');
-      debugger;
       self.mouseMessage = true;
       self.ensureRunSomeScheduled();
     }
@@ -259,10 +258,9 @@
    * to determine what to do.
    * */
   DalSegno.prototype.runSome = function(){
-    debugger;
     //TODO rename method
 
-    // Queued Events
+    // Check Queued Events
     if (this.editorMessage === EM.SyntacticDifference){
       console.log('difference in editor is only syntactic, nothing special to do');
       this.editorMessage = null;
@@ -287,21 +285,24 @@
       this.isActive = true;
     }
 
+    // Determine next action based on state
     if (this.playerState === PS.Initial){
       var s = this.editor.getValue();
       this.runner.update(s);
-      this.playerState = PS.Unfinished;
     } else if (this.playerState === PS.Error){
       // nop, and don't schedule this.
+      this.runSomeScheduled = false;
       return;
     } else if (this.playerState === PS.Finished){
       this.setClickToRestart();
+      this.runSomeScheduled = false;
       return;
     }
 
     if (!this.isActive){
       console.log("Won't reschedule runSome because this widget is inactive!");
       this.setMouseinToPlay();
+      this.runSomeScheduled = false;
       return;
     }
 
@@ -312,12 +313,13 @@
           this.playerState = PS.Error;
         } else if (moreToRun){
           console.log('there is more to run');
+          this.playerState = PS.Unfinished;
         } else {
           console.log('no more to run, moreToRun was', moreToRun);
           this.playerState = PS.Finished;
         }
         // long-running loop, so use setTimeout to allow other JS to run
-        setTimeout( () => this.runSome(), 1000);
+        setTimeout( () => this.runSome(), 10);
       },
       this.DEBUGMODE ? undefined : e => this.onRuntimeOrSyntaxError(e));
   };
@@ -385,7 +387,6 @@
       this.editor.scrollToLine(e.ast.lineStart-1, true, true, function(){});
       //this.editor.gotoLine(e.ast.lineStart-1, e.ast.colEnd-1);
     }
-    this.playerState = PS.Error;
   };
   DalSegno.prototype.clearError = function(){
     this.errorbar.classList.add('is-hidden');

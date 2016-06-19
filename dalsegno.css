@@ -24,6 +24,7 @@ div.dalsegno {
   background-color: #ff99cc;
   text-align: center;
   font-size: 2em;
+  z-index: 10;
 }
 .dalsegno-console {
   resize: none;
