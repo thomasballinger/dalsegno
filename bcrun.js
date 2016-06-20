@@ -17,6 +17,7 @@
   var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
   var bcexec = require('./bcexec.js');
   var ScopeCheck = require('./ScopeCheck.js');
+  var framesample = require('./framesample');
 
   function BCRunner(funs, scopeCheck, debug){
     if (funs === undefined){
@@ -142,7 +143,7 @@
             this.keyframeStates = {};
             reset();
             cb();
-          });
+          }, framesample.makeRandomSampler(300));
         }, 0);
       } else {
         reset();
@@ -206,7 +207,7 @@
           this.keyframeStates = newKeyframeStates;
           restore();
           cb();
-        });
+        }, framesample.makeRandomSampler(200));
       }, 0);
     } else {
       return restore();
@@ -389,7 +390,7 @@
     console.log('restoring', this.rewindStates[this.currentRewindIndex]);
     this.restoreState(this.rewindStates[this.currentRewindIndex]);
   };
-  BCRunner.prototype.visualSeek = function(dest, cb){
+  BCRunner.prototype.visualSeek = function(dest, cb, frameChooser){
     console.log('visualSeek');
     if (dest > Math.max(Math.max.apply(null, Object.keys(this.keyframeStates)), this.counter)){
       throw Error('destination is beyond the knowable future: '+dest);
@@ -404,6 +405,8 @@
     if (dest > cb){
       toShow.reverse();
     }
+
+    toShow = frameChooser(toShow);
     var self = this;
     function innerSeek(){
       if (toShow.length){
