@@ -283,7 +283,7 @@
             this.playerState = PS.Finished;
           }
           // long-running loop, so use setTimeout to allow other JS to run
-          setTimeout( () => this.runSome(), 100);
+          setTimeout( () => this.runSome(), 0);
         },
         this.DEBUGMODE ? undefined : e => this.onRuntimeOrSyntaxError(e));
     };
