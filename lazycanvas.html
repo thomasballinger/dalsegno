@@ -49,6 +49,12 @@ You can run run these queued drawing operations by calling the trigger method:
 <code><pre>
 ctx.trigger() // all the queued drawing operations occur
 </pre></code>
+Some interactions, like reading a data property on the context, will force execution of pending operations in order to ensure an up-to-date value is returned.
+<code><pre>
+ctx.lazy = true;
+ctx.fillRect(50, 50, 200, 10); // nothing happens
+console.log(ctx.strokeStyle);  // implicit .trigger() call, queued operations are run
+</pre></code>
 
 <h2>Purpose</h2>
 <p>
