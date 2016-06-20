@@ -18,22 +18,25 @@
 
 On this web page the scripts
 <code><pre>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/immutable/3.8.1/immutable.js"></script>
-<script src="LazyCanvasCtx.js"></script>
-<script>
+&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/immutable/3.8.1/immutable.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;LazyCanvasCtx.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
 var ctx = new LazyCanvasCtx('canvas');
-</script>
+&lt;/script&gt;
 </pre></code>
-have been run. Open the JavaScript console to play with this object.
+have been run. Open the JavaScript console to play with this <code>ctx</code> object, which
+behaves mostly like a <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">normal canvas 2d context object</a>.
 </p>
 <p>
-This <code>ctx</code> object behaves mostly like a <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">normal canvas 2d context object</a>.
 For example, try
 </p>
 <code><pre>
 ctx.fillRect(0, 0, 100, 200);
 </pre></code>
-But once you set <code>ctx.lazy = true</code>, further draw operations will be saved until <code>ctx.trigger()</code> is called:
+<p>This should immediately draw a black rectangle.</p>
+<p>
+But once you set <code>ctx.lazy = true</code> further draw operations will be saved instead of running right away:
+</p>
 <code><pre>
 ctx.lazy = true;
 ctx.fillRect(50, 50, 200, 10); // nothing happens!
@@ -49,7 +52,7 @@ ctx.trigger() // all the queued drawing operations occur
 
 <h2>Purpose</h2>
 <p>
-This might be useful for batching draw operations that logically go together, but are interrupted by DOM renders that would show the intermediate state.
+This might be useful for batching draw operations that logically go together, but could be interrupted by DOM renders that would show the intermediate state.
 </p>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/immutable/3.8.1/immutable.js"></script>
