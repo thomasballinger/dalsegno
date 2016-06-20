@@ -16,11 +16,15 @@
 <canvas id="canvas" width="500" height="200"></canvas>
 <p>
 
-On this web page, the script
+On this web page the scripts
 <code><pre>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/immutable/3.8.1/immutable.js"></script>
+<script src="LazyCanvasCtx.js"></script>
+<script>
 var ctx = new LazyCanvasCtx('canvas');
+</script>
 </pre></code>
-has been run. Open the JavaScript console to play with this object.
+have been run. Open the JavaScript console to play with this object.
 </p>
 <p>
 This <code>ctx</code> object behaves mostly like a <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">normal canvas 2d context object</a>.
@@ -43,10 +47,14 @@ You can run run these queued drawing operations by calling the trigger method:
 ctx.trigger() // all the queued drawing operations occur
 </pre></code>
 
+<h2>Purpose</h2>
+<p>
+This might be useful for batching draw operations that logically go together, but are interrupted by DOM renders that would show the intermediate state.
+</p>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/immutable/3.8.1/immutable.js"></script>
 <script src="LazyCanvasCtx.js"></script>
 <script>
 var ctx = new LazyCanvasCtx('canvas');
-
 </script>
 </html>
