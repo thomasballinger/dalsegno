@@ -2,13 +2,51 @@
 <head>
   <style type="text/css" media="screen">
   </style>
+  <style>
+    canvas {
+      border: solid black 1px;
+    }
+  </style>
 </head>
 
-<canvas id="canvas"></canvas>
+<h1>Lazy Canvas Context</h1>
+<p>
+<a href="https://github.com/thomasballinger/dalsegno/blob/master/LazyCanvasCtx.js">Source code on GitHub</a>
+</p>
+<canvas id="canvas" width="500" height="200"></canvas>
+<p>
 
-<script src="LazyCanvas.js"></script>
+On this web page, the script
+<code><pre>
+var ctx = new LazyCanvasCtx('canvas');
+</pre></code>
+has been run. Open the JavaScript console to play with this object.
+</p>
+<p>
+This <code>ctx</code> object behaves mostly like a <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">normal canvas 2d context object</a>.
+For example, try
+</p>
+<code><pre>
+ctx.fillRect(0, 0, 100, 200);
+</pre></code>
+But once you set <code>ctx.lazy = true</code>, further draw operations will be saved until <code>ctx.trigger()</code> is called:
+<code><pre>
+ctx.lazy = true;
+ctx.fillRect(50, 50, 200, 10); // nothing happens!
+ctx.strokeStyle="#FF0000";
+ctx.beginPath();
+ctx.arc(100,75,50,0,2*Math.PI);
+ctx.stroke();
+</pre></code>
+You can run run these queued drawing operations by calling the trigger method:
+<code><pre>
+ctx.trigger() // all the queued drawing operations occur
+</pre></code>
+
+<script src="./Immutable.js"></script>
+<script src="LazyCanvasCtx.js"></script>
 <script>
-var ctx = new LazyCanvas('canvas');
+var ctx = new LazyCanvasCtx('canvas');
 
 </script>
 </html>
