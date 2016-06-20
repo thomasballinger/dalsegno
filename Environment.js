@@ -249,7 +249,7 @@
     if (this.runner.funs[name] === undefined){
       throw Error("Named function "+name+" not found in " + Object.keys(this.funs));
     }
-    this.runner.saveState(name);
+    this.runner.saveStateByDefn(name);
     var func = this.runner.getFunction(name);
     func.incref();
     return func;

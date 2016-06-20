@@ -33,11 +33,12 @@
       throw Error("bad scopeCheck value, use null for no mutable variables");
     }
     this.statefuls = [];
-    this.funs = funs;
+    this.funs = funs;  // map of defn name to state at most recent call
     this.scopeCheck = scopeCheck;
     this.counter = 0;
     this.savesByFunInvoke = {};
-    this.rewindStates = [];
+    this.rewindStates = [];  // states needed for rewinds
+    this.keyframeStates = {};
     this.currentRewindIndex = null;
     this.renderRequested = false;
   }
@@ -48,6 +49,7 @@
     if (Object.keys(this.savesByFunInvoke).length > 0){ throw Error("Stateful objects can't be added once states have been saved"); }
     this.statefuls.push(obj);
   };
+  /** Requesting a render causes a setTimeout(0) and a keyframe to be saved */
   BCRunner.prototype.registerRenderRequester = function(obj){
     if (typeof obj.setRenderRequester === 'undefined'){ throw Error('RenderRequester object need a setRenderRequester method'); }
     obj.setRenderRequester( ()=>{
@@ -216,10 +218,15 @@
     var start = this.counter;
     var shouldRunCallback = true;
     var errorless = withErrorHandler(onRuntimeError, ()=>{
-      while(true){
-        if (this.counter >= start + numIterations){ break; }
+      while(this.counter < start + numIterations){
         var finished = this.runOneStep();
-        if (finished){ break; }
+        if (finished){
+          this.saveState();
+          break;
+        }
+        if (this.renderRequested){
+          this.saveState();
+        }
         if (this.renderRequested && this.counter < start + numIterations){
           var ticksLeft = start + numIterations - this.counter;
           //console.log('breaking early to deal with a renderRequest! '+ticksLeft+' ticks left');
@@ -240,14 +247,20 @@
       }
     }
   };
-  BCRunner.prototype.saveState = function(name){
+  BCRunner.prototype.saveStateByDefn = function(name){
     var copy = this.copy();
     // need to incref closures from this state
 
-    if (this.savesByFunInvoke){
-      // need to decref closures from this state!
+    this.savesByFunInvoke[name] = copy;
+    this.keyframeStates[this.counter] = copy;
+  };
+  BCRunner.prototype.saveState = function(){
+    if (this.keyframeStates[this.counter]){
+      // already saved state this tick
+      return;
     }
-    this.savesByFunInvoke[name] = this.copy();
+    var copy = this.copy();
+    this.keyframeStates[this.counter] = copy;
   };
   BCRunner.prototype.restoreState = function(state){
     // copied in one deepCopy call because their
@@ -301,8 +314,8 @@
   };
   /** returns true if finished */
   BCRunner.prototype.runOneStep = function(){
-    //TODO turn this back on once we can make copies
     /*
+    // used for rewind states
     this.rewindStates.push(this.copy());
     if (this.rewindStates.length > 100){
       this.rewindStates.shift();
@@ -321,6 +334,9 @@
     this.counter += 1;
     return this.context.done;
   };
+
+
+  // Playback stuff
   /** Step back one step or do nothing if no more to go back*/
   BCRunner.prototype.stepBackOneStep = function(){
     if (this.currentRewindIndex === null){
@@ -330,8 +346,36 @@
     }
     console.log('restoring', this.rewindStates[this.currentRewindIndex]);
     this.restoreState(this.rewindStates[this.currentRewindIndex]);
-
   };
+  BCRunner.prototype.visualSeek = function(dest, cb){
+    console.log('visualSeek');
+    if (dest > Math.max(Math.max.apply(null, Object.keys(this.keyframeStates)), this.counter)){
+      throw Error('destination is beyond the knowable future: '+dest);
+    }
+    var min = Math.min(dest, this.counter);
+    var max = Math.max(dest, this.counter);
+    var toShow = Object.keys(this.keyframeStates)
+      .map(x => parseInt(x))
+      .filter(x => min < x && x < max);
+    toShow.sort();
+    if (dest > cb){
+      toShow.reverse();
+    }
+    var self = this;
+    function innerSeek(){
+      if (toShow.length){
+        // because it's not a deepcopy, important not to run from here
+        console.log('about to restore state of', toShow[toShow.length-1]);
+        self.restoreState(self.keyframeStates[toShow.pop()]);
+        setTimeout(innerSeek, 100);
+      } else {
+        cb();
+      }
+    }
+    innerSeek();
+  };
+
+
   //TODO temp ship for compatibility with evalGen in tests
   BCRunner.prototype.next = BCRunner.prototype.runOneStep;
 
