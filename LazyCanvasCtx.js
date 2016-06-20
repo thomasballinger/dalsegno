@@ -206,7 +206,6 @@
     });
   };
   LazyCanvasCtx.prototype.restoreState = function(state){
-    console.log('lazy canvas restoreState called');
     if (!Immutable.Map.isMap(state)){
       throw Error("Lazy canvas restored with bad state:"+state);
     }

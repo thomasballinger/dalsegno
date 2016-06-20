@@ -152,6 +152,7 @@
     } else {
       console.log('functions changed: ', Object.keys(diff));
     }
+    //TODO should these be called "latest-"?
     var earliestTime = -1;
     var earliestGen;
     for (var funcName in diff){
@@ -194,11 +195,11 @@
     if (cb){
       setTimeout(() => {
         console.log("in the function scheduled from update");
-        this.visualSeek(earliestGen, () => {
+        this.visualSeek(parseInt(earliestTime), () => {
           console.log('in the visualSeek callback');
           var newKeyframeStates = {};
           for (var i of Object.keys(this.keyframeStates)){
-            if (parseInt(i) <= earliestGen){
+            if (parseInt(i) <= earliestTime){
               newKeyframeStates[i] = this.keyframeStates[i];
             }
           }
