@@ -112,7 +112,7 @@
   DalSegno.prototype.go = function(){
     this.isActive = true;
     this.ensureRunSomeScheduled();
-  }
+  };
   DalSegno.prototype.link = function(){
     //TODO links to versions without editors or with a console
     var base = 'http://dalsegno.ballingt.com/';
@@ -217,18 +217,6 @@
     }
   };
 
-  DalSegno.prototype.recover = function(){
-    if (this.playerState === PS.Error){
-      this.clearError();
-    }
-    var s = this.editor.getValue();
-    if (bcexec.safelyParsesAndCompiles(s, e => this.onRuntimeOrSyntaxError(e))){
-      this.playerState = PS.Unfinished;
-      this.runner.update(s);
-    } else {
-      this.playerState = PS.Error;
-    }
-  };
   /** Advance the state of the program.
    *
    * This function can be scheduled to be run later,
@@ -236,6 +224,8 @@
    * to determine what to do.
    * */
   DalSegno.prototype.runSome = function(){
+    var doUpdate = false;
+
     // Check Queued Events
     if (this.editorMessage === EM.SyntacticDifference){
       console.log('difference in editor is only syntactic, nothing special to do');
@@ -243,8 +233,7 @@
       this.isActive = true;
     } else if (this.editorMessage === EM.SemanticDifference){
       this.clearError();
-      var s = this.editor.getValue();
-      this.runner.update(s);
+      doUpdate = true;
       this.playerState = PS.Unfinished;
       this.editorMessage = null;
       this.isActive = true;
@@ -263,8 +252,7 @@
 
     // Determine next action based on state
     if (this.playerState === PS.Initial){
-      var s = this.editor.getValue();
-      this.runner.update(s);
+      doUpdate = true;
     } else if (this.playerState === PS.Error){
       // nop, and don't schedule this.
       this.runSomeScheduled = false;
@@ -281,21 +269,32 @@
       this.runSomeScheduled = false;
       return;
     }
-
     this.runSomeScheduled = true;
-    this.runner.runABit(this.speed,
-      (moreToRun)=>{
-        if (moreToRun === 'error'){
-          this.playerState = PS.Error;
-        } else if (moreToRun){
-          this.playerState = PS.Unfinished;
-        } else {
-          this.playerState = PS.Finished;
-        }
-        // long-running loop, so use setTimeout to allow other JS to run
-        setTimeout( () => this.runSome(), 0);
-      },
-      this.DEBUGMODE ? undefined : e => this.onRuntimeOrSyntaxError(e));
+
+    var part2 = () => {
+      this.runSomeScheduled = true;
+      this.runner.runABit(this.speed,
+        (moreToRun)=>{
+          if (moreToRun === 'error'){
+            this.playerState = PS.Error;
+          } else if (moreToRun){
+            this.playerState = PS.Unfinished;
+          } else {
+            this.playerState = PS.Finished;
+          }
+          // long-running loop, so use setTimeout to allow other JS to run
+          setTimeout( () => this.runSome(), 100);
+        },
+        this.DEBUGMODE ? undefined : e => this.onRuntimeOrSyntaxError(e));
+    };
+
+    if (doUpdate){
+      var s = this.editor.getValue();
+      this.runner.update(s, part2);
+    } else {
+      part2();
+    }
+
   };
 
   /** Invoked only by change handler */

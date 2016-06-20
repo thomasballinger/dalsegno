@@ -106,13 +106,16 @@
     this.context = new bcexec.Context(bytecode, this.envBuilder());
     console.log('Restart!');
   };
-  BCRunner.prototype.update = function(s){
+  /** Updates running program with new source code.
+   * If cb is provided, may behave in nonblocking manner to do fancy animations */
+  BCRunner.prototype.update = function(s, cb){
+    console.log('update!');
     var newAst = parse(s);
     var functionASTs = parse.findFunctions(newAst);
     if (this.ast !== undefined &&
         JSON.stringify(parse.justContent(newAst)) ===
         JSON.stringify(parse.justContent(this.ast)) && !this.context.finished){
-      return;
+      return cb ? cb() : undefined;
     }
 
     // the AST changed. We might stay where we are, we might restore.
@@ -124,12 +127,28 @@
     if (Object.keys(diff).length === 0){
       // Since no named functions have changed, this must have been a
       // top-level (global scope) AST change. Do a total reset!
-      this.ast = parse(s);
-      var bytecode = bcexec.compileProgram(this.ast);
-      this.context = new bcexec.Context(bytecode, this.envBuilder());
-      this.funs = {};
-      console.log('Total reset!');
+      var reset = () => {
+        console.log('Total reset!');
+        this.ast = parse(s);
+        var bytecode = bcexec.compileProgram(this.ast);
+        this.context = new bcexec.Context(bytecode, this.envBuilder());
+        this.funs = {};
+      };
+      if (cb){
+        setTimeout(() => {
+          console.log("in the function scheduled from update");
+          this.visualSeek(0, () => {
+            console.log('in the visualSeek callback');
+            this.keyframeStates = {};
+            reset();
+            cb();
+          });
+        }, 0);
+      } else {
+        reset();
+      }
       return;
+
     } else {
       console.log('functions changed: ', Object.keys(diff));
     }
@@ -146,27 +165,50 @@
     if (earliestGen === undefined){
       // The only funtions that were changed were functions that had
       // never been run so those changes will take effect on their own!
-      return;
+      return cb ? cb() : undefined;
     }
 
     console.log('restoring from last invocation of function', earliestGen);
-    // making a copy because we're about to munge it with new defn bodies
-    this.restoreState(deepCopy(this.savesByFunInvoke[earliestGen]));
 
-    // For each defn form in the current code
-    for (funcName in functionASTs){
-      // if there's a saved compiled function for it
-      if (funcName in this.funs){
-        // then update it with the new code!
-        if (funcName in diff){
-          console.log('updating code for', funcName);
-          this.funs[funcName].code = bcexec.compileFunctionBody(functionASTs[funcName].body);
-          this.funs[funcName].params = parse.justContent(functionASTs[funcName].params);
-        } else {
-          //console.log('updating linenumbers for', funcName);
-          this.funs[funcName].code = bcexec.compileFunctionBody(functionASTs[funcName].body);
+    var restore = () => {
+      // making a copy because we're about to munge it with new defn bodies
+      this.restoreState(deepCopy(this.savesByFunInvoke[earliestGen]));
+
+      // For each defn form in the current code
+      for (funcName in functionASTs){
+        // if there's a saved compiled function for it
+        if (funcName in this.funs){
+          // then update it with the new code!
+          if (funcName in diff){
+            console.log('updating code for', funcName);
+            this.funs[funcName].code = bcexec.compileFunctionBody(functionASTs[funcName].body);
+            this.funs[funcName].params = parse.justContent(functionASTs[funcName].params);
+          } else {
+            //console.log('updating linenumbers for', funcName);
+            this.funs[funcName].code = bcexec.compileFunctionBody(functionASTs[funcName].body);
+          }
         }
       }
+    };
+
+    if (cb){
+      setTimeout(() => {
+        console.log("in the function scheduled from update");
+        this.visualSeek(earliestGen, () => {
+          console.log('in the visualSeek callback');
+          var newKeyframeStates = {};
+          for (var i of Object.keys(this.keyframeStates)){
+            if (parseInt(i) <= earliestGen){
+              newKeyframeStates[i] = this.keyframeStates[i];
+            }
+          }
+          this.keyframeStates = newKeyframeStates;
+          restore();
+          cb();
+        });
+      }, 0);
+    } else {
+      return restore();
     }
   };
 
@@ -268,11 +310,10 @@
     // also on the context.envStack.
     this.counter = state.counter;
     this.context = state.context;  // deepcopied because this mutates
-    console.log('restoring with restoreState');
     this.funs = state.funs;  // copied so we can update these
     this.scopeCheck = state.scopeCheck;
     this.statefuls.forEach( (s, i) => {
-      s.restore(state.statefuls[i]);
+      s.restoreState(state.statefuls[i]);
     });
   };
   BCRunner.prototype.getState = function(name){
@@ -357,7 +398,8 @@
     var toShow = Object.keys(this.keyframeStates)
       .map(x => parseInt(x))
       .filter(x => min < x && x < max);
-    toShow.sort();
+    console.log('found', toShow.length, 'frames to animate');
+    toShow.sort(function(a,b){return a - b;});
     if (dest > cb){
       toShow.reverse();
     }
@@ -365,9 +407,8 @@
     function innerSeek(){
       if (toShow.length){
         // because it's not a deepcopy, important not to run from here
-        console.log('about to restore state of', toShow[toShow.length-1]);
         self.restoreState(self.keyframeStates[toShow.pop()]);
-        setTimeout(innerSeek, 100);
+        setTimeout(innerSeek, 0);
       } else {
         cb();
       }
