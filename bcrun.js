@@ -137,13 +137,12 @@
       };
       if (cb){
         setTimeout(() => {
-          console.log("in the function scheduled from update");
           this.visualSeek(0, () => {
             console.log('in the visualSeek callback');
             this.keyframeStates = {};
             reset();
             cb();
-          }, framesample.makeRandomSampler(300));
+          }, framesample.makeAccelDecelSampler(300));
         }, 0);
       } else {
         reset();
@@ -207,7 +206,7 @@
           this.keyframeStates = newKeyframeStates;
           restore();
           cb();
-        }, framesample.makeRandomSampler(200));
+        }, framesample.makeAccelDecelSampler(200));
       }, 0);
     } else {
       return restore();
@@ -411,7 +410,14 @@
     function innerSeek(){
       if (toShow.length){
         // because it's not a deepcopy, important not to run from here
-        self.restoreState(self.keyframeStates[toShow.pop()]);
+        var index = toShow.pop();
+        var state = self.keyframeStates[index];
+        //TODO why is this happening?
+        if (state === undefined){
+          console.log('tried to restore state', index, 'but it was undefined!');
+        } else {
+          self.restoreState(state);
+        }
         setTimeout(innerSeek, 0);
       } else {
         cb();

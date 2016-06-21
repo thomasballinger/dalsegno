@@ -44,6 +44,7 @@
     this.testCtx = document.createElement('canvas').getContext('2d');
     this.renderTimes = [];
     this.requestRender = null;
+    this.rewindEffect = true;
     this._lazy = lazy;
 
     var self = this;
@@ -192,6 +193,7 @@
     if (this.requestRender){
       this.requestRender();
     }
+
     return returnValue;
   };
   /** Saves the drawing context, queued operations, and current image of canvas */
@@ -220,7 +222,29 @@
     this.operationsSinceLastClear.reverse().forEach( operation => {
       operation[0].apply(this.ctx, operation[1]);
     });
+    if (this.rewindEffect){
+      this.drawRewindEffect();
+    }
   };
+  LazyCanvasCtx.prototype.drawRewindEffect = function(){
+    this.ctx.save();
+    var w = this.canvasElement.width;
+    var h = this.canvasElement.height;
+    var fills = ['#666', '#eee', '#888', '#bbb'];
+    for (var i=0; i<10; i++){
+      this.ctx.fillStyle = fills[Math.floor(Math.random()*fills.length)];
+      this.ctx.fillRect(0, h/5 + Math.random()*h/12, w, h / 200);
+    }
+    for (var i=0; i<10; i++){
+      this.ctx.fillStyle = fills[Math.floor(Math.random()*fills.length)];
+      this.ctx.fillRect(0, 3*h/5 + Math.random()*h/12, w, h / 200);
+    }
+    this.ctx.restore();
+  };
+  LazyCanvasCtx.prototype.eraseEffect = function(){
+    this.restoreState(this.saveState());
+  };
+
 
   LazyCanvasCtx.LazyCanvasCtx = LazyCanvasCtx;
 
