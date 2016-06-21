@@ -19,6 +19,65 @@
     };
   }
 
+  /**  */
+  function accelSample(frames, sample){
+    var interval = frames.length / triangle(sample);
+    var newFrames = [frames[0]];
+    var indexFloat = 0;
+    var ahead = 0;
+    for (var i=1; i<sample; i++){
+      var inc = i * interval - ahead;
+      if (i * interval < 1){
+        ahead = (1 - inc);
+        indexFloat += 1;
+      } else {
+        indexFloat += i * interval;
+      }
+      var index = Math.floor(indexFloat);
+      newFrames.push(frames[Math.floor(indexFloat)]);
+    }
+    return newFrames;
+  }
+  function triangle(n){
+    var t = 0;
+    for (var i=0; i<n+1; i++){ t += i; }
+    return t;
+  }
+
+  function makeAccelDecelSampler(targetNumFrames){
+    return function accelDecelSample(frames){
+      if (frames.length <= targetNumFrames){ return frames; }
+      if (targetNumFrames === 0){ return []; }
+      var n = frames.length;
+      var m = targetNumFrames;
+      var mid = Math.floor((frames.length - 1)/2);
+      var mFront = Math.floor((m-1)/2);
+      var mBack = Math.ceil((m-1)/2);
+
+      var front = accelSample(frames.slice(0, mid), mFront);
+      var middle = frames[mid];
+      var back = frames.slice(mid+1);
+      back.reverse();
+      back = accelSample(back, mBack);
+      back.reverse();
+
+      return front.concat([middle], back);
+    };
+  }
+
+  // cut in half, special case middle
+  //
+  // 101 -> 50 frames per half.
+  // 100 -> 50 for one half, 49 for the other.
+  //
+  // How to fit 50 frames into 5 frames?
+  //
+  // solve t(5) * x = 50
+  // 
+  // 50 / 15 = interval of 3.33
+  // So use frames 0, 3, 9, 19, 32
+  //
+  //
   /** an accelerating then decelerating effect */
   function makeAcceleratingSampler(targetNumFrames){
     return function(frames){
@@ -64,6 +123,8 @@
   var samplers = {};
   samplers.makeRandomSampler = makeRandomSampler;
   samplers.makeAcceleratingSampler = makeAcceleratingSampler;
+  samplers.makeAccelDecelSampler = makeAccelDecelSampler;
+  samplers.accelSample = accelSample;
 
 
   if (typeof exports !== 'undefined') {
