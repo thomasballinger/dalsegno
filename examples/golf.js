@@ -79,6 +79,9 @@ window.golfProgram = `
   (define points (first stuff))
   (define hole (rest stuff))
 
+  (color "lightblue")
+  (fillRect 0 0 10000 10000)
+  (color "black")
   (drawText 100 100 "get ready...")
   (render)
   (init-ground-below points)

@@ -137,6 +137,7 @@
       };
       if (cb){
         setTimeout(() => {
+          console.log("in the function scheduled from update");
           this.visualSeek(0, () => {
             console.log('in the visualSeek callback');
             this.keyframeStates = {};

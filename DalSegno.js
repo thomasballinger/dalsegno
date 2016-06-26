@@ -290,7 +290,18 @@
 
     if (doUpdate){
       var s = this.editor.getValue();
-      this.runner.update(s, part2);
+      this.runner.update(s, ()=>{
+        if(this.lazyCanvasCtx){
+          this.lazyCanvasCtx.eraseEffect();
+          this.lazyCanvasCtx.drawPlayIcon();
+          setTimeout(()=>{
+            this.lazyCanvasCtx.eraseEffect();
+            part2();
+          }, 200);
+        } else {
+          part2();
+        }
+      });
     } else {
       part2();
     }

@@ -241,7 +241,28 @@
     }
     this.ctx.restore();
   };
+  LazyCanvasCtx.prototype.drawPlayIcon = function(){
+    this.ctx.save();
+    var w = this.canvasElement.width;
+    var h = this.canvasElement.height;
+
+    this.ctx.fillStyle = '#ffffff'
+    this.ctx.strokeStyle = '#ffffff'
+    this.ctx.lineWidth = 15;
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(w*0.2, h*0.2);
+    this.ctx.lineTo(w*0.8,h*0.5);
+    this.ctx.lineTo(w*0.2, h*0.8);
+    this.ctx.closePath();
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    this.ctx.restore();
+  };
   LazyCanvasCtx.prototype.eraseEffect = function(){
+    console.log('erasing effect...');
+    this.ctx.clearRect(0, 0, 10000, 10000);
     this.restoreState(this.saveState());
   };
 
