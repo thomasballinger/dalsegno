@@ -141,13 +141,15 @@
       };
       if (cb){
         setTimeout(() => {
-          console.log("in the function scheduled from update");
+          var numFrames = Object.keys(this.keyframeStates).length;
+          var rewindLength = 3 + Math.ceil(Math.log2(numFrames + 1) * 20);
+
           this.visualSeek(0, () => {
             console.log('in the visualSeek callback');
             this.keyframeStates = {};
             reset();
             cb(updateIsRewind);
-          }, framesample.makeAccelDecelSampler(300));
+          }, framesample.makeAccelDecelSampler(rewindLength));
         }, 0);
       } else {
         reset();
@@ -200,6 +202,9 @@
     if (cb){
       setTimeout(() => {
         console.log("in the function scheduled from update");
+        var numFrames = Object.keys(this.keyframeStates).length;
+        var rewindLength = 3 + Math.ceil(Math.log2(numFrames + 1) * 15);
+
         this.visualSeek(parseInt(earliestTime), () => {
           console.log('in the visualSeek callback');
           var newKeyframeStates = {};
@@ -211,7 +216,7 @@
           this.keyframeStates = newKeyframeStates;
           restore();
           cb();
-        }, framesample.makeAccelDecelSampler(200));
+        }, framesample.makeAccelDecelSampler(rewindLength));
       }, 0);
     } else {
       return restore();
