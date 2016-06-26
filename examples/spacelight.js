@@ -1,7 +1,7 @@
 // vim: set ft=scheme:
 window.spaceLightProgram = `; That headlight looks a little underpowered!
 ; Try changing the last two arguments to draw-black
-; on line 74, or delete that line altogether.
+; on line 62, or delete that line altogether.
 ; Then make more changes to see how the game works!
 ; Language documentation: on GitHub at thomasballinger/dalsegno
 ; in the user-content-language section of the readme
@@ -13,17 +13,11 @@ window.spaceLightProgram = `; That headlight looks a little underpowered!
            (list (randint -5 6) (randint -5 6))))
        (range 10)))
 
-(defn wrap-obj (obj)
-  (list
-    (list (% (first (first obj)) width)
-          (% (last (first obj)) height))
-    (last obj)))
-
-(defn step-obj (obj)
-  (list
-    (list (+ (first (first obj)) (first (last obj)))
-          (+ (last (first obj)) (last (last obj))))
-    (last obj)))
+(defn draw-black (x y h d angle)
+    (color 0 0 0)
+    (drawArc x y 1000 (+ h 180 angle) (+ h angle))
+    (drawArc x y 1000 (- h angle) (- (+ h 180) angle))
+    (drawInverseCircle x y d))
 
 (defn render-obj (obj)
   (color 110 45 2)
@@ -31,12 +25,6 @@ window.spaceLightProgram = `; That headlight looks a little underpowered!
   (drawArc (first (first obj))
             (get 1 (first obj))
             radius))
-
-(defn draw-black (x y h d angle)
-    (color 0 0 0)
-    (drawArc x y 1000 (+ h 180 angle) (+ h angle))
-    (drawArc x y 1000 (- h angle) (- (+ h 180) angle))
-    (drawInverseCircle x y d))
 
 (defn game ()
   (define x 300)
@@ -99,6 +87,18 @@ window.spaceLightProgram = `; That headlight looks a little underpowered!
           (render)
           )))
   (main))
+
+(define wrap-obj (lambda (obj)
+  (list
+    (list (% (first (first obj)) width)
+          (% (last (first obj)) height))
+    (last obj))))
+
+(define step-obj (lambda (obj)
+  (list
+    (list (+ (first (first obj)) (first (last obj)))
+          (+ (last (first obj)) (last (last obj))))
+    (last obj))))
 
 (defn wait-for-unclick ()
   (if (clicked)
