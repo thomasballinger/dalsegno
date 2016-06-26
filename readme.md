@@ -159,8 +159,6 @@ potential todos
   execution at that arbitrary point
 * display most recently run named functions and when they were run,
   and clicking them rewinds state to that time.
-* either a rewind animation or an animation replacing the current image
-  with the old one when old state is restored
 * save canvas state for restores: save/restore for scope objects
 * pause builtin function
 * branches of ifs acting like functions: changing them rewinds

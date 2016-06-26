@@ -145,7 +145,6 @@
           var rewindLength = 3 + Math.ceil(Math.log2(numFrames + 1) * 20);
 
           this.visualSeek(0, () => {
-            console.log('in the visualSeek callback');
             this.keyframeStates = {};
             reset();
             cb(updateIsRewind);
@@ -206,7 +205,6 @@
         var rewindLength = 3 + Math.ceil(Math.log2(numFrames + 1) * 15);
 
         this.visualSeek(parseInt(earliestTime), () => {
-          console.log('in the visualSeek callback');
           var newKeyframeStates = {};
           for (var i of Object.keys(this.keyframeStates)){
             if (parseInt(i) <= earliestTime){
@@ -269,7 +267,6 @@
     }
     numIterations = numIterations || 1;
     var start = this.counter;
-    var shouldRunCallback = true;
     var errorless = withErrorHandler(onRuntimeError, ()=>{
       while(this.counter < start + numIterations){
         var finished = this.runOneStep();
@@ -279,12 +276,7 @@
         }
         if (this.renderRequested){
           this.saveState();
-        }
-        if (this.renderRequested && this.counter < start + numIterations){
           var ticksLeft = start + numIterations - this.counter;
-          //console.log('breaking early to deal with a renderRequest! '+ticksLeft+' ticks left');
-          setTimeout( ()=>{ this.runABit(ticksLeft, cb, onRuntimeError); }, 0);
-          shouldRunCallback = false;  // we just scheduled it here
           this.renderRequested = false;
           break;
         }
@@ -292,12 +284,10 @@
     });
     this.renderRequested = false;
 
-    if (shouldRunCallback){
-      if (!errorless){
-        cb('error');
-      } else {
-        cb(!this.context.done);
-      }
+    if (!errorless){
+      cb('error');
+    } else {
+      cb(!this.context.done);
     }
   };
   BCRunner.prototype.saveStateByDefn = function(name){
@@ -400,7 +390,6 @@
     this.restoreState(this.rewindStates[this.currentRewindIndex]);
   };
   BCRunner.prototype.visualSeek = function(dest, cb, frameChooser){
-    console.log('visualSeek');
     if (dest > Math.max(Math.max.apply(null, Object.keys(this.keyframeStates)), this.counter)){
       throw Error('destination is beyond the knowable future: '+dest);
     }

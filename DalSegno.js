@@ -174,14 +174,12 @@
     this.canvasMessage(msg);
     var self = this;
     function cleanup(){
-      console.log('calling cleanup function set by setMouseinToPlay');
       self.canvas.removeEventListener('mouseenter', handler);
       ctx.putImageData(self.savedImage, 0, 0);
       self.lastCleanupFunction = undefined;
     }
     self.lastCleanupFunction = cleanup;
     function handler(){
-      console.log('running handler set by setMouseinToPlay');
       self.mouseMessage = true;
       self.ensureRunSomeScheduled();
     }
