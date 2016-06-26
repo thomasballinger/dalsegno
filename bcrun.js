@@ -114,9 +114,9 @@
     var newAst = parse(s);
     var functionASTs = parse.findFunctions(newAst);
     if (this.ast !== undefined &&
-        JSON.stringify(parse.justContent(newAst)) ===
-        JSON.stringify(parse.justContent(this.ast)) && !this.context.finished){
-      return cb ? cb() : undefined;
+        (JSON.stringify(parse.justContent(newAst)) ===
+         JSON.stringify(parse.justContent(this.ast))) && !this.context.finished){
+      return cb ? cb(false) : undefined;
     }
 
     // the AST changed. We might stay where we are, we might restore.
@@ -142,7 +142,7 @@
             console.log('in the visualSeek callback');
             this.keyframeStates = {};
             reset();
-            cb();
+            cb(true);
           }, framesample.makeAccelDecelSampler(300));
         }, 0);
       } else {
@@ -167,7 +167,7 @@
     if (earliestGen === undefined){
       // The only funtions that were changed were functions that had
       // never been run so those changes will take effect on their own!
-      return cb ? cb() : undefined;
+      return cb ? cb(false) : undefined;
     }
 
     console.log('restoring from last invocation of function', earliestGen);
@@ -226,8 +226,8 @@
       env.runner = this;
     }
 
-    this.ast = parse(s);
-    var bytecode = bcexec.compileProgram(this.ast);
+    var ast = parse(s);
+    var bytecode = bcexec.compileProgram(ast);
     this.context = new bcexec.Context(bytecode, env);
     return this.value();
   };
@@ -243,8 +243,8 @@
       env.runner = this;
     }
 
-    this.ast = parse(s);
-    var bytecode = bcexec.compileInitialization(this.ast);
+    var ast = parse(s);
+    var bytecode = bcexec.compileInitialization(ast);
     this.context = new bcexec.Context(bytecode, env);
     return this.value();
   };

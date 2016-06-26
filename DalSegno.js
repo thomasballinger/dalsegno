@@ -290,7 +290,8 @@
 
     if (doUpdate){
       var s = this.editor.getValue();
-      this.runner.update(s, ()=>{
+      this.runner.update(s, (change)=>{
+        if (!change){ part2(); return; }
         if(this.lazyCanvasCtx){
           this.lazyCanvasCtx.eraseEffect();
           this.lazyCanvasCtx.drawPlayIcon();
