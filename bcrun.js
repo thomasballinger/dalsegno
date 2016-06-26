@@ -108,15 +108,19 @@
     console.log('Restart!');
   };
   /** Updates running program with new source code.
-   * If cb is provided, may behave in nonblocking manner to do fancy animations */
+   * If cb is provided, may behave in nonblocking manner to do fancy animations
+   * it will be called with whether a rewind animation is necessary. */
   BCRunner.prototype.update = function(s, cb){
     console.log('update!');
+    var updateIsRewind = true;
     var newAst = parse(s);
     var functionASTs = parse.findFunctions(newAst);
     if (this.ast !== undefined &&
         (JSON.stringify(parse.justContent(newAst)) ===
          JSON.stringify(parse.justContent(this.ast))) && !this.context.finished){
       return cb ? cb(false) : undefined;
+    } else if (this.ast === undefined){
+      updateIsRewind = false;
     }
 
     // the AST changed. We might stay where we are, we might restore.
@@ -142,7 +146,7 @@
             console.log('in the visualSeek callback');
             this.keyframeStates = {};
             reset();
-            cb(true);
+            cb(updateIsRewind);
           }, framesample.makeAccelDecelSampler(300));
         }, 0);
       } else {
