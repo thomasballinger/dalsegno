@@ -246,8 +246,8 @@
     var w = this.canvasElement.width;
     var h = this.canvasElement.height;
 
-    this.ctx.fillStyle = '#ffffff'
-    this.ctx.strokeStyle = '#ffffff'
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.strokeStyle = '#ffffff';
     this.ctx.lineWidth = 15;
 
     this.ctx.beginPath();

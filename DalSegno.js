@@ -241,7 +241,7 @@
       this.isActive = true;
     } else if (this.mouseMessage){
       if (!this.lastCleanupFunction){
-        throw Error('mouse message but no cleanup function');
+        console.warn('mouse message but no cleanup function');
       }
       this.lastCleanupFunction();
       this.mouseMessage = null;
@@ -269,7 +269,7 @@
     }
     this.runSomeScheduled = true;
 
-    var part2 = () => {
+    var run = () => {
       this.runSomeScheduled = true;
       this.runner.runABit(this.speed,
         (moreToRun)=>{
@@ -289,20 +289,19 @@
     if (doUpdate){
       var s = this.editor.getValue();
       this.runner.update(s, (change)=>{
-        if (!change){ part2(); return; }
+        if (!change){ run(); return; }
         if(this.lazyCanvasCtx){
           this.lazyCanvasCtx.eraseEffect();
           this.lazyCanvasCtx.drawPlayIcon();
           setTimeout(()=>{
-            this.lazyCanvasCtx.eraseEffect();
-            part2();
+            run();
           }, 200);
         } else {
-          part2();
+          run();
         }
       });
     } else {
-      part2();
+      run();
     }
 
   };
