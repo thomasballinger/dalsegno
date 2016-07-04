@@ -90,6 +90,7 @@ div.content {
 <script src="../DrawHelpers.js"></script>
 <script src="../DalSegno.js" type="text/javascript" charset="utf-8"></script>
 
+<script src="../examples/breakout.js"></script>
 <script src="../examples/golf.js"></script>
 <script src="../examples/spacelight.js"></script>
 <script src="../examples/simple.js"></script>
@@ -108,7 +109,7 @@ execution speed:
 replay:
 <input type="range" id="scrubber2"/>
 <script>
-var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', 'scrubber2', window.golfProgram)
+var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', 'scrubber2', window.breakoutProgram)
 embed2.speed = 50;  // how many ticks to run at a time, default is 500
 embed2.onChangeIfValid = function(){
   var fullscreen = document.getElementById('fullscreen2');

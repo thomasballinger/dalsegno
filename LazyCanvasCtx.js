@@ -263,7 +263,10 @@
   LazyCanvasCtx.prototype.eraseEffect = function(){
     console.log('erasing effect...');
     this.ctx.clearRect(0, 0, 10000, 10000);
+    var origRewindEffect = this.rewindEffect;
+    this.rewindEffect = false;
     this.restoreState(this.saveState());
+    this.rewindEffect = origRewindEffect;
   };
 
 
