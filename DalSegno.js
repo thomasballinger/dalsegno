@@ -250,6 +250,18 @@
 
     // Determine next action based on state
     if (this.playerState === PS.Initial){
+      //May not be syntactically valid, so we have to check.
+      var safelyParses = false;
+      var s = this.editor.getValue();
+      try {
+        safelyParses = bcexec.safelyParsesAndCompiles(s, this.DEBUGMODE ? undefined : e => this.onRuntimeOrSyntaxError(e));
+      } finally {
+        // try/finally so message still sent in debug mode
+        if (!safelyParses){
+          this.sendMessageFromEditor(EM.SyntaxError);
+          return;
+        }
+      }
       doUpdate = true;
     } else if (this.playerState === PS.Error){
       // nop, and don't schedule this.
