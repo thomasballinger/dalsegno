@@ -307,7 +307,7 @@
           this.lazyCanvasCtx.drawPlayIcon();
           setTimeout(()=>{
             run();
-          }, 200);
+          }, 2000);
         } else {
           run();
         }

@@ -128,7 +128,8 @@
     }
     if (!Array.isArray(libraryScopes)){ throw Error('second arg should be array'); }
     libraryScopes.forEach(scope => {
-      if (scope.constructor === Object){
+      // in Chrome Canary 54 console.constructor is Object
+      if (scope.constructor === Object && scope !== console){
         console.log(scope);
         throw Error('Environment libraryScopes should not be simple objects: '+scope);
       }
