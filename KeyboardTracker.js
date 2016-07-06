@@ -12,7 +12,6 @@
       } else {
         hasFocus[0] = false;
       }
-      e.preventDefault();
     }, false);
     document.addEventListener('keydown', function(e){
       if (hasFocus[0]){
