@@ -71,6 +71,7 @@
                             // or an empty string if the program doesn't parse
     this.lastCleanupFunction = undefined; // cleans up message over canvas
     this.speed = 500;  // number of bytecode steps run per this.startRunning()
+    this.highlight = false;  // whether to highlight each time an operation happens
     this.badSpot = undefined;  // currently highlighted ace Range of source code for error
     this.curSpot = undefined;  // currently highlighted ace Range of source code for cur
     this.DEBUGMODE = false;  // throw errors properly so we see tracebacks
@@ -282,6 +283,9 @@
     this.runSomeScheduled = true;
 
     var run = () => {
+      if (this.highlight){
+        this.highlightCurSpot(this.runner.getCurrentAST());
+      }
       this.runSomeScheduled = true;
       this.runner.runABit(this.speed,
         (moreToRun)=>{
@@ -387,6 +391,7 @@
     }
   };
   DalSegno.prototype.highlightCurSpot = function(spot){
+    console.log('highlighting');
     if (this.curSpot){
       this.editor.getSession().removeMarker(this.curSpot);
     }
