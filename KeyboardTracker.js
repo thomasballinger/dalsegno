@@ -12,10 +12,19 @@
       } else {
         hasFocus[0] = false;
       }
+      e.preventDefault();
     }, false);
     document.addEventListener('keydown', function(e){
       if (hasFocus[0]){
         keysDown[e.which] = true;
+        if (keysDown[224] ||
+            keysDown[91] ||
+            keysDown[93] ||
+            keysDown[17]){
+              // This way cmd-r for refresh etc. stil gets through
+        } else {
+          e.preventDefault();
+        }
       }
     }, false);
     document.addEventListener('keyup', function(e){
