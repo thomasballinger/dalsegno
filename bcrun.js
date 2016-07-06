@@ -142,7 +142,7 @@
       if (cb){
         setTimeout(() => {
           var numFrames = Object.keys(this.keyframeStates).length;
-          var rewindLength = 3 + Math.ceil(Math.log2(numFrames + 1) * 20);
+          var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 10);
 
           this.visualSeek(0, () => {
             this.keyframeStates = {};
@@ -202,7 +202,7 @@
       setTimeout(() => {
         console.log("in the function scheduled from update");
         var numFrames = Object.keys(this.keyframeStates).length;
-        var rewindLength = 3 + Math.ceil(Math.log2(numFrames + 1) * 15);
+        var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 8);
 
         this.visualSeek(parseInt(earliestTime), () => {
           var newKeyframeStates = {};

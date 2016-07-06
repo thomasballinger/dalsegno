@@ -303,11 +303,9 @@
       this.runner.update(s, (change)=>{
         if (!change){ run(); return; }
         if(this.lazyCanvasCtx){
-          this.lazyCanvasCtx.eraseEffect();
-          this.lazyCanvasCtx.drawPlayIcon();
           setTimeout(()=>{
             run();
-          }, 2000);
+          }, 200);
         } else {
           run();
         }
@@ -315,7 +313,6 @@
     } else {
       run();
     }
-
   };
 
   /** Invoked only by change handler */
