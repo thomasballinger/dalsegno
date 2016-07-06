@@ -42,6 +42,7 @@
     this.keyframeStates = {};
     this.currentRewindIndex = null;
     this.renderRequested = false;
+    this.keyframeCallbacks = [];
   }
   /** Add object to be saved and restored with state during saves and restores */
   BCRunner.prototype.registerStateful = function(obj){
@@ -56,6 +57,10 @@
     obj.setRenderRequester( ()=>{
       this.renderRequested = true;
     });
+  };
+  /** Register callbacks to be called with this.keyframeStates */
+  BCRunner.prototype.registerRenderCallback = function(f){
+    this.keyframeCallbacks.push(f);
   };
   //TODO instead of using an envBuilder, pass in an env the runner
   //can make a copy of to be the original
@@ -202,6 +207,10 @@
       setTimeout(() => {
         console.log("in the function scheduled from update");
         var numFrames = Object.keys(this.keyframeStates).length;
+        //TODO this rewind length is being calculated incorrectly:
+        //based on total number of frames instead of frames between
+        //current and point to rewind to. Fix is probably to stop doing
+        //the currying with samplers
         var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 8);
 
         this.visualSeek(parseInt(earliestTime), () => {
@@ -296,6 +305,10 @@
 
     this.savesByFunInvoke[name] = copy;
     this.keyframeStates[this.counter] = copy;
+    if (this.keyframeCallbacks.length){
+      var nums = Object.keys(this.keyframeStates).map(x => parseInt(x));
+      this.keyframeCallbacks.forEach( x => x(nums) );
+    }
   };
   BCRunner.prototype.saveState = function(){
     if (this.keyframeStates[this.counter]){
@@ -389,6 +402,17 @@
     console.log('restoring', this.rewindStates[this.currentRewindIndex]);
     this.restoreState(this.rewindStates[this.currentRewindIndex]);
   };
+  BCRunner.prototype.instantSeekToNthKeyframe = function(n, cb){
+    var frameNums = Object.keys(this.keyframeStates)
+      .map(x => parseInt(x));
+    frameNums.sort(function(a,b){return a - b;});
+    var num = frameNums[n];
+    var state = this.keyframeStates[num];
+    console.log('looking for', n, 'th frame of', frameNums.length, 'frames which is at time', num);
+
+    this.restoreState(state);
+
+  };
   BCRunner.prototype.visualSeek = function(dest, cb, frameChooser){
     if (dest > Math.max(Math.max.apply(null, Object.keys(this.keyframeStates)), this.counter)){
       throw Error('destination is beyond the knowable future: '+dest);
@@ -398,7 +422,7 @@
     var toShow = Object.keys(this.keyframeStates)
       .map(x => parseInt(x))
       .filter(x => min < x && x < max);
-    console.log('found', toShow.length, 'frames to animate');
+    console.log('found', toShow.length, 'frames to animate between', min, 'and', max);
     toShow.sort(function(a,b){return a - b;});
     if (dest > cb){
       toShow.reverse();

@@ -40,6 +40,7 @@
     Unfinished: new State('Unfinished', `mousein to resume`),
     Finished: new State('Finished', `click to restart`),
     Error: new State('Error', `No handlers needed, editor onChange has got it`),
+    History: new State('History', `viewing old history`),
   };
 
   // Editor messages
@@ -55,6 +56,7 @@
     this.runSomeScheduled = false;
     this.editorMessage = null;
     this.mouseMessage = null;
+    this.scrubberMessage = null;
     Object.defineProperty(this, "isActive", {
       get: () => DalSegno.activeWidget === this,
       set: (x) => {
@@ -224,6 +226,7 @@
    * */
   DalSegno.prototype.runSome = function(){
     var doUpdate = false;
+    var seekTo = false;
 
     // Check Queued Events
     if (this.editorMessage === EM.SyntacticDifference){
@@ -247,6 +250,13 @@
       this.lastCleanupFunction();
       this.mouseMessage = null;
       this.isActive = true;
+    } else if (this.scrubberMessage !== null){
+      console.log('scrubber message received:', this.scrubberMessage);
+      this.clearError();
+      this.isActive = true;
+      this.playerState = PS.History;
+      seekTo = this.scrubberMessage;
+      this.scubberMessage = null;
     }
 
     // Determine next action based on state
@@ -271,6 +281,12 @@
     } else if (this.playerState === PS.Finished){
       this.setClickToRestart();
       this.runSomeScheduled = false;
+      return;
+    } else if (this.playerState === PS.History){
+      if (seekTo !== null){
+        this.runner.instantSeekToNthKeyframe(seekTo);
+        this.runSomeScheduled = false;
+      }
       return;
     }
 
@@ -449,7 +465,19 @@
   };
   DalSegno.prototype.initScrubber = function(){
     this.scrubber = document.getElementById(this.scrubberId);
-    this.snapshots = [];
+    this.scrubber.min = 0;
+    this.scrubber.max = 0;
+    this.scrubber.value = 0;
+    var onRender = (nums) => {
+      this.scrubber.max = nums.length;
+      this.scrubber.value = nums.length;
+    };
+    this.runner.registerRenderCallback(onRender);
+    this.scrubber.addEventListener('input', ()=>{
+      console.log("let's scrub to", this.scrubber.value);
+      this.scrubberMessage = parseInt(this.scrubber.value);
+      this.ensureRunSomeScheduled();
+    });
   };
   DalSegno.prototype.initTrackers = function(){
     this.mouseTracker = new MouseTracker(this.canvasId);
