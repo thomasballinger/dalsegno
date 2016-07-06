@@ -43,6 +43,8 @@
     this.currentRewindIndex = null;
     this.renderRequested = false;
     this.keyframeCallbacks = [];
+    this.useNondetCache = false;
+    this.cachedNondetResults = {};  // mapping of counters to input results
   }
   /** Add object to be saved and restored with state during saves and restores */
   BCRunner.prototype.registerStateful = function(obj){
@@ -62,6 +64,7 @@
   BCRunner.prototype.registerRenderCallback = function(f){
     this.keyframeCallbacks.push(f);
   };
+
   //TODO instead of using an envBuilder, pass in an env the runner
   //can make a copy of to be the original
   BCRunner.prototype.setEnvBuilder = function(callback){
@@ -267,12 +270,12 @@
   /** Calls callback with whether it is still running */
   BCRunner.prototype.runABit = function(numIterations, cb, onRuntimeError){
     if (!this.context){
-      console.log('no context!');
-      return cb(false);
+      if (cb){ console.log('no context!'); return cb(false);
+      } else { throw Error('no context!'); }
     }
     if (this.context.done){
-      console.log('finished');
-      return cb(false);
+      if (cb){ console.log('finished'); return cb(false);
+      } else { return false; }
     }
     numIterations = numIterations || 1;
     var start = this.counter;
@@ -294,9 +297,9 @@
     this.renderRequested = false;
 
     if (!errorless){
-      cb('error');
+      if (cb){ cb('error'); } else { return 'error'; }
     } else {
-      cb(!this.context.done);
+      if (cb){ cb(!this.context.done); } else { return !this.context.done; }
     }
   };
   BCRunner.prototype.saveStateByDefn = function(name){
@@ -376,7 +379,7 @@
       this.rewindStates.shift();
     }
     */
-    bcexec.execBytecodeOneStep(this.context);
+    bcexec.execBytecodeOneStep(this.context, this.useNondetCache, this.cachedNondetResults);
     if (this.debug && this.context.counterStack.count() &&
         this.context.bytecodeStack.count()){
       if (this.scopeCheck.log){

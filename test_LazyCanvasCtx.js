@@ -28,6 +28,7 @@ function FakeCanvas(){
   this.height = 10;
 }
 function FakeCanvasCtx(){
+  this.savedFillStyles = [];
   this.runCB = function(cb){
     // If created by a createElement call then it's the test canvas context
     if (this.parent.id === 'anonymous'){
@@ -55,6 +56,12 @@ function FakeCanvasCtx(){
     get: function(){ return fillStyle; },
     set: function(value){ fillStyle = value; }
   });
+  this.save = ()=>{
+    this.savedFillStyles.push(fillStyle);
+  };
+  this.restore = ()=>{
+    fillStyle = this.savedFillStyles.pop();
+  };
 }
 
 /** Run cb with global[name] set to value */
@@ -200,8 +207,10 @@ describe('LazyCanvasCtx', function(){
           var c = new LazyCanvasCtx("doesn't matter", true, false);
           c.fillStyle = '#123456';
           c.trigger();
+          assert.equal(c.fillStyle, '#123456');
           var state1 = c.saveState();
           c.fillStyle = '#000000';
+          assert.equal(c.fillStyle, '#000000');
           c.restoreState(state1);
           assert.equal(c.fillStyle, '#123456');
 

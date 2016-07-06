@@ -107,6 +107,44 @@ describe('integration', function(){
   });
 });
 
+describe('cached nondeterministic results', function(){
+  it('caches results of nondet functions', function(){
+    function NonDetScope(){
+      Object.defineProperty(this, '_is_nondeterministic', {
+        enumerable: false,
+        value: true
+      });
+      this.value = 1;
+      this.timesMethodCalled = 0;
+    }
+    NonDetScope.prototype.method = function(){
+      this.timesMethodCalled++;
+      return this.value;
+    };
+
+    var prog = '(method)';
+    var runner = new Runner({});
+    var nds = new NonDetScope();
+    runner.setEnvBuilder( runner => {
+      return bcrun.buildEnv([builtins, stdlibcode, {}], [nds], runner);
+    });
+
+    runner.loadUserCode(prog);
+    runner.runABit(100);
+    assert.equal(nds.timesMethodCalled, 1);
+
+    runner.useNondetCache = true;
+    runner.loadUserCode(prog);
+    runner.runABit(100);
+    assert.equal(nds.timesMethodCalled, 1);
+
+    runner.useNondetCache = false;
+    runner.loadUserCode(prog);
+    runner.runABit(100);
+    assert.equal(nds.timesMethodCalled, 2);
+  });
+});
+
 describe('interactive features', function(){
   /* TODO
   it('updates functions', function(){

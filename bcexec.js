@@ -115,7 +115,7 @@
   //to get rid of in the language.
 
   /** Mutates a context by one bytecode */
-  function execBytecodeOneStep(c){
+  function execBytecodeOneStep(c, useNondetCache, nondetCache){
     if (c.counterStack.count() === 0){
       throw Error('bad context');
     }
@@ -219,11 +219,20 @@
         var func = c.valueStack.peek();
         c.valueStack = c.valueStack.pop();
         if (typeof func === 'function'){
-          try {
-            var result = func.apply(null, args);
-          } catch (e){
-            e.ast = ast;
-            throw e;
+          var result;
+          if (func.isNondeterministic && useNondetCache){
+            result = nondetCache[counter];
+            if (result === undefined){ throw Error('no cached result!'); }
+          } else {
+            try {
+              result = func.apply(null, args);
+              if (func.isNondeterministic && nondetCache){
+                nondetCache[counter] = result;
+              }
+            } catch (e){
+              e.ast = ast;
+              throw e;
+            }
           }
           c.valueStack = c.valueStack.push(result);
         } else {

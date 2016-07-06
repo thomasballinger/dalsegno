@@ -5,6 +5,10 @@
     var canvas = document.getElementById(canvasId);
     var keysDown = this.keysDown = {};
     var hasFocus = this.hasFocus = [true];
+    Object.defineProperty(this, '_is_nondeterministic', {
+      enumerable: false,
+      value: true
+    });
 
     document.addEventListener('mousedown', function(e){
       if (e.target === canvas){

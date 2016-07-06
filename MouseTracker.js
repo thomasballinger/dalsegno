@@ -17,6 +17,11 @@
     var mouse = this.mouse = {x: 0, y: 0};
     var mousedown = this.mousedown = [false];
 
+    Object.defineProperty(this, '_is_nondeterministic', {
+      enumerable: false,
+      value: true
+    });
+
     this.canvas.addEventListener('mousemove', function(e){
       var rect = self.canvas.getBoundingClientRect();
       mouse.x = e.clientX - rect.left;

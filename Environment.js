@@ -186,6 +186,7 @@
           var newfunc = val.bind(scope);
           newfunc.origName = origName;
           newfunc.origFunc = val;
+          newfunc.isNondeterministic = scope._is_nondeterministic ? true : false;
           return newfunc;
         }
         return val;
