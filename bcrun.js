@@ -43,7 +43,6 @@
     this.currentRewindIndex = null;
     this.renderRequested = false;
     this.keyframeCallbacks = [];
-    this.useNondetCache = false;
     this.cachedNondetResults = {};  // mapping of counters to input results
   }
   /** Add object to be saved and restored with state during saves and restores */
@@ -307,11 +306,13 @@
     // need to incref closures from this state
 
     this.savesByFunInvoke[name] = copy;
+    /*
     this.keyframeStates[this.counter] = copy;
     if (this.keyframeCallbacks.length){
       var nums = Object.keys(this.keyframeStates).map(x => parseInt(x));
       this.keyframeCallbacks.forEach( x => x(nums) );
     }
+    */
   };
   BCRunner.prototype.saveState = function(){
     if (this.keyframeStates[this.counter]){
@@ -320,6 +321,10 @@
     }
     var copy = this.copy();
     this.keyframeStates[this.counter] = copy;
+    if (this.keyframeCallbacks.length){
+      var nums = Object.keys(this.keyframeStates).map(x => parseInt(x));
+      this.keyframeCallbacks.forEach( x => x(nums) );
+    }
   };
   BCRunner.prototype.restoreState = function(state){
     // copied in one deepCopy call because their
@@ -371,7 +376,7 @@
     return this.context.getCurrentAST();
   };
   /** returns true if finished */
-  BCRunner.prototype.runOneStep = function(){
+  BCRunner.prototype.runOneStep = function(replay){
     /*
     // used for rewind states
     this.rewindStates.push(this.copy());
@@ -379,7 +384,7 @@
       this.rewindStates.shift();
     }
     */
-    bcexec.execBytecodeOneStep(this.context, this.useNondetCache, this.cachedNondetResults);
+    bcexec.execBytecodeOneStep(this.context, this.counter, replay || false, this.cachedNondetResults);
     if (this.debug && this.context.counterStack.count() &&
         this.context.bytecodeStack.count()){
       if (this.scopeCheck.log){
@@ -392,7 +397,6 @@
     this.counter += 1;
     return this.context.done;
   };
-
 
   // Playback stuff
   /** Step back one step or do nothing if no more to go back*/

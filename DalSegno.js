@@ -335,7 +335,21 @@
     }
   };
 
-  /** Invoked only by change handler */
+  DalSegno.prototype.stepHistoryForward = function(n){
+    if (this.playerState !== PS.History){
+      throw Error('bad player state!');
+    }
+    this.highlightCurSpot(this.runner.getCurrentAST());
+    this.runner.runOneStep(true);
+    if (n > 1){
+      setTimeout(()=> this.stepHistoryForward(n-1), 0);
+    }
+    //TODO check if we've reach a keyframe and if so adjust slider to that point
+    //TODO check to see if there are no more history frames left!
+    // (needs to be saved somewhere: the last counter ever run)
+  };
+
+  /** Invoked only by editor change handler */
   DalSegno.prototype.onChange = function(e){
     console.log('onChange running');
     var s = this.editor.getValue();
@@ -407,7 +421,6 @@
     }
   };
   DalSegno.prototype.highlightCurSpot = function(spot){
-    console.log('highlighting');
     if (this.curSpot){
       this.editor.getSession().removeMarker(this.curSpot);
     }
@@ -416,10 +429,9 @@
     //TODO investigate error annotations instead of markers
     this.curSpot = this.editor.session.addMarker(new Range(
       spot.lineStart-1,
-      spot.colStart-1,
+      spot.colStart-2,
       spot.lineEnd-1,
       spot.colEnd), "curSpotHighlight");
-    console.log('marker added at', spot);
   };
   DalSegno.prototype.initEditor = function(){
     this.editor = ace.edit(this.editorId);

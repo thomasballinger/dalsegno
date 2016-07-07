@@ -115,7 +115,7 @@
   //to get rid of in the language.
 
   /** Mutates a context by one bytecode */
-  function execBytecodeOneStep(c, useNondetCache, nondetCache){
+  function execBytecodeOneStep(c, runnerCount, useNondetCache, nondetCache){
     if (c.counterStack.count() === 0){
       throw Error('bad context');
     }
@@ -221,13 +221,15 @@
         if (typeof func === 'function'){
           var result;
           if (func.isNondeterministic && useNondetCache){
-            result = nondetCache[counter];
+            result = nondetCache[runnerCount];
+            console.log("reused result for runnerCount", runnerCount, ":", result);
+            console.log(nondetCache);
             if (result === undefined){ throw Error('no cached result!'); }
           } else {
             try {
               result = func.apply(null, args);
               if (func.isNondeterministic && nondetCache){
-                nondetCache[counter] = result;
+                nondetCache[runnerCount] = result;
               }
             } catch (e){
               e.ast = ast;
