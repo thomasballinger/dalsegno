@@ -99,13 +99,13 @@ describe('copyable execution trees', function(){
           var tmpEnv = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
           var runner = new Runner(null);
           runner.loadCode('(begin (set! a (+ a 1)) a)', tmpEnv);
-          runner.next();
-          runner.next();
-          runner.next();
-          runner.next();
+          runner.runOneStep();
+          runner.runOneStep();
+          runner.runOneStep();
+          runner.runOneStep();
           assert.deepEqual(tmpEnv.toObjects()[1], {a: 1, b: 1, c: 1});
           var copy = runner.copy();
-          runner.next();
+          runner.runOneStep();
           assert.deepEqual(tmpEnv.toObjects()[1], {a: 2, b: 1, c: 1});
           runner.context = copy.context;
           runner.scopeCheck = copy.scopeCheck;

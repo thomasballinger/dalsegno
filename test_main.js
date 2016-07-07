@@ -175,7 +175,7 @@ describe('cached nondeterministic results', function(){
 
     runner.loadUserCode(prog);
     runner.runOneStep(false);
-    runner.saveState();
+    runner.saveKeyframe();
     while (!runner.runOneStep(false)){}
     runner.instantSeekToKeyframeBeforeBack(5);
     while (!runner.runOneStep(true)){}

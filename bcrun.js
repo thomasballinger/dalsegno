@@ -40,6 +40,7 @@
     this.savesByFunInvoke = {};
     this.rewindStates = [];  // states needed for rewinds
     this.keyframeStates = {};
+    this.keyframeNums = [];
     this.currentRewindIndex = null;
     this.renderRequested = false;
     this.keyframeCallbacks = [];
@@ -149,11 +150,11 @@
       };
       if (cb){
         setTimeout(() => {
-          var numFrames = Object.keys(this.keyframeStates).length;
+          var numFrames = this.keyframeNums.length;
           var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 10);
 
           this.visualSeek(0, () => {
-            this.keyframeStates = {};
+            this.clearKeyframesBeyond()
             reset();
             cb(updateIsRewind);
           }, framesample.makeAccelDecelSampler(rewindLength));
@@ -209,7 +210,7 @@
     if (cb){
       setTimeout(() => {
         console.log("in the function scheduled from update");
-        var numFrames = Object.keys(this.keyframeStates).length;
+        var numFrames = this.keyframeNums.length;
         //TODO this rewind length is being calculated incorrectly:
         //based on total number of frames instead of frames between
         //current and point to rewind to. Fix is probably to stop doing
@@ -217,13 +218,7 @@
         var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 8);
 
         this.visualSeek(parseInt(earliestTime), () => {
-          var newKeyframeStates = {};
-          for (var i of Object.keys(this.keyframeStates)){
-            if (parseInt(i) <= earliestTime){
-              newKeyframeStates[i] = this.keyframeStates[i];
-            }
-          }
-          this.keyframeStates = newKeyframeStates;
+          this.clearKeyframesBeyond(earliestTime);
           restore();
           cb();
         }, framesample.makeAccelDecelSampler(rewindLength));
@@ -231,6 +226,22 @@
     } else {
       return restore();
     }
+  };
+
+  BCRunner.prototype.clearKeyframesBeyond = function(lastKept){
+    if (lastKept === undefined){
+      lastKept = -1;
+    }
+    var newKeyframeStates = {};
+    var newKeyframeNums = [];
+    for (var t of this.keyframeNums){
+      if (t <= lastKept){
+        newKeyframeStates[t] = this.keyframeStates[t];
+        newKeyframeNums.push(t);
+      }
+    }
+    this.keyframeStates = newKeyframeStates;
+    this.keyframeNums = newKeyframeNums;
   };
 
   /** Run code with no defns allowed */
@@ -283,12 +294,11 @@
       while(this.counter < start + numIterations){
         var finished = this.runOneStep();
         if (finished){
-          this.saveState();
+          this.saveKeyframe();
           break;
         }
         if (this.renderRequested){
-          this.saveState();
-          var ticksLeft = start + numIterations - this.counter;
+          this.saveKeyframe();
           this.renderRequested = false;
           break;
         }
@@ -307,21 +317,16 @@
     // need to incref closures from this state
 
     this.savesByFunInvoke[name] = copy;
-    /*
-    this.keyframeStates[this.counter] = copy;
-    if (this.keyframeCallbacks.length){
-      var nums = Object.keys(this.keyframeStates).map(x => parseInt(x));
-      this.keyframeCallbacks.forEach( x => x(nums) );
-    }
-    */
   };
-  BCRunner.prototype.saveState = function(){
+  BCRunner.prototype.saveKeyframe = function(){
     if (this.keyframeStates[this.counter]){
       // already saved state this tick
+      // clear it first if you really want to replace it
       return;
     }
     var copy = this.copy();
     this.keyframeStates[this.counter] = copy;
+    this.keyframeNums.push(this.counter);
     if (this.keyframeCallbacks.length){
       var nums = Object.keys(this.keyframeStates).map(x => parseInt(x));
       this.keyframeCallbacks.forEach( x => x(nums) );
@@ -411,10 +416,7 @@
     this.restoreState(this.rewindStates[this.currentRewindIndex]);
   };
   BCRunner.prototype.instantSeekToNthKeyframe = function(n){
-    var frameNums = Object.keys(this.keyframeStates)
-      .map(x => parseInt(x));
-    frameNums.sort(function(a,b){return a - b;});
-    var num = frameNums[n];
+    var num = this.keyframeNums[n];
     var state = this.keyframeStates[num];
 
     //TODO avoid deepcopying here by deepcopying when execution begins instead?
@@ -426,10 +428,8 @@
    * Returns how many frames back */
   BCRunner.prototype.instantSeekToKeyframeBeforeBack = function(n){
     var dest = this.counter - n;
-    var frameNums = Object.keys(this.keyframeStates)
-      .map(x => parseInt(x));
     var firstBefore = 0;
-    for (var num of frameNums){
+    for (var num of this.keyframeNums){
       if (num <= dest && num > firstBefore){
         firstBefore = num;
       }
@@ -440,17 +440,15 @@
     return dest - firstBefore;
   };
   BCRunner.prototype.visualSeek = function(dest, cb, frameChooser){
-    if (dest > Math.max(Math.max.apply(null, Object.keys(this.keyframeStates)), this.counter)){
+    if (dest > Math.max(Math.max.apply(null, this.keyframeNums), this.counter)){
       throw Error('destination is beyond the knowable future: '+dest);
     }
     var min = Math.min(dest, this.counter);
     var max = Math.max(dest, this.counter);
-    var toShow = Object.keys(this.keyframeStates)
-      .map(x => parseInt(x))
-      .filter(x => min < x && x < max);
+    var toShow = this.keyframeNums.filter(x => min < x && x < max);
     console.log('found', toShow.length, 'frames to animate between', min, 'and', max);
-    toShow.sort(function(a,b){return a - b;});
-    if (dest > cb){
+    // seems backwards because the code below pops from the end
+    if (dest > this.counter){
       toShow.reverse();
     }
 
@@ -469,15 +467,14 @@
         }
         setTimeout(innerSeek, 0);
       } else {
+        //TODO shouldn't the last one be a restoreState(deepcopy(state))? Why
+        //isn't this breaking? Because the callbacks do the final restore I assume,
+        //but might be nice to build it in instead.
         cb();
       }
     }
     innerSeek();
   };
-
-
-  //TODO temp ship for compatibility with evalGen in tests
-  BCRunner.prototype.next = BCRunner.prototype.runOneStep;
 
   /** Runs cb using errback to handle errors if provided
    *
