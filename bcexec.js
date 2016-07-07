@@ -222,7 +222,21 @@
           var result;
           if (func.isNondeterministic && useNondetCache){
             result = nondetCache[runnerCount];
-            if (result === undefined){ throw Error('no cached result!'); }
+            if (result === undefined){
+              for (var i=0; i<1000; i++){
+                if (nondetCache[runnerCount - i] !== undefined){
+                  console.log('closest result is before found at', runnerCount - i, ':', nondetCache[runnerCount - i]);
+                  break;
+                }
+                if (nondetCache[runnerCount + i] !== undefined){
+                  console.log('cloest result is after found at', runnerCount + i, ':', nondetCache[runnerCount + i]);
+                  break;
+                }
+              }
+              throw Error('no cached result for '+runnerCount+'!');
+            } else {
+              console.log('using cached result at', runnerCount, 'of', result);
+            }
           } else {
             try {
               result = func.apply(null, args);

@@ -349,6 +349,23 @@
     //TODO check to see if there are no more history frames left!
     // (needs to be saved somewhere: the last counter ever run)
   };
+  DalSegno.prototype.stepHistoryBackward = function(n){
+    if (this.playerState !== PS.History){
+      throw Error('bad player state!');
+    }
+    if (n === undefined){ n = 1; }
+
+    var togo = this.runner.instantSeekToKeyframeBeforeBack(n);
+    console.log('stepping forward', togo, 'steps from', this.runner.counter, 'to reach destination');
+    for (var i=0; i < togo; i++){
+      this.runner.runOneStep(true);
+    }
+
+    this.highlightCurSpot(this.runner.getCurrentAST());
+    if (n > 1){
+      setTimeout(()=> this.stepHistoryBackward(n-1), 0);
+    }
+  };
 
   /** Invoked only by editor change handler */
   DalSegno.prototype.onChange = function(e){

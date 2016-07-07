@@ -108,20 +108,20 @@ describe('integration', function(){
 });
 
 describe('cached nondeterministic results', function(){
-  it('caches results of nondet functions', function(){
-    function NonDetScope(){
-      Object.defineProperty(this, '_is_nondeterministic', {
-        enumerable: false,
-        value: true
-      });
-      this.value = 1;
-      this.timesMethodCalled = 0;
-    }
-    NonDetScope.prototype.method = function(){
-      this.timesMethodCalled++;
-      return this.value;
-    };
+  function NonDetScope(){
+    Object.defineProperty(this, '_is_nondeterministic', {
+      enumerable: false,
+      value: true
+    });
+    this.value = 1;
+    this.timesMethodCalled = 0;
+  }
+  NonDetScope.prototype.method = function(){
+    this.timesMethodCalled++;
+    return this.value;
+  };
 
+  it.only('caches results of nondet functions', function(){
     var prog = '(method)';
     var runner = new Runner({});
     var nds = new NonDetScope();
@@ -129,19 +129,33 @@ describe('cached nondeterministic results', function(){
       return bcrun.buildEnv([builtins, stdlibcode, {}], [nds], runner);
     });
 
+    var i;
     runner.loadUserCode(prog);
-    runner.runABit(100);
+    while (!runner.runOneStep(false)){}
     assert.equal(nds.timesMethodCalled, 1);
 
-    runner.useNondetCache = true;
     runner.loadUserCode(prog);
-    runner.runABit(100);
+    while (!runner.runOneStep(true)){}
     assert.equal(nds.timesMethodCalled, 1);
 
-    runner.useNondetCache = false;
     runner.loadUserCode(prog);
-    runner.runABit(100);
+    while (!runner.runOneStep(false)){}
     assert.equal(nds.timesMethodCalled, 2);
+  });
+  it('cached results work with rewinds', function(){
+    var prog = dedent(`
+      "a"
+      "b"
+      (method)
+      "c"
+      "d"`);
+    var runner = new Runner({});
+    var nds = new NonDetScope();
+    runner.setEnvBuilder( runner => {
+      return bcrun.buildEnv([builtins, stdlibcode, {}], [nds], runner);
+    });
+
+    runner.loadUserCode(prog);
   });
 });
 

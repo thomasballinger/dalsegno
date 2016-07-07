@@ -85,6 +85,7 @@
     this.oldFunctionASTs = parse.findFunctions(this.ast);
     var bytecode = bcexec.compileProgram(this.ast);
     this.context = new bcexec.Context(bytecode, this.envBuilder());
+    this.counter = 0;
   };
   //TODO shim for testing
   BCRunner.prototype.currentEnv = function(){
@@ -269,12 +270,12 @@
   /** Calls callback with whether it is still running */
   BCRunner.prototype.runABit = function(numIterations, cb, onRuntimeError){
     if (!this.context){
-      if (cb){ console.log('no context!'); return cb(false);
-      } else { throw Error('no context!'); }
+      console.log('no context!');
+      return cb(false);
     }
     if (this.context.done){
-      if (cb){ console.log('finished'); return cb(false);
-      } else { return false; }
+      console.log('finished');
+      return cb(false);
     }
     numIterations = numIterations || 1;
     var start = this.counter;
@@ -296,9 +297,9 @@
     this.renderRequested = false;
 
     if (!errorless){
-      if (cb){ cb('error'); } else { return 'error'; }
+      cb('error');
     } else {
-      if (cb){ cb(!this.context.done); } else { return !this.context.done; }
+      cb(!this.context.done);
     }
   };
   BCRunner.prototype.saveStateByDefn = function(name){
@@ -409,7 +410,7 @@
     console.log('restoring', this.rewindStates[this.currentRewindIndex]);
     this.restoreState(this.rewindStates[this.currentRewindIndex]);
   };
-  BCRunner.prototype.instantSeekToNthKeyframe = function(n, cb){
+  BCRunner.prototype.instantSeekToNthKeyframe = function(n){
     var frameNums = Object.keys(this.keyframeStates)
       .map(x => parseInt(x));
     frameNums.sort(function(a,b){return a - b;});
@@ -419,6 +420,24 @@
 
     this.restoreState(state);
 
+  };
+  /** Restores the first keyframe at or before current counter minus n
+   * Returns how many frames back */
+  BCRunner.prototype.instantSeekToKeyframeBeforeBack = function(n){
+    var dest = this.counter - n;
+    var frameNums = Object.keys(this.keyframeStates)
+      .map(x => parseInt(x));
+    var firstBefore = 0;
+    for (var num of frameNums){
+      if (num <= dest && num > firstBefore){
+        firstBefore = num;
+      }
+    }
+    console.log('restoring', firstBefore, 'because it is the first before or at', dest);
+    var state = this.keyframeStates[firstBefore];
+    this.restoreState(state);
+    console.log('returning', dest - firstBefore);
+    return dest - firstBefore;
   };
   BCRunner.prototype.visualSeek = function(dest, cb, frameChooser){
     if (dest > Math.max(Math.max.apply(null, Object.keys(this.keyframeStates)), this.counter)){
