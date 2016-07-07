@@ -222,8 +222,6 @@
           var result;
           if (func.isNondeterministic && useNondetCache){
             result = nondetCache[runnerCount];
-            console.log("reused result for runnerCount", runnerCount, ":", result);
-            console.log(nondetCache);
             if (result === undefined){ throw Error('no cached result!'); }
           } else {
             try {

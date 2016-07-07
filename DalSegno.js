@@ -339,6 +339,7 @@
     if (this.playerState !== PS.History){
       throw Error('bad player state!');
     }
+    if (n === undefined){ n = 1; }
     this.highlightCurSpot(this.runner.getCurrentAST());
     this.runner.runOneStep(true);
     if (n > 1){
