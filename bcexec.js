@@ -235,7 +235,7 @@
               }
               throw Error('no cached result for '+runnerCount+'!');
             } else {
-              console.log('using cached result at', runnerCount, 'of', result);
+              // using cached result
             }
           } else {
             try {

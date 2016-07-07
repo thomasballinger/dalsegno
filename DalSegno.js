@@ -355,8 +355,8 @@
     }
     if (n === undefined){ n = 1; }
 
-    var togo = this.runner.instantSeekToKeyframeBeforeBack(n);
-    console.log('stepping forward', togo, 'steps from', this.runner.counter, 'to reach destination');
+    // goes one frame at a time
+    var togo = this.runner.instantSeekToKeyframeBeforeBack(1);
     for (var i=0; i < togo; i++){
       this.runner.runOneStep(true);
     }
@@ -504,7 +504,6 @@
     };
     this.runner.registerRenderCallback(onRender);
     this.scrubber.addEventListener('input', ()=>{
-      console.log("let's scrub to", this.scrubber.value);
       this.scrubberMessage = parseInt(this.scrubber.value);
       this.ensureRunSomeScheduled();
     });

@@ -12,6 +12,7 @@ var builtins = require('./builtins.js');
 var stdlibcode = require('./stdlibcode.js');
 var ScopeCheck = require('./ScopeCheck');
 var withConsoleLogIgnored = require('./testutils').withConsoleLogIgnored;
+var deepCopy = require('./deepCopy.js');
 
 var buildEnv = function(runner){
   return bcrun.buildEnv([builtins, stdlibcode, {}], [], runner);
@@ -118,11 +119,17 @@ describe('cached nondeterministic results', function(){
   }
   NonDetScope.prototype.method = function(){
     this.timesMethodCalled++;
+    if (typeof this.cb !== "undefined"){
+      this.cb();
+    }
     return this.value;
   };
+  var prog = dedent(`
+    "a"
+    (method)
+    "b"`);
 
-  it.only('caches results of nondet functions', function(){
-    var prog = '(method)';
+  it('caches results of nondet functions', function(){
     var runner = new Runner({});
     var nds = new NonDetScope();
     runner.setEnvBuilder( runner => {
@@ -142,13 +149,7 @@ describe('cached nondeterministic results', function(){
     while (!runner.runOneStep(false)){}
     assert.equal(nds.timesMethodCalled, 2);
   });
-  it('cached results work with rewinds', function(){
-    var prog = dedent(`
-      "a"
-      "b"
-      (method)
-      "c"
-      "d"`);
+  it('cached results work with restored states', function(){
     var runner = new Runner({});
     var nds = new NonDetScope();
     runner.setEnvBuilder( runner => {
@@ -156,6 +157,31 @@ describe('cached nondeterministic results', function(){
     });
 
     runner.loadUserCode(prog);
+    runner.runOneStep(false);
+    var state = runner.copy();
+    while (!runner.runOneStep(false)){}
+    runner.restoreState(deepCopy(state));
+    while (!runner.runOneStep(true)){}
+    runner.restoreState(state);
+    while (!runner.runOneStep(true)){}
+    assert.equal(nds.timesMethodCalled, 1);
+  });
+  it('cached results work with instantSeekToKeyframeBeforeBack', function(){
+    var runner = new Runner({});
+    var nds = new NonDetScope();
+    runner.setEnvBuilder( runner => {
+      return bcrun.buildEnv([builtins, stdlibcode, {}], [nds], runner);
+    });
+
+    runner.loadUserCode(prog);
+    runner.runOneStep(false);
+    runner.saveState();
+    while (!runner.runOneStep(false)){}
+    runner.instantSeekToKeyframeBeforeBack(5);
+    while (!runner.runOneStep(true)){}
+    runner.instantSeekToKeyframeBeforeBack(5);
+    while (!runner.runOneStep(true)){}
+    assert.equal(nds.timesMethodCalled, 1);
   });
 });
 

@@ -416,9 +416,10 @@
     frameNums.sort(function(a,b){return a - b;});
     var num = frameNums[n];
     var state = this.keyframeStates[num];
-    console.log('looking for', n, 'th frame of', frameNums.length, 'frames which is at time', num);
 
-    this.restoreState(state);
+    //TODO avoid deepcopying here by deepcopying when execution begins instead?
+    //deepcopy because could be executed from here
+    this.restoreState(deepCopy(state));
 
   };
   /** Restores the first keyframe at or before current counter minus n
@@ -433,10 +434,9 @@
         firstBefore = num;
       }
     }
-    console.log('restoring', firstBefore, 'because it is the first before or at', dest);
     var state = this.keyframeStates[firstBefore];
-    this.restoreState(state);
-    console.log('returning', dest - firstBefore);
+    //deepcopy because could be executed from here
+    this.restoreState(deepCopy(state));
     return dest - firstBefore;
   };
   BCRunner.prototype.visualSeek = function(dest, cb, frameChooser){
