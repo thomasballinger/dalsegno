@@ -222,7 +222,7 @@
     this.operationsSinceLastClear.reverse().forEach( operation => {
       operation[0].apply(this.ctx, operation[1]);
     });
-    if (this.rewindEffect){
+    if (this.rewindEffect && this.lazy){
       this.drawRewindEffect();
     }
   };

@@ -41,6 +41,14 @@
     Finished: new State('Finished', `click to restart`),
     Error: new State('Error', `No handlers needed, editor onChange has got it`),
     History: new State('History', `viewing old history`),
+
+    /* probably also will need:
+     *
+     * * paused on keyframe <- disable advance to keyframe buttons
+     * * paused at end
+     * * paused between keyframes
+     * * paused at beginning
+     */
   };
 
   // Editor messages
@@ -342,45 +350,91 @@
   };
 
   DalSegno.prototype.stepHistoryToNextKeyframe = function(){
-    this.stepHistoryForward();
+    var dest = this.runner.nextKeyframeIndex(this.runner.counter+1);
+    if (dest === null){
+      //TODO should go to last playable frame - this isn't
+      //even stored anywhere right now I don't think.
+      throw Error('Not implemented');
+    }
+    console.log('current counter:', this.runner.counter);
+    console.log('want to step to', dest, this.runner.keyframeNums[dest]);
+    this.stepHistoryTo(this.runner.keyframeNums[dest]);
+  };
+  DalSegno.prototype.stepHistoryToPrevKeyframe = function(){
+    var dest = this.runner.prevKeyframeIndex(this.runner.counter-1);
+    if (dest === null){
+      //TODO should do a reset
+      throw Error('Not implemented');
+    }
+    console.log('current counter:', this.runner.counter);
+    console.log('want to step to', dest, this.runner.keyframeNums[dest]);
+    this.stepHistoryTo(this.runner.keyframeNums[dest]);
+  };
+  DalSegno.prototype.withStrictCanvas = function(cb){
+    var origLazy, origRewindEffect;
+    if (this.lazyCanvasCtx){
+      origLazy = this.lazyCanvasCtx.lazy;
+      origRewindEffect = this.lazyCanvasCtx.rewindEffect;
+      this.lazyCanvasCtx.lazy = false;
+    }
+    try {
+      return cb();
+    } finally {
+      if (this.lazyCanvasCtx){
+        this.lazyCanvasCtx.lazy = origLazy;
+      }
+    }
+  };
+  DalSegno.prototype.stepHistoryTo = function(dest){
+    if (dest < this.runner.counter){
+      this.stepHistoryBackward(this.runner.counter - dest);
+    } else if (dest > this.runner.counter){
+      this.stepHistoryForward(dest - this.runner.counter);
+    }
   };
   DalSegno.prototype.stepHistoryForward = function(n){
-    if (this.playerState !== PS.History){
-      throw Error('bad player state!');
-    }
-    if (n === undefined){ n = 1; }
-    this.highlightCurSpot(this.runner.getCurrentAST());
-    this.runner.runOneStep(true);
+    return this.withStrictCanvas(()=>{
+      if (this.playerState !== PS.History){
+        throw Error('bad player state!');
+      }
+      if (n === undefined){ n = 1; }
+      this.highlightCurSpot(this.runner.getCurrentAST());
+      this.runner.runOneStep(true);
 
-    // this means it's a key frame
-    var sliderIndex = this.runner.prevKeyframeIndex();
-    this.scrubber.value = sliderIndex;
-    if (n > 1){
-      setTimeout(()=> this.stepHistoryForward(n-1), 0);
-    }
-    //TODO check if we've reach a keyframe and if so adjust slider to that point
-    //TODO check to see if there are no more history frames left!
-    // (needs to be saved somewhere: the last counter ever run)
+      // this means it's a key frame
+      var sliderIndex = this.runner.prevKeyframeIndex();
+      this.scrubber.value = sliderIndex;
+      if (n > 1){
+        setTimeout(()=> this.stepHistoryForward(n-1), 0);
+      }
+      //TODO check if we've reach a keyframe and if so adjust slider to that point
+      //TODO check to see if there are no more history frames left!
+      // (needs to be saved somewhere: the last counter ever run)
+    });
   };
   DalSegno.prototype.stepHistoryBackward = function(n){
-    if (this.playerState !== PS.History){
-      throw Error('bad player state!');
-    }
-    if (n === undefined){ n = 1; }
+    return this.withStrictCanvas(()=>{
+      if (this.playerState !== PS.History){
+        throw Error('bad player state!');
+      }
+      if (n === undefined){ n = 1; }
 
-    // goes one frame at a time
-    var togo = this.runner.instantSeekToKeyframeBeforeBack(1);
-    for (var i=0; i < togo; i++){
-      this.runner.runOneStep(true);
-    }
+      // goes one frame at a time
+      var togo = this.runner.instantSeekToKeyframeBeforeBack(1);
+      for (var i=0; i < togo; i++){
+        this.runner.runOneStep(true);
+      }
 
-    this.highlightCurSpot(this.runner.getCurrentAST());
-    if (n > 1){
-      setTimeout(()=> this.stepHistoryBackward(n-1), 0);
-    }
-    //TODO check if we've reach a keyframe and if so adjust slider to that point
-    //TODO check to see if there are no more history frames left!
-    // (needs to be saved somewhere: the last counter ever run)
+      this.highlightCurSpot(this.runner.getCurrentAST());
+      var sliderIndex = this.runner.prevKeyframeIndex();
+      this.scrubber.value = sliderIndex;
+      if (n > 1){
+        setTimeout(()=> this.stepHistoryBackward(n-1), 0);
+      }
+      //TODO check if we've reach a keyframe and if so adjust slider to that point
+      //TODO check to see if there are no more history frames left!
+      // (needs to be saved somewhere: the last counter ever run)
+    });
   };
 
   /** Invoked only by editor change handler */
