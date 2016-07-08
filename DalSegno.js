@@ -341,6 +341,9 @@
     }
   };
 
+  DalSegno.prototype.stepHistoryToNextKeyframe = function(){
+    this.stepHistoryForward();
+  };
   DalSegno.prototype.stepHistoryForward = function(n){
     if (this.playerState !== PS.History){
       throw Error('bad player state!');
@@ -352,7 +355,6 @@
     // this means it's a key frame
     var sliderIndex = this.runner.prevKeyframeIndex();
     this.scrubber.value = sliderIndex;
-    console.log('updated the slider!');
     if (n > 1){
       setTimeout(()=> this.stepHistoryForward(n-1), 0);
     }

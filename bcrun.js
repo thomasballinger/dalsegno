@@ -436,13 +436,31 @@
     var lastBefore = 0;
     for (var index = 0; index < this.keyframeNums.length; index++){
       var num = this.keyframeNums[index];
-      if (num <= n && num > lastBefore){
+      if (num <= n){
         lastBefore = index;
       } else {
         break;
       }
     }
     return lastBefore;
+  };
+  BCRunner.prototype.nextKeyframeIndex = function(n){
+    if (n === undefined){
+      n = this.counter;
+    }
+    if (this.keyframeNums.length === 0 || this.keyframeNums[this.keyframeNums.length-1] < n){
+      return null;
+    }
+    var firstAfter = this.keyframeNums[this.keyframeNums.length-1];
+    for (var revIndex = 0; revIndex < this.keyframeNums.length; revIndex++){
+      var num = this.keyframeNums[this.keyframeNums.length-1-revIndex];
+      if (num >= n){
+        firstAfter = this.keyframeNums.length - 1 - revIndex;
+      } else {
+        break;
+      }
+    }
+    return firstAfter;
   };
   /** Restores the first keyframe at or before current counter minus n
    * Returns how many frames back */

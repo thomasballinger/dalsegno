@@ -83,6 +83,15 @@ describe('runner frame searching:', function(){
     assert.equal(runner.prevKeyframeIndex(11), 5);
     assert.equal(runner.prevKeyframeIndex(15), 7);
   });
+  it('finds next from index', function(){
+    var runner = new Runner({});
+    runner.keyframeNums = [1, 2, 3, 4, 10, 11, 12, 13];
+    assert.equal(runner.nextKeyframeIndex(0), 0);
+    assert.equal(runner.nextKeyframeIndex(1), 0);
+    assert.equal(runner.nextKeyframeIndex(2), 1);
+    assert.equal(runner.nextKeyframeIndex(6), 4);
+    assert.equal(runner.nextKeyframeIndex(15), null);
+  });
 });
 
 describe('integration', function(){
