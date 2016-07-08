@@ -21,7 +21,7 @@
   var Immutable = require("./Immutable.js");
   var parse = require("./parse.js");
   var Environment = require("./Environment.js");
-  var bcrun = require("./bcrun.js");
+  var run = require("./run.js");
   var bcexec = require("./bcexec.js");
   var builtins = require("./builtins.js");
   var MouseTracker = require("./MouseTracker.js");
@@ -102,7 +102,7 @@
     }
     this.onChangeIfValid(this.initialContent);
 
-    this.runner = new bcrun.BCRunner({});
+    this.runner = new run.Runner({});
     this.runner.setEnvBuilder( () => this.envBuilder() );
 
     this.initEditor();
@@ -603,7 +603,7 @@
     this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
   };
   DalSegno.prototype.envBuilder = function(){
-    return bcrun.buildEnv(
+    return run.buildEnv(
       [builtins,
        stdlibcode,
        {}],

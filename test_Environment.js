@@ -7,7 +7,7 @@ var ScopeCheck = require('./ScopeCheck.js');
 
 function FakeRunner(funs, scopeCheck){
   // To trick Environment into being ok with this bad runner value
-  this.constructor = {name: 'BCRunner'};
+  this.constructor = {name: 'Runner'};
   this.funs = funs;
   this.scopeCheck = scopeCheck;
 }

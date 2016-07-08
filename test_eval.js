@@ -6,7 +6,8 @@ var Immutable = require('./Immutable');
 var tokenize = require('./parse.js').tokenize;
 var parse = require('./parse.js');
 var jc = parse.justContent;
-var bcrun = require('./bcrun');
+var run = require('./run');
+var Runner = run.Runner;
 var Environment = require('./Environment.js');
 var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
 var compile = require('./compile.js');
@@ -21,9 +22,6 @@ var buildJustSum = function(runner){
   lastAssignedEnv = env;
   return env;
 };
-
-var run = bcrun;
-var Runner = bcrun.BCRunner;
 
 describe('Evaluation with bytecode', function(){
   describe('Lambda', function(){
@@ -43,8 +41,9 @@ describe('Evaluation with bytecode', function(){
   describe('Set', function(){
     it('should change the rightmost occurence', function(){
       var tmpScope = new function(){ this.assertion = function(){
-        assert.deepEqual(tmpEnv.toObjects(), [{a: 1}, {a: 3}]);
-      };};
+          assert.deepEqual(tmpEnv.toObjects(), [{a: 1}, {a: 3}]);
+        };
+      };
       var tmpEnv = Environment.fromMultipleMutables([{a: 1}, {a: 2}]);
       tmpEnv.libraryScopes = [tmpScope];
       run('(set! a 3)\n(assertion)', tmpEnv);

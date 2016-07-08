@@ -605,7 +605,7 @@
   bcexec.execBytecodeOneStep = execBytecodeOneStep;
   bcexec.dis = dis;
   bcexec.CompiledFunctionObject = CompiledFunctionObject;
-  //TODO add functions needed by bcrun
+  //TODO add functions needed by run
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {

@@ -5,14 +5,12 @@ var assert = chai.assert;
 var Environment = require('./Environment.js');
 var stdlibcode = require('./stdlibcode.js');
 var builtins = require('./builtins');
-var bcrun = require('./bcrun');
+var run = require('./run');
 
-
-var run = bcrun;
 
 describe('stdlib', function(){
-  var runner = new bcrun.BCRunner(null);
-  var env = bcrun.buildEnv([builtins, stdlibcode], [], runner);
+  var runner = new run.Runner(null);
+  var env = run.buildEnv([builtins, stdlibcode], [], runner);
 
   describe('integration', function(){
     describe('reduce', function(){

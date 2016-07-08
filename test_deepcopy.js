@@ -6,7 +6,7 @@ var deepCopy = require('./deepcopy.js');
 var Environment = require('./Environment.js');
 var parse = require('./parse');
 var jc = parse.justContent;
-var bcrun = require('./bcrun');
+var run = require('./run');
 var Immutable = require('./Immutable');
 var withConsoleLogIgnored = require('./testutils').withConsoleLogIgnored;
 
@@ -56,7 +56,7 @@ describe('copyable execution trees', function(){
     describe('bytecode specific', function(){
       describe('runnner', function(){
         it('can be resumed after being cloned', function(done){
-          var runner = new bcrun.BCRunner({});
+          var runner = new run.Runner({});
           var origScopeCheck = runner.scopeCheck;
           var tmpEnv = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}], runner);
 
@@ -92,43 +92,38 @@ describe('copyable execution trees', function(){
       });
     });
   });
-  var tests = function(run, Runner){
-    return function(){
-      describe('runner makes copies', function(){
-        it('should use different scopes for copies', function(){
-          var tmpEnv = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
-          var runner = new Runner(null);
-          runner.loadCode('(begin (set! a (+ a 1)) a)', tmpEnv);
-          runner.runOneStep();
-          runner.runOneStep();
-          runner.runOneStep();
-          runner.runOneStep();
-          assert.deepEqual(tmpEnv.toObjects()[1], {a: 1, b: 1, c: 1});
-          var copy = runner.copy();
-          runner.runOneStep();
-          assert.deepEqual(tmpEnv.toObjects()[1], {a: 2, b: 1, c: 1});
-          runner.context = copy.context;
-          runner.scopeCheck = copy.scopeCheck;
-          assert.deepEqual(tmpEnv.toObjects()[1], {a: 1, b: 1, c: 1});
-        });
-        it('should deepcopy the environment of functions', function(){
-          var funs = {};
-          var tmpEnv = Environment.fromMultipleMutables([{}, {a: 1}]);
-          var func = new parse.Function([1], [], tmpEnv, 'main');
+  describe('runner makes copies', function(){
+    it('should use different scopes for copies', function(){
+      var tmpEnv = Environment.fromMultipleMutables([{'+': function(a, b){return a + b;}}, {a: 1, b: 1, c: 1}]);
+      var runner = new run.Runner(null);
+      runner.loadCode('(begin (set! a (+ a 1)) a)', tmpEnv);
+      runner.runOneStep();
+      runner.runOneStep();
+      runner.runOneStep();
+      runner.runOneStep();
+      assert.deepEqual(tmpEnv.toObjects()[1], {a: 1, b: 1, c: 1});
+      var copy = runner.copy();
+      runner.runOneStep();
+      assert.deepEqual(tmpEnv.toObjects()[1], {a: 2, b: 1, c: 1});
+      runner.context = copy.context;
+      runner.scopeCheck = copy.scopeCheck;
+      assert.deepEqual(tmpEnv.toObjects()[1], {a: 1, b: 1, c: 1});
+    });
+    it('should deepcopy the environment of functions', function(){
+      var funs = {};
+      var tmpEnv = Environment.fromMultipleMutables([{}, {a: 1}]);
+      var func = new parse.Function([1], [], tmpEnv, 'main');
 
-          /*
-           * TODO
-          var runner = new Runner(funs);
-          runner.loadCode('(1)', tmpEnv);
-          tmpEnv.setFunction('main', func);
+      /*
+       * TODO
+      var runner = new run.Runner(funs);
+      runner.loadCode('(1)', tmpEnv);
+      tmpEnv.setFunction('main', func);
 
-          var newfuns = runner.copy().funs;
-          func.env.set('a', 42)scopes[1].data = func.env.scopes[1].data.set('a', 42);
-          assert.deepEqual(newfuns['main'].env.scopes[1].data.get('a'), 1);
-          */
-        });
-      });
-    };
-  };
-  describe('with bytcode', tests(bcrun, bcrun.BCRunner));
+      var newfuns = runner.copy().funs;
+      func.env.set('a', 42)scopes[1].data = func.env.scopes[1].data.set('a', 42);
+      assert.deepEqual(newfuns['main'].env.scopes[1].data.get('a'), 1);
+      */
+    });
+  });
 });

@@ -8,7 +8,7 @@ var parse = require('./parse.js');
 var ScopeCheck = require('./ScopeCheck.js').ScopeCheck;
 var bcexec = require('./bcexec.js');
 var Environment = require('./Environment.js');
-var bcrun = require('./bcrun.js');
+var run = require('./run.js');
 
 describe('ScopeCheck', function(){
   it('can be instantiated', function(){
@@ -203,7 +203,7 @@ describe('ScopeCheck', function(){
   });
   describe("runner with named funs", function(){
     it("increfs when storing and doesn't decref or gc", function(){
-      var runner = new bcrun.BCRunner({});
+      var runner = new run.Runner({});
       var tmpScope = new function(){
         this.assertion = function(){
           //console.log(runner.funs);

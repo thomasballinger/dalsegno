@@ -19,7 +19,7 @@
   var ScopeCheck = require('./ScopeCheck.js');
   var framesample = require('./framesample');
 
-  function BCRunner(funs, scopeCheck, debug){
+  function Runner(funs, scopeCheck, debug){
     if (funs === undefined){
       throw Error("Pass in an empty object for functions dictionary, or null for no defns");
     }
@@ -47,27 +47,27 @@
     this.cachedNondetResults = {};  // mapping of counters to input results
   }
   /** Add object to be saved and restored with state during saves and restores */
-  BCRunner.prototype.registerStateful = function(obj){
+  Runner.prototype.registerStateful = function(obj){
     if (typeof obj.saveState === 'undefined'){ throw Error('Stateful object need a saveState method'); }
     if (typeof obj.restoreState === 'undefined'){ throw Error('Stateful object need a restoreState method'); }
     if (Object.keys(this.savesByFunInvoke).length > 0){ throw Error("Stateful objects can't be added once states have been saved"); }
     this.statefuls.push(obj);
   };
   /** Requesting a render causes a setTimeout(0) and a keyframe to be saved */
-  BCRunner.prototype.registerRenderRequester = function(obj){
+  Runner.prototype.registerRenderRequester = function(obj){
     if (typeof obj.setRenderRequester === 'undefined'){ throw Error('RenderRequester object need a setRenderRequester method'); }
     obj.setRenderRequester( ()=>{
       this.renderRequested = true;
     });
   };
   /** Register callbacks to be called with this.keyframeStates */
-  BCRunner.prototype.registerRenderCallback = function(f){
+  Runner.prototype.registerRenderCallback = function(f){
     this.keyframeCallbacks.push(f);
   };
 
   //TODO instead of using an envBuilder, pass in an env the runner
   //can make a copy of to be the original
-  BCRunner.prototype.setEnvBuilder = function(callback){
+  Runner.prototype.setEnvBuilder = function(callback){
     if (callback === undefined){
       callback = function(runner){ return new Environment(undefined, undefined, runner); };
     }
@@ -78,7 +78,7 @@
     };
   };
   /** Load user code, building a new the initial environment with a new scopeCheck */
-  BCRunner.prototype.loadUserCode = function(s){
+  Runner.prototype.loadUserCode = function(s){
     if (this.funs === null){
       console.log('warning: maybe you wanted to set up a function dictionary on the runner before running user code?');
     }
@@ -89,11 +89,11 @@
     this.counter = 0;
   };
   //TODO shim for testing
-  BCRunner.prototype.currentEnv = function(){
+  Runner.prototype.currentEnv = function(){
     return this.context.envStack.peek();
   };
   //TODO shim for testing, get rid of this
-  BCRunner.prototype.loadCode = function(s, env){
+  Runner.prototype.loadCode = function(s, env){
     this.scopeCheck.ingest(env.runner.scopeCheck);
     env.runner = this;
     this.ast = parse(s);
@@ -101,7 +101,7 @@
     var bytecode = bcexec.compileProgram(this.ast);
     this.context = new bcexec.Context(bytecode, env);
   };
-  BCRunner.prototype.copy = function(){
+  Runner.prototype.copy = function(){
     //funs are copied so the envs associated with each function are preserved
     var copy = deepCopy([this.context, this.funs]);
     var c = {counter: this.counter,
@@ -111,7 +111,7 @@
              statefuls: this.statefuls.map( x => x.saveState() )};
     return c;
   };
-  BCRunner.prototype.restart = function(){
+  Runner.prototype.restart = function(){
     var bytecode = bcexec.compileProgram(this.ast);
     this.context = new bcexec.Context(bytecode, this.envBuilder());
     console.log('Restart!');
@@ -119,7 +119,7 @@
   /** Updates running program with new source code.
    * If cb is provided, may behave in nonblocking manner to do fancy animations
    * it will be called with whether a rewind animation is necessary. */
-  BCRunner.prototype.update = function(s, cb){
+  Runner.prototype.update = function(s, cb){
     console.log('update!');
     var updateIsRewind = true;
     var newAst = parse(s);
@@ -228,7 +228,7 @@
     }
   };
 
-  BCRunner.prototype.clearKeyframesBeyond = function(lastKept){
+  Runner.prototype.clearKeyframesBeyond = function(lastKept){
     if (lastKept === undefined){
       lastKept = -1;
     }
@@ -245,7 +245,7 @@
   };
 
   /** Run code with no defns allowed */
-  BCRunner.prototype.runLibraryCode = function(s, env){
+  Runner.prototype.runLibraryCode = function(s, env){
     if (s.indexOf('defn') !== -1){
       throw Error('looks like there is a defn in this code! '+s);
     }
@@ -262,7 +262,7 @@
     return this.value();
   };
   /** Run code with no defns allowed, and keep env */
-  BCRunner.prototype.runInitializationCode = function(s, env){
+  Runner.prototype.runInitializationCode = function(s, env){
     if (s.indexOf('defn') !== -1){
       throw Error('looks like there is a defn in this code! '+s);
     }
@@ -279,7 +279,7 @@
     return this.value();
   };
   /** Calls callback with whether it is still running */
-  BCRunner.prototype.runABit = function(numIterations, cb, onRuntimeError){
+  Runner.prototype.runABit = function(numIterations, cb, onRuntimeError){
     if (!this.context){
       console.log('no context!');
       return cb(false);
@@ -312,13 +312,13 @@
       cb(!this.context.done);
     }
   };
-  BCRunner.prototype.saveStateByDefn = function(name){
+  Runner.prototype.saveStateByDefn = function(name){
     var copy = this.copy();
     // need to incref closures from this state
 
     this.savesByFunInvoke[name] = copy;
   };
-  BCRunner.prototype.saveKeyframe = function(){
+  Runner.prototype.saveKeyframe = function(){
     if (this.keyframeStates[this.counter]){
       // already saved state this tick
       // clear it first if you really want to replace it
@@ -332,7 +332,7 @@
       this.keyframeCallbacks.forEach( x => x(nums) );
     }
   };
-  BCRunner.prototype.restoreState = function(state){
+  Runner.prototype.restoreState = function(state){
     // copied in one deepCopy call because their
     // object webs are intertwined; functions share environments
     // also on the context.envStack.
@@ -344,7 +344,7 @@
       s.restoreState(state.statefuls[i]);
     });
   };
-  BCRunner.prototype.getState = function(name){
+  Runner.prototype.getState = function(name){
     if (name in this.savesByFunInvoke){
       return this.savesByFunInvoke[name];
     }
@@ -353,22 +353,22 @@
     // saved? When can that occur?
     return [-2, null];
   };
-  BCRunner.prototype.functionExists = function(name){
+  Runner.prototype.functionExists = function(name){
     return ((this.funs !== null) && this.funs.hasOwnProperty(name));
   };
-  BCRunner.prototype.getFunction = function(name){
+  Runner.prototype.getFunction = function(name){
     if (this.funs === null){
       throw Error("Runner doesn't allow named functions");
     }
     return this.funs[name];
   };
-  BCRunner.prototype.getFunScopes = function(){
+  Runner.prototype.getFunScopes = function(){
     if (!this.funs){ return []; }
     return Object.keys(this.funs)
       .filter(name => name !== '__obj_id')
       .map( name => this.funs[name].env.mutableScope);
   };
-  BCRunner.prototype.value = function(){
+  Runner.prototype.value = function(){
     if (!this.context.done){
       while(!this.runOneStep()){}
     }
@@ -378,11 +378,11 @@
     }
     return values.peek();
   };
-  BCRunner.prototype.getCurrentAST = function(){
+  Runner.prototype.getCurrentAST = function(){
     return this.context.getCurrentAST();
   };
   /** returns true if finished */
-  BCRunner.prototype.runOneStep = function(replay){
+  Runner.prototype.runOneStep = function(replay){
     /*
     // used for rewind states
     this.rewindStates.push(this.copy());
@@ -406,7 +406,7 @@
 
   // Playback stuff
   /** Step back one step or do nothing if no more to go back*/
-  BCRunner.prototype.stepBackOneStep = function(){
+  Runner.prototype.stepBackOneStep = function(){
     if (this.currentRewindIndex === null){
       this.currentRewindIndex = this.rewindStates.length - 1;
     } else {
@@ -415,7 +415,7 @@
     console.log('restoring', this.rewindStates[this.currentRewindIndex]);
     this.restoreState(this.rewindStates[this.currentRewindIndex]);
   };
-  BCRunner.prototype.instantSeekToNthKeyframe = function(n){
+  Runner.prototype.instantSeekToNthKeyframe = function(n){
     var num = this.keyframeNums[n];
     var state = this.keyframeStates[num];
 
@@ -425,7 +425,7 @@
 
   };
   /** Returns index of prev keyframe, or null if none before */
-  BCRunner.prototype.prevKeyframeIndex = function(n){
+  Runner.prototype.prevKeyframeIndex = function(n){
     //TODO bisect to do this more efficiently
     if (n === undefined){
       n = this.counter;
@@ -444,7 +444,7 @@
     }
     return lastBefore;
   };
-  BCRunner.prototype.nextKeyframeIndex = function(n){
+  Runner.prototype.nextKeyframeIndex = function(n){
     if (n === undefined){
       n = this.counter;
     }
@@ -464,7 +464,7 @@
   };
   /** Restores the first keyframe at or before current counter minus n
    * Returns how many frames back */
-  BCRunner.prototype.instantSeekToKeyframeBeforeBack = function(n){
+  Runner.prototype.instantSeekToKeyframeBeforeBack = function(n){
     var dest = this.counter - n;
     var index = this.prevKeyframeIndex(dest);
     if (index === null){
@@ -477,7 +477,7 @@
     this.restoreState(deepCopy(state));
     return dest - counter;
   };
-  BCRunner.prototype.visualSeek = function(dest, cb, frameChooser){
+  Runner.prototype.visualSeek = function(dest, cb, frameChooser){
     if (dest > Math.max(Math.max.apply(null, this.keyframeNums), this.counter)){
       throw Error('destination is beyond the knowable future: '+dest);
     }
@@ -572,16 +572,16 @@
   }
 
   /** Run code to completion, no defns allowed */
-  function bcrun(s, env){
+  function run(s, env){
     // Environments have their own scopeChecks via a fake
     // runner property by default
-    var runner = new BCRunner(null);
+    var runner = new Runner(null);
     return runner.runLibraryCode(s, env);
   }
 
   /** EnvBuilder needs to take a runner arg */
   function runWithoutDefn(s, envBuilder, debug){
-    var runner = new BCRunner(null);
+    var runner = new Runner(null);
     if (debug){ runner.debug = s; }
     runner.setEnvBuilder(envBuilder);
     runner.loadUserCode(s);
@@ -591,22 +591,22 @@
 
   /** EnvBuilder needs to take a runner arg */
   function runWithDefn(s, envBuilder, debug){
-    var runner = new BCRunner({});
+    var runner = new Runner({});
     if (debug){ runner.debug = s; }
     runner.setEnvBuilder(envBuilder);
     runner.loadUserCode(s);
     return runner.value();
   }
 
-  bcrun.bcrun = bcrun;
-  bcrun.BCRunner = BCRunner;
-  bcrun.runWithDefn = runWithDefn;
-  bcrun.buildEnv = buildEnv;
+  run.run = run;
+  run.Runner = Runner;
+  run.runWithDefn = runWithDefn;
+  run.buildEnv = buildEnv;
 
 
   /** Ways things cna be run:
    *
-   *  1. bcrun(s, env): uses env's ScopeCheck
+   *  1. run(s, env): uses env's ScopeCheck
    *     No defns allowed.
    *     
    *
@@ -615,9 +615,9 @@
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = bcrun;
+      exports = module.exports = run;
     }
   } else {
-    window.bcrun = bcrun;
+    window.run = run;
   }
 })();

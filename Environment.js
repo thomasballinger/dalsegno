@@ -138,7 +138,7 @@
 
     //runner
     if (runner && runner.constructor.name !== 'ScopeCheckRunner' &&
-        runner.constructor.name !== 'BCRunner'){
+        runner.constructor.name !== 'Runner'){
       throw Error("Environment constructed with bad runner argument: ", runner);
     }
     this.runner = runner || null;

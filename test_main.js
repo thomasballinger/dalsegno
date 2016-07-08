@@ -6,7 +6,7 @@ var assert = chai.assert;
 
 var tokenize = require('./parse.js').tokenize;
 var parse = require('./parse.js').parse;
-var bcrun = require('./bcrun');
+var run = require('./run');
 var Environment = require('./Environment');
 var builtins = require('./builtins.js');
 var stdlibcode = require('./stdlibcode.js');
@@ -15,7 +15,7 @@ var withConsoleLogIgnored = require('./testutils').withConsoleLogIgnored;
 var deepCopy = require('./deepCopy.js');
 
 var buildEnv = function(runner){
-  return bcrun.buildEnv([builtins, stdlibcode, {}], [], runner);
+  return run.buildEnv([builtins, stdlibcode, {}], [], runner);
 };
 
 function dedent(s){
@@ -48,26 +48,26 @@ describe('main helpers', function(){
   });
 });
 
-var run = bcrun;
-var Runner = bcrun.BCRunner;
+var run = run;
+var Runner = run.Runner;
 
 describe('building environments with buildEnv', function(){
   it('works with mappings', function(){
-    var env = bcrun.buildEnv([{a:1, b:2}, {b:3}], [], new Runner(null));
+    var env = run.buildEnv([{a:1, b:2}, {b:3}], [], new Runner(null));
     assert.equal(env.lookup('a'), 1);
     assert.equal(env.lookup('b'), 3);
   });
   it('works with code', function(){
-    var env = bcrun.buildEnv(['(define a 1)'], [], new Runner(null));
+    var env = run.buildEnv(['(define a 1)'], [], new Runner(null));
     assert.equal(env.lookup('a'), 1);
   });
   it('works with code that references scopes', function(){
-    var env = bcrun.buildEnv([{a:1}, '(define b a)'], [], new Runner(null));
+    var env = run.buildEnv([{a:1}, '(define b a)'], [], new Runner(null));
     assert.equal(env.lookup('b'), 1);
   });
   it('works with code that references library scopes', function(){
     var libScope = new (function Foo(){ this.a = 1; });
-    var env = bcrun.buildEnv(['(define b a)'], [libScope], new Runner(null));
+    var env = run.buildEnv(['(define b a)'], [libScope], new Runner(null));
     assert.equal(env.lookup('b'), 1);
   });
 });
@@ -155,7 +155,7 @@ describe('cached nondeterministic results', function(){
     var runner = new Runner({});
     var nds = new NonDetScope();
     runner.setEnvBuilder( runner => {
-      return bcrun.buildEnv([builtins, stdlibcode, {}], [nds], runner);
+      return run.buildEnv([builtins, stdlibcode, {}], [nds], runner);
     });
 
     var i;
@@ -175,7 +175,7 @@ describe('cached nondeterministic results', function(){
     var runner = new Runner({});
     var nds = new NonDetScope();
     runner.setEnvBuilder( runner => {
-      return bcrun.buildEnv([builtins, stdlibcode, {}], [nds], runner);
+      return run.buildEnv([builtins, stdlibcode, {}], [nds], runner);
     });
 
     runner.loadUserCode(prog);
@@ -192,7 +192,7 @@ describe('cached nondeterministic results', function(){
     var runner = new Runner({});
     var nds = new NonDetScope();
     runner.setEnvBuilder( runner => {
-      return bcrun.buildEnv([builtins, stdlibcode, {}], [nds], runner);
+      return run.buildEnv([builtins, stdlibcode, {}], [nds], runner);
     });
 
     runner.loadUserCode(prog);
@@ -210,7 +210,7 @@ describe('cached nondeterministic results', function(){
 describe('interactive features', function(){
   /* TODO
   it('updates functions', function(){
-    var env = bcrun.buildEnv([builtins, stdlibcode, {}]);
+    var env = run.buildEnv([builtins, stdlibcode, {}]);
     var runner = new Runner({});
   }); */
   it('deepcopies closed-over state', function(){
@@ -296,7 +296,7 @@ describe('reload bugs', function(){
     var lastEnv;
     runner.setEnvBuilder( runner => {
       runner.scopeCheck.log = [];
-      lastEnv = bcrun.buildEnv([builtins, stdlibcode, {}], [new ScopeObj()], runner);
+      lastEnv = run.buildEnv([builtins, stdlibcode, {}], [new ScopeObj()], runner);
       return lastEnv;
     });
 
@@ -327,7 +327,7 @@ describe('reload bugs', function(){
 
     var runner = new Runner({});
     runner.setEnvBuilder( runner =>
-      bcrun.buildEnv([builtins, stdlibcode, {}], [new ScopeObj()], runner));
+      run.buildEnv([builtins, stdlibcode, {}], [new ScopeObj()], runner));
 
     var keepRunning = true;
     var timesAssert1Run = 0;
