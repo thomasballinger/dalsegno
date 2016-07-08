@@ -151,7 +151,7 @@
       if (cb){
         setTimeout(() => {
           var numFrames = this.keyframeNums.length;
-          var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 10);
+          var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 50);
 
           this.visualSeek(0, () => {
             this.clearKeyframesBeyond()
@@ -215,7 +215,7 @@
         //based on total number of frames instead of frames between
         //current and point to rewind to. Fix is probably to stop doing
         //the currying with samplers
-        var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 8);
+        var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 40);
 
         this.visualSeek(parseInt(earliestTime), () => {
           this.clearKeyframesBeyond(earliestTime);
