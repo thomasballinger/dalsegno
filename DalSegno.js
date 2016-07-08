@@ -348,6 +348,11 @@
     if (n === undefined){ n = 1; }
     this.highlightCurSpot(this.runner.getCurrentAST());
     this.runner.runOneStep(true);
+
+    // this means it's a key frame
+    var sliderIndex = this.runner.prevKeyframeIndex();
+    this.scrubber.value = sliderIndex;
+    console.log('updated the slider!');
     if (n > 1){
       setTimeout(()=> this.stepHistoryForward(n-1), 0);
     }
@@ -508,8 +513,7 @@
     this.scrubber.max = 0;
     this.scrubber.value = 0;
     var onRender = (nums) => {
-      this.scrubber.max = nums.length + 1;
-      this.scrubber.value = nums.length + 1;
+      this.updateScrubber(nums.length, nums.length);
     };
     this.runner.registerRenderCallback(onRender);
     this.scrubber.addEventListener('input', ()=>{
@@ -523,6 +527,10 @@
       }
       this.ensureRunSomeScheduled();
     });
+  };
+  DalSegno.prototype.updateScrubber = function(numFrames, curFrame){
+      this.scrubber.max = numFrames + 1;
+      this.scrubber.value = curFrame + 1;
   };
   DalSegno.prototype.initTrackers = function(){
     this.mouseTracker = new MouseTracker(this.canvasId);

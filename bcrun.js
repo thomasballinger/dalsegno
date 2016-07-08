@@ -424,20 +424,40 @@
     this.restoreState(deepCopy(state));
 
   };
+  /** Returns index of prev keyframe, or null if none before */
+  BCRunner.prototype.prevKeyframeIndex = function(n){
+    //TODO bisect to do this more efficiently
+    if (n === undefined){
+      n = this.counter;
+    }
+    if (this.keyframeNums.length === 0 || this.keyframeNums[0] > n){
+      return null;
+    }
+    var lastBefore = 0;
+    for (var index = 0; index < this.keyframeNums.length; index++){
+      var num = this.keyframeNums[index];
+      if (num <= n && num > lastBefore){
+        lastBefore = index;
+      } else {
+        break;
+      }
+    }
+    return lastBefore;
+  };
   /** Restores the first keyframe at or before current counter minus n
    * Returns how many frames back */
   BCRunner.prototype.instantSeekToKeyframeBeforeBack = function(n){
     var dest = this.counter - n;
-    var firstBefore = 0;
-    for (var num of this.keyframeNums){
-      if (num <= dest && num > firstBefore){
-        firstBefore = num;
-      }
+    var index = this.prevKeyframeIndex(dest);
+    if (index === null){
+      //TODO do a reset here
+      throw Error("not implemented");
     }
-    var state = this.keyframeStates[firstBefore];
+    var counter = this.keyframeNums[index];
+    var state = this.keyframeStates[counter];
     //deepcopy because could be executed from here
     this.restoreState(deepCopy(state));
-    return dest - firstBefore;
+    return dest - counter;
   };
   BCRunner.prototype.visualSeek = function(dest, cb, frameChooser){
     if (dest > Math.max(Math.max.apply(null, this.keyframeNums), this.counter)){

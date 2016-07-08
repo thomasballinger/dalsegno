@@ -72,6 +72,19 @@ describe('building environments with buildEnv', function(){
   });
 });
 
+describe('runner frame searching:', function(){
+  it('finds prev frame index', function(){
+    var runner = new Runner({});
+    runner.keyframeNums = [1, 2, 3, 4, 10, 11, 12, 13];
+    assert.equal(runner.prevKeyframeIndex(0), null);
+    assert.equal(runner.prevKeyframeIndex(1), 0);
+    assert.equal(runner.prevKeyframeIndex(3), 2);
+    assert.equal(runner.prevKeyframeIndex(6), 3);
+    assert.equal(runner.prevKeyframeIndex(11), 5);
+    assert.equal(runner.prevKeyframeIndex(15), 7);
+  });
+});
+
 describe('integration', function(){
   it('store', function(){
     run.runWithDefn("(defn foo () 1)");
