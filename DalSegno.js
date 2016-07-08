@@ -284,8 +284,14 @@
       return;
     } else if (this.playerState === PS.History){
       if (seekTo !== null){
-        this.runner.instantSeekToNthKeyframe(seekTo);
-        this.runSomeScheduled = false;
+        if (seekTo === 'first'){
+          console.log('special case beginning');
+        } else if (seekTo === 'last'){
+          console.log('special case end');
+        } else {
+          this.runner.instantSeekToNthKeyframe(seekTo);
+          this.runSomeScheduled = false;
+        }
       }
       return;
     }
@@ -365,6 +371,9 @@
     if (n > 1){
       setTimeout(()=> this.stepHistoryBackward(n-1), 0);
     }
+    //TODO check if we've reach a keyframe and if so adjust slider to that point
+    //TODO check to see if there are no more history frames left!
+    // (needs to be saved somewhere: the last counter ever run)
   };
 
   /** Invoked only by editor change handler */
@@ -499,12 +508,19 @@
     this.scrubber.max = 0;
     this.scrubber.value = 0;
     var onRender = (nums) => {
-      this.scrubber.max = nums.length;
-      this.scrubber.value = nums.length;
+      this.scrubber.max = nums.length + 1;
+      this.scrubber.value = nums.length + 1;
     };
     this.runner.registerRenderCallback(onRender);
     this.scrubber.addEventListener('input', ()=>{
-      this.scrubberMessage = parseInt(this.scrubber.value);
+      var num = parseInt(this.scrubber.value);
+      if (this.scrubber.value === this.scrubber.min){
+        this.scrubberMessage = 'first';
+      } else if (this.scrubber.value === this.scrubber.max){
+        this.scrubberMessage = 'last';
+      } else {
+        this.scrubberMessage = num - 1;
+      }
       this.ensureRunSomeScheduled();
     });
   };
