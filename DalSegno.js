@@ -86,6 +86,7 @@
     this.curSpot = undefined;  // currently highlighted ace Range of source code for cur
     this.DEBUGMODE = false;  // throw errors properly so we see tracebacks
     this.onChangeIfValid = function(s){};  // called after valid parse with new program
+    this.rewindEffectCleared = true;
 
     this.editorId = editorId;
     this.canvasId = canvasId;
@@ -107,8 +108,8 @@
 
     this.initEditor();
     if (this.consoleId){ this.initConsole(); }
-    this.initTrackers();
     this.initGraphics();
+    this.initTrackers();
     if (this.scrubberId){ this.initScrubber(); }
 
     this.runner.registerStateful(this.lazyCanvasCtx);
@@ -185,7 +186,7 @@
     this.canvasMessage(msg);
     var self = this;
     function cleanup(){
-      self.canvas.removeEventListener('mouseenter', handler);
+      self.effectCanvas.removeEventListener('mouseenter', handler);
       ctx.putImageData(self.savedImage, 0, 0);
       self.lastCleanupFunction = undefined;
     }
@@ -194,7 +195,7 @@
       self.mouseMessage = true;
       self.ensureRunSomeScheduled();
     }
-    this.canvas.addEventListener('mouseenter', handler);
+    this.effectCanvas.addEventListener('mouseenter', handler);
   };
   DalSegno.prototype.setClickToRestart = function(){
     var ctx = this.canvas.getContext("2d");
@@ -208,7 +209,7 @@
     var self = this;
     function cleanup(){
       console.log('calling cleanup function set by setClickToRestart');
-      self.canvas.removeEventListener('click', handler);
+      self.effectCanvas.removeEventListener('click', handler);
       ctx.clearRect(0, 0, 10000, 10000);
       self.lastCleanupFunction = undefined;
     }
@@ -217,7 +218,7 @@
       self.mouseMessage = true;
       self.ensureRunSomeScheduled();
     }
-    this.canvas.addEventListener('click', handler);
+    this.effectCanvas.addEventListener('click', handler);
   };
 
   DalSegno.prototype.ensureRunSomeScheduled = function(){
@@ -298,6 +299,7 @@
           console.log('special case end');
         } else {
           this.runner.instantSeekToNthKeyframe(seekTo);
+          this.drawRewindEffect();
           this.runSomeScheduled = false;
         }
       }
@@ -313,6 +315,7 @@
     this.runSomeScheduled = true;
 
     var run = () => {
+      this.clearRewindEffect();
       if (this.highlight){
         this.highlightCurSpot(this.runner.getCurrentAST());
       }
@@ -399,6 +402,7 @@
       }
       if (n === undefined){ n = 1; }
       this.highlightCurSpot(this.runner.getCurrentAST());
+      this.drawRewindEffect();
       this.runner.runOneStep(true);
 
       // this means it's a key frame
@@ -426,6 +430,7 @@
       }
 
       this.highlightCurSpot(this.runner.getCurrentAST());
+      this.drawRewindEffect();
       var sliderIndex = this.runner.prevKeyframeIndex();
       this.scrubber.value = sliderIndex;
       if (n > 1){
@@ -589,8 +594,8 @@
       this.scrubber.value = curFrame + 1;
   };
   DalSegno.prototype.initTrackers = function(){
-    this.mouseTracker = new MouseTracker(this.canvasId);
-    this.keyboardTracker = new KeyboardTracker(this.canvasId);
+    this.mouseTracker = new MouseTracker(this.effectCanvasId);
+    this.keyboardTracker = new KeyboardTracker(this.effectCanvasId);
   };
   DalSegno.prototype.initGraphics = function(){
     if (!this.canvasId){ throw Error('No canvas id provided'); }
@@ -601,6 +606,40 @@
     this.canvas.height = this.canvas.clientHeight;
     this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, false);
     this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
+    this.effectCanvasId = this.canvasId + '-effect';
+    this.effectCanvas = document.createElement('canvas');
+    this.effectCanvas.width = this.canvas.width
+    this.effectCanvas.height = this.canvas.height
+    this.effectCanvas.id = this.effectCanvasId;
+    this.effectCanvas.style.cssText = document.defaultView.getComputedStyle(this.canvas, "").cssText;
+    this.effectCanvas.style.backgroundColor = 'transparent';
+    this.effectCanvas.classList.add('dalsegno-canvas');
+    this.effectCanvas.classList.add('temp-identifier');
+    this.canvas.parentElement.insertBefore(this.effectCanvas, this.canvas.nextSibling);
+    this.effectCanvas = document.getElementsByClassName('temp-identifier')[0];
+    this.effectCanvas.classList.remove('temp-identifier');
+    this.effectCtx = this.effectCanvas.getContext('2d');
+    this.effectCtx.clearRect(0, 0, 10000, 10000);
+  };
+  DalSegno.prototype.drawRewindEffect = function(){
+    this.rewindEffectCleared = false;
+    var w = this.effectCanvas.width;
+    var h = this.effectCanvas.height;
+    var fills = ['#666', '#eee', '#888', '#bbb'];
+    this.effectCtx.clearRect(0, 0, 10000, 10000);
+    for (var i=0; i<10; i++){
+      this.effectCtx.fillStyle = fills[Math.floor(Math.random()*fills.length)];
+      this.effectCtx.fillRect(0, h/5 + Math.random()*h/12, w, h / 200);
+    }
+    for (var i=0; i<10; i++){
+      this.effectCtx.fillStyle = fills[Math.floor(Math.random()*fills.length)];
+      this.effectCtx.fillRect(0, 3*h/5 + Math.random()*h/12, w, h / 200);
+    }
+  };
+  DalSegno.prototype.clearRewindEffect = function(){
+    console.log('erasing effect...');
+    this.rewindEffectCleared = true;
+    this.effectCtx.clearRect(0, 0, 10000, 10000);
   };
   DalSegno.prototype.envBuilder = function(){
     return run.buildEnv(
