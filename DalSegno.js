@@ -637,7 +637,7 @@
     }
   };
   DalSegno.prototype.clearRewindEffect = function(){
-    console.log('erasing effect...');
+    if (this.rewindEffectCleared){ return; }
     this.rewindEffectCleared = true;
     this.effectCtx.clearRect(0, 0, 10000, 10000);
   };
