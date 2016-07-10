@@ -4,157 +4,114 @@
 //
 // When we save state we should clear render instructions? Nah, why bother.
 
-;(function() {
-  'use strict';
+'use strict';
 
-  var require;
-  if (typeof window === 'undefined') {
-    require = module.require;
-  } else {
-    require = function(name){
-      var realname = name.match(/(\w+)[.]?j?s?$/)[1];
-      return window[realname];
-    };
+var Immutable = require('./Immutable');
+
+var _numObjects = 0;
+function objectId(obj) {
+  if (typeof obj !== 'object' || obj === null){
+    throw Error("objectId called on a non-object or null: "+obj);
   }
-  var Immutable = require('./Immutable');
-
-  var _numObjects = 0;
-  function objectId(obj) {
-    if (typeof obj !== 'object' || obj === null){
-      throw Error("objectId called on a non-object or null: "+obj);
-    }
-    if (obj.__obj_id === undefined){
-      objectId.thingsWithIds.push(obj);
-      obj.__obj_id = _numObjects++;
-    }
-    return obj.__obj_id;
+  if (obj.__obj_id === undefined){
+    objectId.thingsWithIds.push(obj);
+    obj.__obj_id = _numObjects++;
   }
+  return obj.__obj_id;
+}
 
+objectId.thingsWithIds = [];
+objectId.deleteIds = function(){
+  for (var i = 0; i < objectId.thingsWithIds.length; i++){
+    delete objectId.thingsWithIds[i].__obj_id;
+  }
   objectId.thingsWithIds = [];
-  objectId.deleteIds = function(){
-    for (var i = 0; i < objectId.thingsWithIds.length; i++){
-      delete objectId.thingsWithIds[i].__obj_id;
-    }
-    objectId.thingsWithIds = [];
-  };
+};
 
-  var passthroughCopier = {
-    name: 'Passthrough',
-    canCopy: function(obj){
-      return (obj === null ||
-        typeof obj === 'boolean' ||
-        typeof obj === 'undefined' ||
-        typeof obj === 'undefined' ||
-        typeof obj === 'number' ||
-        typeof obj === 'string' ||
-        typeof obj === 'function');
-    },
-    create: function(obj){ return obj; },
-    populate: function(obj){ return; }
-  };
-  var immutableCopier = {
-    name: 'Immutable',
-    canCopy: function(obj){
-      return Immutable.Iterable.isIterable(obj);
-    },
-    create: function(obj){ return obj; },
-    populate: function(obj){ return; }
-  };
-  var copiers = {
-    'Array': {
-      canCopy: function(obj){ return Array.isArray(obj); },
-      create: function(obj){ return []; },
-      populate: function(obj, copy, memo){
-        for (var i = 0; i < obj.length; i++){
-          //console.log('copying element', i, 'of', obj, ':', obj[i]);
-          copy.push(innerDeepCopy(obj[i], memo));
-        }
+var passthroughCopier = {
+  name: 'Passthrough',
+  canCopy: function(obj){
+    return (obj === null ||
+      typeof obj === 'boolean' ||
+      typeof obj === 'undefined' ||
+      typeof obj === 'undefined' ||
+      typeof obj === 'number' ||
+      typeof obj === 'string' ||
+      typeof obj === 'function');
+  },
+  create: function(obj){ return obj; },
+  populate: function(obj){ return; }
+};
+var immutableCopier = {
+  name: 'Immutable',
+  canCopy: function(obj){
+    return Immutable.Iterable.isIterable(obj);
+  },
+  create: function(obj){ return obj; },
+  populate: function(obj){ return; }
+};
+var copiers = {
+  'Array': {
+    canCopy: function(obj){ return Array.isArray(obj); },
+    create: function(obj){ return []; },
+    populate: function(obj, copy, memo){
+      for (var i = 0; i < obj.length; i++){
+        //console.log('copying element', i, 'of', obj, ':', obj[i]);
+        copy.push(innerDeepCopy(obj[i], memo));
       }
-    },
-    'Object': {
-      canCopy: function(obj){ return obj.constructor === Object; },
-      create: function(obj){ return {}; },
-      populate: function(obj, copy, memo){
-        for (var property in obj){
-          if (obj.hasOwnProperty(property)){
-            if (property == '__obj_id'){
-              // nop
-            } else {
-              //console.log('copying property', property, 'of', obj, ':', obj[property]);
-              copy[property] = innerDeepCopy(obj[property], memo);
-            }
+    }
+  },
+  'Object': {
+    canCopy: function(obj){ return obj.constructor === Object; },
+    create: function(obj){ return {}; },
+    populate: function(obj, copy, memo){
+      for (var property in obj){
+        if (obj.hasOwnProperty(property)){
+          if (property == '__obj_id'){
+            // nop
+          } else {
+            //console.log('copying property', property, 'of', obj, ':', obj[property]);
+            copy[property] = innerDeepCopy(obj[property], memo);
           }
         }
       }
+    }
+  },
+  'NamedFunctionPlaceholder': {
+    byConstructorName: true,
+    canCopy: function(obj){
+      return obj.constructor.name === 'NamedFunctionPlaceholder';
     },
-    'NamedFunctionPlaceholder': {
-      byConstructorName: true,
-      canCopy: function(obj){
-        return obj.constructor.name === 'NamedFunctionPlaceholder';
-      },
-      create: function(obj){
-        return new obj.constructor(obj.name);
-      },
-      populate: function(obj, copy, memo){}
+    create: function(obj){
+      return new obj.constructor(obj.name);
     },
-    'Function': {
-      byConstructorName: true,
-      canCopy: function(obj){
-        return obj.constructor.name === 'Function';
-      },
-      create: function(obj){
-        return new obj.constructor(null,
-                                   null,
-                                   null,
-                                   null);
-      },
-      populate: function(obj, copy, memo){
-        for (var property in obj){
-          //console.log('copying property', property, 'of', obj, ':', obj[property]);
-          if (obj.hasOwnProperty(property)){
-            if (property === 'name'){
-              copy.name = obj.name;
-            } else if (property === 'body'){
-              copy.body = obj.body; // shallow copy should be ok bc
-            } else if (property === 'params'){
-              copy.params = obj.params; // should be fine
-              if (obj.params === null){
-                debugger;
-                throw Error('params being null makes no sense');
-              }
-            } else if (property === 'env'){
-              copy.env = innerDeepCopy(obj.env, memo);
-            } else if (property ===  '__obj_id'){
-              // nop
-            } else {
-              console.log(obj);
-              throw Error("deepCopying unknown property "+property+" on "+obj);
-            }
-          }
-        }
-      }
+    populate: function(obj, copy, memo){}
+  },
+  'Function': {
+    byConstructorName: true,
+    canCopy: function(obj){
+      return obj.constructor.name === 'Function';
     },
-    'CompiledFunctionObject': {
-      byConstructorName: true,
-      canCopy: function(obj){
-        return obj.constructor.name === 'CompiledFunctionObject';
-      },
-      create: function(obj){
-        return new obj.constructor(null, null, null, null);
-      },
-      populate: function(obj, copy, memo){
-        // Although swapping out properties of a CompiledFunctionObject
-        // happens regularly, most properties themselves don't change.
-        for (var property of Object.keys(obj)){
-          //console.log('copying property', property, 'of', obj, ':', obj[property]);
+    create: function(obj){
+      return new obj.constructor(null,
+                                 null,
+                                 null,
+                                 null);
+    },
+    populate: function(obj, copy, memo){
+      for (var property in obj){
+        //console.log('copying property', property, 'of', obj, ':', obj[property]);
+        if (obj.hasOwnProperty(property)){
           if (property === 'name'){
-            copy.name = obj.name; // string
-          } else if (property === 'code'){
-            // shallow copy should be ok bc bytecode is frozen
-            copy.code = obj.code;
+            copy.name = obj.name;
+          } else if (property === 'body'){
+            copy.body = obj.body; // shallow copy should be ok bc
           } else if (property === 'params'){
-            // list of strings that shouldn't change
-            copy.params = obj.params;
+            copy.params = obj.params; // should be fine
+            if (obj.params === null){
+              debugger;
+              throw Error('params being null makes no sense');
+            }
           } else if (property === 'env'){
             copy.env = innerDeepCopy(obj.env, memo);
           } else if (property ===  '__obj_id'){
@@ -165,144 +122,170 @@
           }
         }
       }
-    },
-    'Context': {
-      byConstructorName: true,
-      canCopy: function(obj){
-        return obj.constructor.name === 'Context';
-      },
-      create: function(obj){
-        return new obj.constructor.fromStacks(null, null, null, null, null);
-      },
-      populate: function(obj, copy, memo){
-        for (var property of Object.keys(obj)){
-          //console.log('copying property', property, 'of', obj, ':', obj[property]);
-          if (property === 'counterStack'){
-            copy.counterStack = obj.counterStack;
-          } else if (property === 'bytecodeStack'){
-            copy.bytecodeStack = obj.bytecodeStack;
-          } else if (property === 'envStack'){
-            var environments = obj.envStack.toArray();
-            copy.envStack = Immutable.Stack(innerDeepCopy(environments, memo));
-          } else if (property === 'valueStack'){
-            // entirely immutable values! except maybe some functions...
-            //var values = obj.valueStack.toJS();
-            //copy.valueStack = Immutable.Stack(innerDeepCopy(values, memo));
-            //TODO Why did I think this had to be a deepcopy?
-            copy.valueStack = obj.valueStack;
-          } else if (property === 'done'){
-            copy.done = obj.done;
-          } else if (property ===  '__obj_id'){
-            // nop
-          } else {
-            throw Error("deepCopying unknown property "+property+" on "+obj);
-          }
-        }
-      }
-    },
-    'Environment': {
-      byConstructorName: true,
-      canCopy: function(obj){
-        return obj.constructor.name === 'Environment';
-      },
-      create: function(obj){
-        return new obj.constructor();
-      },
-      populate: function(obj, copy, memo){
-        for (var property of Object.keys(obj)){
-          //console.log('copying property', property, 'of', obj, ':', obj[property]);
-          if (property === 'libraryScopes'){
-            copy.libraryScopes = obj.libraryScopes;
-          } else if (property === 'mutableScope'){
-            copy.mutableScope = obj.mutableScope;
-          } else if (property === 'runner'){
-            copy.runner = obj.runner;
-          } else if (property === 'scopeCheck'){
-            copy.scopeCheck = obj.scopeCheck ? obj.scopeCheck.copy() : obj.scopeCheck;
-          } else if (property ===  '__obj_id'){
-            // nop
-          } else {
-            throw Error("deepCopying unknown property "+property+" on "+obj);
-          }
-        }
-      }
-    },
-    'ScopeCheck': {
-      byConstructorName: true,
-      canCopy: function(obj){
-        return obj.constructor.name === 'ScopeCheck';
-      },
-      create: function(obj){
-        return obj.copy();
-      },
-      populate: function(){}
     }
-  };
-  var copiersByConstructorName = {};
-  Object.keys(copiers)
-    .filter( name => copiers[name].byConstructorName )
-    .forEach( name => copiersByConstructorName[name] = copiers[name]);
-
-  function innerDeepCopy(x, memo){
-    if (memo === undefined){
-      throw Error("Need to pass second argument to deepCopy");
-    }
-    if (passthroughCopier.canCopy(x)){ return x; }
-    if (immutableCopier.canCopy(x)){ return x; }
-
-    var id = objectId(x);
-    var copy = memo[id];
-    if (copy !== undefined){
-      return copy;
-    }
-
-    var constructor = x.constructor;
-    var copier;
-    if (constructor === Array){
-      copier = copiers.Array;
-    } else if (constructor === Object){
-      copier = copiers.Object;
-    } else {
-      var constructorName = constructor.name;
-      copier = copiersByConstructorName[constructorName];
-      if (copier === undefined){
-        console.log('copier not found by constructor name for', constructorName, 'so looking for copier manually');
-        for (var name of Object.keys(copiers)){
-          var candidateCopier = copiers[name];
-          if (candidateCopier.canCopy(x)){
-            copier = candidateCopier;
-            break;
-          }
-        }
-        if (copier === undefined){
-          console.log(x);
-          throw Error("Can't deep copy "+typeof x + " " + x.constructor + " "+x);
+  },
+  'CompiledFunctionObject': {
+    byConstructorName: true,
+    canCopy: function(obj){
+      return obj.constructor.name === 'CompiledFunctionObject';
+    },
+    create: function(obj){
+      return new obj.constructor(null, null, null, null);
+    },
+    populate: function(obj, copy, memo){
+      // Although swapping out properties of a CompiledFunctionObject
+      // happens regularly, most properties themselves don't change.
+      for (var property of Object.keys(obj)){
+        //console.log('copying property', property, 'of', obj, ':', obj[property]);
+        if (property === 'name'){
+          copy.name = obj.name; // string
+        } else if (property === 'code'){
+          // shallow copy should be ok bc bytecode is frozen
+          copy.code = obj.code;
+        } else if (property === 'params'){
+          // list of strings that shouldn't change
+          copy.params = obj.params;
+        } else if (property === 'env'){
+          copy.env = innerDeepCopy(obj.env, memo);
+        } else if (property ===  '__obj_id'){
+          // nop
+        } else {
+          console.log(obj);
+          throw Error("deepCopying unknown property "+property+" on "+obj);
         }
       }
     }
+  },
+  'Context': {
+    byConstructorName: true,
+    canCopy: function(obj){
+      return obj.constructor.name === 'Context';
+    },
+    create: function(obj){
+      return new obj.constructor.fromStacks(null, null, null, null, null);
+    },
+    populate: function(obj, copy, memo){
+      for (var property of Object.keys(obj)){
+        //console.log('copying property', property, 'of', obj, ':', obj[property]);
+        if (property === 'counterStack'){
+          copy.counterStack = obj.counterStack;
+        } else if (property === 'bytecodeStack'){
+          copy.bytecodeStack = obj.bytecodeStack;
+        } else if (property === 'envStack'){
+          var environments = obj.envStack.toArray();
+          copy.envStack = Immutable.Stack(innerDeepCopy(environments, memo));
+        } else if (property === 'valueStack'){
+          // entirely immutable values! except maybe some functions...
+          //var values = obj.valueStack.toJS();
+          //copy.valueStack = Immutable.Stack(innerDeepCopy(values, memo));
+          //TODO Why did I think this had to be a deepcopy?
+          copy.valueStack = obj.valueStack;
+        } else if (property === 'done'){
+          copy.done = obj.done;
+        } else if (property ===  '__obj_id'){
+          // nop
+        } else {
+          throw Error("deepCopying unknown property "+property+" on "+obj);
+        }
+      }
+    }
+  },
+  'Environment': {
+    byConstructorName: true,
+    canCopy: function(obj){
+      return obj.constructor.name === 'Environment';
+    },
+    create: function(obj){
+      return new obj.constructor();
+    },
+    populate: function(obj, copy, memo){
+      for (var property of Object.keys(obj)){
+        //console.log('copying property', property, 'of', obj, ':', obj[property]);
+        if (property === 'libraryScopes'){
+          copy.libraryScopes = obj.libraryScopes;
+        } else if (property === 'mutableScope'){
+          copy.mutableScope = obj.mutableScope;
+        } else if (property === 'runner'){
+          copy.runner = obj.runner;
+        } else if (property === 'scopeCheck'){
+          copy.scopeCheck = obj.scopeCheck ? obj.scopeCheck.copy() : obj.scopeCheck;
+        } else if (property ===  '__obj_id'){
+          // nop
+        } else {
+          throw Error("deepCopying unknown property "+property+" on "+obj);
+        }
+      }
+    }
+  },
+  'ScopeCheck': {
+    byConstructorName: true,
+    canCopy: function(obj){
+      return obj.constructor.name === 'ScopeCheck';
+    },
+    create: function(obj){
+      return obj.copy();
+    },
+    populate: function(){}
+  }
+};
+var copiersByConstructorName = {};
+Object.keys(copiers)
+  .filter( name => copiers[name].byConstructorName )
+  .forEach( name => copiersByConstructorName[name] = copiers[name]);
 
-    copy = copier.create(x);
-    memo[id] = copy;
-    copier.populate(x, copy, memo);
+function innerDeepCopy(x, memo){
+  if (memo === undefined){
+    throw Error("Need to pass second argument to deepCopy");
+  }
+  if (passthroughCopier.canCopy(x)){ return x; }
+  if (immutableCopier.canCopy(x)){ return x; }
+
+  var id = objectId(x);
+  var copy = memo[id];
+  if (copy !== undefined){
     return copy;
   }
 
-  function deepCopy(x){
-    var memo = {};
-    var copy = innerDeepCopy(x, memo);
-    // This would be cleaner but it's also slower
-    //objectId.deleteIds();
-    return copy;
-  }
-
-  deepCopy.innerDeepCopy = innerDeepCopy;
-  deepCopy.copiers = copiers;
-
-  if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = deepCopy;
-    }
+  var constructor = x.constructor;
+  var copier;
+  if (constructor === Array){
+    copier = copiers.Array;
+  } else if (constructor === Object){
+    copier = copiers.Object;
   } else {
-    window.deepCopy = deepCopy;
+    var constructorName = constructor.name;
+    copier = copiersByConstructorName[constructorName];
+    if (copier === undefined){
+      console.log('copier not found by constructor name for', constructorName, 'so looking for copier manually');
+      for (var name of Object.keys(copiers)){
+        var candidateCopier = copiers[name];
+        if (candidateCopier.canCopy(x)){
+          copier = candidateCopier;
+          break;
+        }
+      }
+      if (copier === undefined){
+        console.log(x);
+        throw Error("Can't deep copy "+typeof x + " " + x.constructor + " "+x);
+      }
+    }
   }
-})();
+
+  copy = copier.create(x);
+  memo[id] = copy;
+  copier.populate(x, copy, memo);
+  return copy;
+}
+
+function deepCopy(x){
+  var memo = {};
+  var copy = innerDeepCopy(x, memo);
+  // This would be cleaner but it's also slower
+  //objectId.deleteIds();
+  return copy;
+}
+
+deepCopy.innerDeepCopy = innerDeepCopy;
+deepCopy.copiers = copiers;
+
+module.exports = deepCopy;

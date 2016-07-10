@@ -1,8 +1,7 @@
-;(function() {
-  'use strict';
-  // code written in the language so it can be stepped through
+'use strict';
+// code written in the language so it can be stepped through
 
-  var stdlibcode =
+var stdlibcode =
 `(define reduce (lambda (func arr acc)
   (if (= (length arr) 0)
       acc
@@ -38,11 +37,4 @@
       (lambda (func arr)
         (map-acc func arr (list)))))))`;
 
-  if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = stdlibcode;
-    }
-  } else {
-    window.stdlibcode = stdlibcode;
-  }
-})();
+module.exports = stdlibcode;
