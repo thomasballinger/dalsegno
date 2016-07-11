@@ -2,3 +2,5 @@ ace-builds
 deploy
 node_modules
 Immutable.js
+bundle.js
+bundle.js.map
