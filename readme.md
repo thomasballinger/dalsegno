@@ -151,8 +151,6 @@ means that embedding requires a long list of script tags.
 The ES5/6 features in the code are limited to those implemented
 in Chrome, Firefox, and Node without requiring any flags.
 
-I'd love to move to webpack, I just haven't prioritized it.
-
 potential todos
 
 * Scrubber for viewing preview states and play button to resume
