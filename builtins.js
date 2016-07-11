@@ -41,7 +41,7 @@ function linesIntersect(p1, p2, p3, p4) {
 function circleCollision(x1, y1, x2, y2, r, points){
 // The REAL intersection question is "Did this ball at any point hit a wall?"
 // which includes current arc, the rectangle to the new point, and the new arc.
-// A new bounce function therefore needs initial and final positions and 
+// A new bounce function therefore needs initial and final positions and
 //
 // We can ignore the ball's initial position. If the ball was just placed here,
 // dx and dy will be 0 anyway so we'll catch a bad placement in the next steps.

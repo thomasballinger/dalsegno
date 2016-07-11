@@ -117,8 +117,7 @@ function execBytecodeOneStep(c, runnerCount, useNondetCache, nondetCache){
     console.log('counterStack:', c.counterStack);
     throw Error('counter ('+counter+') went off the end of bytecode: missing return?');
   }
-  var x = bytecode[counter];
-  var bc=x[0], arg=x[1], ast=x[2];
+  var [bc, arg, ast] = bytecode[counter];
   switch (bc){
     case BC.LoadConstant:
       c.valueStack = c.valueStack.push(arg);
@@ -445,8 +444,7 @@ function arrowsDraw(arrows){
   var lastLine = Math.max.apply(null, [].concat(byLength.map( x => x[1]),
                                                 byLength.map( x => x[2])));
   var lines = Array.apply(null, Array(lastLine)).map( () => '  ' );
-  for (var x of byLength){
-    var dist=x[0],start=x[1],end=x[2];
+  for (var [dist, start, end] of byLength){
     var top = Math.min(start, start+dist+1);
     var bottom = Math.max(start, start+dist+1);
     var maxConnectorWidth = Math.max.apply(null, lines.slice(top, bottom).map(
