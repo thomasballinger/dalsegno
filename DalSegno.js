@@ -13,6 +13,7 @@ var KeyboardTracker = require("./KeyboardTracker.js");
 var stdlibcode = require("./stdlibcode.js");
 var LazyCanvasCtx = require("./LazyCanvasCtx.js");
 var DrawHelpers = require("./DrawHelpers.js");
+var Console = require("./Console.js");
 
 
 //Player State enums
