@@ -345,6 +345,11 @@ DalSegno.prototype.forkTimeline = function(){
   this.playerState = PS.Unfinished;
   this.go();
 };
+DalSegno.prototype.replay = function(){
+  //TODO maybe just set some state, then add conditionals to this.runSome
+  alert('not implemented')
+  throw Error('not impemented')
+};
 DalSegno.prototype.stepHistoryToNextKeyframe = function(){
   var dest = this.runner.nextKeyframeIndex(this.runner.counter+1);
   if (dest === null){

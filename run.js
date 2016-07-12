@@ -27,6 +27,7 @@ function Runner(funs, scopeCheck, debug){
   this.funs = funs;  // map of defn name to state at most recent call
   this.scopeCheck = scopeCheck;
   this.counter = 0;
+  this.counterMax = 0;
   this.savesByFunInvoke = {};
   this.rewindStates = [];  // states needed for rewinds
   this.keyframeStates = {};
@@ -262,6 +263,7 @@ Runner.prototype.clearBeyond = function(n){
   this.clearKeyframesBeyond(n);
   this.clearDefnsBeyond(n);
   this.clearCachedNondetsBeyond(n);
+  this.counterMax = n;
 };
 
 /** Run code with no defns allowed */
@@ -421,6 +423,7 @@ Runner.prototype.runOneStep = function(replay){
                typeof this.debug === 'string' ? this.debug : undefined);
   }
   this.counter += 1;
+  this.counterMax = Math.max(this.counterMax, this.counter);
   return this.context.done;
 };
 

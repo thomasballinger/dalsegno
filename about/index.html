@@ -93,6 +93,8 @@ replay:
 <button id="fw100" onclick="embed2.stepHistoryForward(1000)">&gt;&gt;</button>
 <button id="fw1" onclick="embed2.stepHistoryForward()">&gt;</button>
 <button id="ffkeyframe" onclick="embed2.stepHistoryToNextKeyframe()">&gt;&gt;|</button>
+<button id="ffkeyframe" onclick="embed2.forkTimeline()">run</button>
+<button id="ffkeyframe" onclick="embed2.replay()">replay</button>
 <script>
 var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', 'scrubber2', window.breakoutProgram)
 embed2.speed = 50;  // how many ticks to run at a time, default is 500
