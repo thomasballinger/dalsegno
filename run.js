@@ -258,6 +258,11 @@ Runner.prototype.clearCachedNondetsBeyond = function(lastKept){
     }
   }
 };
+Runner.prototype.clearBeyond = function(n){
+  this.clearKeyframesBeyond(n);
+  this.clearDefnsBeyond(n);
+  this.clearCachedNondetsBeyond(n);
+};
 
 /** Run code with no defns allowed */
 Runner.prototype.runLibraryCode = function(s, env){

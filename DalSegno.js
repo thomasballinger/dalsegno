@@ -250,7 +250,7 @@ DalSegno.prototype.runSome = function(){
     this.isActive = true;
     this.playerState = PS.History;
     seekTo = this.scrubberMessage;
-    this.scubberMessage = null;
+    this.scrubberMessage = null;
   }
 
   // Determine next action based on state
@@ -277,12 +277,13 @@ DalSegno.prototype.runSome = function(){
     this.runSomeScheduled = false;
     return;
   } else if (this.playerState === PS.History){
-    if (seekTo !== null){
+    if (seekTo !== false){
       if (seekTo === 'first'){
         console.log('special case beginning');
       } else if (seekTo === 'last'){
         console.log('special case end');
       } else {
+        console.log('seeking to', seekTo);
         this.runner.instantSeekToNthKeyframe(seekTo);
         this.drawRewindEffect();
         this.runSomeScheduled = false;
@@ -337,6 +338,13 @@ DalSegno.prototype.runSome = function(){
   }
 };
 
+DalSegno.prototype.forkTimeline = function(){
+  //todo do this through message passing instead of invoking directly
+
+  this.runner.clearBeyond();
+  this.playerState = PS.Unfinished;
+  this.go();
+};
 DalSegno.prototype.stepHistoryToNextKeyframe = function(){
   var dest = this.runner.nextKeyframeIndex(this.runner.counter+1);
   if (dest === null){
