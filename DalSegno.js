@@ -566,6 +566,9 @@ DalSegno.prototype.initConsole = function(){
 
   this.console = new Console(this.consoleId);
 };
+DalSegno.prototype.initStepControls = function(){
+  //TODO 
+}
 DalSegno.prototype.initScrubber = function(){
   this.scrubber = document.getElementById(this.scrubberId);
   this.scrubber.min = 0;

@@ -90,11 +90,11 @@ replay:
 <button id="rw100" onclick="embed2.stepHistoryBackward(1000)">&lt;&lt;</button>
 <button id="rw1" onclick="embed2.stepHistoryBackward()">&lt;</button>
 <input type="range" id="scrubber2"/>
-<button id="fw100" onclick="embed2.stepHistoryForward(1000)">&gt;&gt;</button>
-<button id="fw1" onclick="embed2.stepHistoryForward()">&gt;</button>
-<button id="ffkeyframe" onclick="embed2.stepHistoryToNextKeyframe()">&gt;&gt;|</button>
-<button id="ffkeyframe" onclick="embed2.forkTimeline()">run</button>
-<button id="ffkeyframe" onclick="embed2.replay()">replay</button>
+<button id="fw100" onclick="embed2.stepHistoryForward(1000)" title="step forward 1000 bytecode executions">&gt;&gt;</button>
+<button id="fw1" onclick="embed2.stepHistoryForward()" title="step forward a single bytecode execution">&gt;</button>
+<button id="ffkeyframe" onclick="embed2.stepHistoryToNextKeyframe()" title="step through execution until next key frame">&gt;&gt;|</button>
+<button id="ffkeyframe" onclick="embed2.forkTimeline()" title="fork the timelines">kill the future</button>
+<button id="ffkeyframe" onclick="embed2.replay()" title="replay at normal speed">replay</button>
 <script>
 var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', 'scrubber2', window.breakoutProgram)
 embed2.speed = 50;  // how many ticks to run at a time, default is 500
