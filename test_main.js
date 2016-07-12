@@ -205,6 +205,53 @@ describe('cached nondeterministic results', function(){
     while (!runner.runOneStep(true)){}
     assert.equal(nds.timesMethodCalled, 1);
   });
+  it('cache gets cleared when executed from a previous point', function(){
+    var runner = new Runner({});
+    var nds = new NonDetScope();
+    runner.setEnvBuilder( runner => {
+      return run.buildEnv([builtins, stdlibcode, {}], [nds], runner);
+    });
+
+    runner.loadUserCode(prog);
+    runner.runOneStep(false);
+    runner.saveKeyframe();
+    while (!runner.runOneStep(false)){}
+    assert.deepEqual(runner.cachedNondetResults, {3: 1});
+    runner.instantSeekToKeyframeBeforeBack(5);
+    assert.deepEqual(runner.cachedNondetResults, {3: 1});
+    runner.clearCachedNondetsBeyond(2);
+    assert.deepEqual(runner.cachedNondetResults, {});
+  });
+});
+describe('when executed from a previous point', function(){
+  var prog = '1\n2\n3\n4\n5\n6';
+  var envBuilder = runner => {
+    return run.buildEnv([builtins, stdlibcode, {}], [], runner);
+  };
+
+  it('keyframes get cleared', function(){
+    var runner = new Runner({});
+    runner.setEnvBuilder(envBuilder);
+    runner.loadUserCode(prog);
+    runner.saveKeyframe();
+    runner.runOneStep();
+    runner.saveKeyframe();
+    assert.deepEqual(runner.keyframeNums, [0, 1]);
+    runner.clearKeyframesBeyond(0);
+    assert.deepEqual(runner.keyframeNums, [0]);
+  });
+  it('future defn saves get cleared', function(){
+    var runner = new Runner({});
+    runner.setEnvBuilder(envBuilder);
+    runner.loadUserCode(prog);
+    runner.runOneStep();
+    runner.saveStateByDefn('a');
+    runner.runOneStep();
+    runner.saveStateByDefn('b');
+    assert.sameMembers(Object.keys(runner.savesByFunInvoke), ['a', 'b']);
+    runner.clearDefnsBeyond(1);
+    assert.sameMembers(Object.keys(runner.savesByFunInvoke), ['a']);
+  });
 });
 
 describe('interactive features', function(){

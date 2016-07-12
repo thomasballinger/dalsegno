@@ -233,6 +233,31 @@ Runner.prototype.clearKeyframesBeyond = function(lastKept){
   this.keyframeStates = newKeyframeStates;
   this.keyframeNums = newKeyframeNums;
 };
+Runner.prototype.clearDefnsBeyond = function(lastKept){
+  if (lastKept === undefined){
+    lastKept = -1;
+  }
+  var newSaves = {};
+  for (var funcName of Object.keys(this.savesByFunInvoke)){
+    var save = this.savesByFunInvoke[funcName];
+    if (save.counter > lastKept){
+      // toss
+    } else {
+      newSaves[funcName] = this.savesByFunInvoke[funcName];
+    }
+  }
+  this.savesByFunInvoke = newSaves;
+};
+Runner.prototype.clearCachedNondetsBeyond = function(lastKept){
+  if (lastKept === undefined){
+    lastKept = -1;
+  }
+  for (var t of Object.keys(this.cachedNondetResults)){
+    if (parseInt(t) > lastKept){
+      delete this.cachedNondetResults[t];
+    }
+  }
+};
 
 /** Run code with no defns allowed */
 Runner.prototype.runLibraryCode = function(s, env){
