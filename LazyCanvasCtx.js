@@ -1,6 +1,14 @@
 'use strict';
 
-var Immutable = require('./Immutable.js');
+if (typeof __webpack_require__ === 'function'){
+  // we've been bundled by webpack!
+  var Immutable = require('./Immutable.js');
+} else {
+  if (typeof window.Immutable === 'undefined'){
+    throw Error("Needs Immutable.js");
+  }
+  var Immutable = window.Immutable;
+}
 
 /**
  * When in lazy mode:
@@ -235,4 +243,9 @@ LazyCanvasCtx.prototype.drawPlayIcon = function(){
 
 LazyCanvasCtx.LazyCanvasCtx = LazyCanvasCtx;
 
-module.exports = LazyCanvasCtx;
+
+if (typeof __webpack_require__ === 'function'){
+  module.exports = LazyCanvasCtx;
+} else {
+  // fine, global LazyCanvasCtx is the only exported thing
+}

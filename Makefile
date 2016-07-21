@@ -6,3 +6,5 @@ ace-builds:
 	git clone git://github.com/ajaxorg/ace-builds.git ace-builds
 Immutable.js:
 	curl https://raw.githubusercontent.com/facebook/immutable-js/master/dist/immutable.min.js > Immutable.js
+lazycanvasbundle.js:
+	webpack 
