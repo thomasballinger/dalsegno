@@ -1,0 +1,15 @@
+<html>
+<head>
+<style>
+</style>
+</head>
+<body>
+<input type="range" id="slider" min="1" max="200"/>
+<input type="button" onclick="slider.dropBeyond(()=>0)">
+<script src="TrimmableSlider.js"></script>
+<script>
+var slider = new TrimmableSlider('slider');
+//setTimeout(()=>{ slider.dropBeyond(()=>0); }, 1000);
+</script>
+</body>
+</html>
