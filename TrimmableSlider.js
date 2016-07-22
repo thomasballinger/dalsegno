@@ -3,6 +3,7 @@
 function TrimmableSlider(sliderId){
   this.id = sliderId;
   this.slider = document.getElementById(sliderId);
+
   this.slider.min = 0;
   this.slider.max = 100;
   this.slider.value = 40;
@@ -10,22 +11,27 @@ function TrimmableSlider(sliderId){
 
   this.coverer = this.makeCoverer();
   this.cover(0);
-  this.maxAllowed = 100;
+
+  this.prevValue = parseInt(this.slider.value);
 }
+/** Make current value the max with an animation */
 TrimmableSlider.prototype.dropBeyond = function(cb){
+  if (this.slider.value === this.slider.max){ return; }
+
+  this.slider.disabled = true;
   var spot = parseInt(this.slider.value);
   console.log('cutting beyond', spot);
-  this.maxAllowed = spot;
   this.cover(1 - spot / parseInt(this.slider.max));
   this.disappear(()=>{
-    this.expand(cb);
+    this.expand(()=>{
+      cb();
+      this.slider.disabled = false;
+    });
   });
 };
+/** called by input handler */
 TrimmableSlider.prototype.onInput = function(e){
-  console.log(e);
-  if (parseInt(this.slider.value) > this.maxAllowed){
-    this.slider.value = this.maxAllowed;
-  }
+  console.log('changed to', this.slider.value);
 };
 TrimmableSlider.prototype.makeCoverer = function(){
   var c = document.createElement('div');
@@ -44,24 +50,23 @@ TrimmableSlider.prototype.makeCoverer = function(){
 };
 TrimmableSlider.prototype.cover = function(fraction){
   var radius = 7.5; // magic number
-  this.coverer.style.width = (this.origSliderWidth - 2*radius) * fraction + 2*radius - radius;
-  this.coverer.style.left = this.origSliderLeft + (this.origSliderWidth - 2*radius) * (1 - fraction) + radius + radius;
+  this.coverer.style.width = (this.origSliderWidth - 2*radius) * fraction;
+  this.coverer.style.left = this.origSliderLeft + (this.origSliderWidth - 2*radius) * (1 - fraction) + 2*radius;
 };
 TrimmableSlider.prototype.disappear = function(cb){
   this.coverer.style.opacity = 0;
-  this.disappearInner(cb);
+  this._disappear(cb);
 };
-TrimmableSlider.prototype.disappearInner = function(cb){
+TrimmableSlider.prototype._disappear = function(cb){
   var opacity = parseFloat(this.coverer.style.opacity);
   if (opacity === 1){
     return cb();
   } else {
     this.coverer.style.opacity = Math.min(1, opacity + 0.01);
-    setTimeout(()=>this.disappearInner(cb), 10);
+    setTimeout(()=>this._disappear(cb), 10);
   }
 };
 TrimmableSlider.prototype.expand = function(cb){
-  //TODO decrease the max and step back the coverer simultaneously
   var delta = 1;
   if (this.slider.max === this.slider.value){
     return cb();
