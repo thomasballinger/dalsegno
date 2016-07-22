@@ -17,7 +17,9 @@ TrimmableSlider.prototype.dropBeyond = function(cb){
   console.log('cutting beyond', spot);
   this.maxAllowed = spot;
   this.cover(1 - spot / parseInt(this.slider.max));
-  this.disappear(cb);
+  this.disappear(()=>{
+    this.expand(cb);
+  });
 };
 TrimmableSlider.prototype.onInput = function(e){
   console.log(e);
@@ -42,7 +44,6 @@ TrimmableSlider.prototype.makeCoverer = function(){
 };
 TrimmableSlider.prototype.cover = function(fraction){
   var radius = 7.5; // magic number
-  console.log('covering', fraction);
   this.coverer.style.width = (this.origSliderWidth - 2*radius) * fraction + 2*radius - radius;
   this.coverer.style.left = this.origSliderLeft + (this.origSliderWidth - 2*radius) * (1 - fraction) + radius + radius;
 };
@@ -61,6 +62,15 @@ TrimmableSlider.prototype.disappearInner = function(cb){
 };
 TrimmableSlider.prototype.expand = function(cb){
   //TODO decrease the max and step back the coverer simultaneously
+  var delta = 1;
+  if (this.slider.max === this.slider.value){
+    return cb();
+  } else {
+    var dest = Math.max(parseInt(this.slider.value), parseInt(this.slider.max) - delta);
+    this.slider.max = dest;
+    this.cover(1 - parseInt(this.slider.value) / dest);
+    setTimeout(()=>this.expand(cb), 10);
+  }
 };
 
 TrimmableSlider.TrimmableSlider = TrimmableSlider;
