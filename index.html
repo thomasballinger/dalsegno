@@ -2,6 +2,7 @@
 <head>
 <meta charset="UTF-8">
 <title>live code reloading</title>
+<link rel="stylesheet" href="dalsegno.css">
 <style type="text/css" media="screen">
     #editor {
         position: absolute;
@@ -11,7 +12,7 @@
         width: 630px;
         font-size: 14px;
     }
-    #canvas {
+    #canvas-container {
       position: absolute;
       top: 0;
       left: 630px;
@@ -46,12 +47,18 @@
 
 <div id="editor" class="is-hidden"></div>
 
-<canvas id="canvas" width="1" height="1"></canvas>
+<div id="canvas-container" class="dalsegno-canvas-container">
+  <canvas id="c1"></canvas>
+  <canvas id="c2"></canvas>
+</div>
 <div id="errorbar"></div>
 <script>
-  var canvas = document.getElementById('canvas');
+  var canvas = document.getElementById('c1');
   canvas.width = window.innerWidth - 630;
   canvas.height = window.innerHeight;
+  var effectCanvas = document.getElementById('c2');
+  effectCanvas.width = window.innerWidth - 630;
+  effectCanvas.height = window.innerHeight;
 </script>
 
 <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
@@ -70,7 +77,7 @@ var codeFromURL = getParameterByName('code');
 if (typeof window[codeFromURL] === 'string'){
   codeFromURL = window[codeFromURL];
 }
-var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, undefined, codeFromURL || window.spaceLightProgram)
+var embed = new DalSegno('editor', 'canvas-container', 'errorbar', undefined, undefined, codeFromURL || window.spaceLightProgram)
 
 embed.onChangeIfValid = function(){
   var encoded = encodeURI(embed.editor.getValue());
@@ -82,7 +89,7 @@ embed.onChangeIfValid = function(){
 };
 
 // prevents requiring mouseover the first time
-embed.lastResumeCleanupFunction();
+//embed.lastResumeCleanupFunction();
 embed.go();
 
 embed.speed = 500;  // how many ticks to run at a time, default is 500

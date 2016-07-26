@@ -4,18 +4,6 @@
 <title>Dal Segno</title>
 <link rel="stylesheet" href="../dalsegno.css">
 <style>
-#canvas {
-  width: 400px;
-  height: 400px;
-  margin-left: -4px;
-}
-#editor {
-  width: 800px;
-  height: 400px;
-  display: inline-block;
-  text-align: left;
-  font-size: 18;
-}
 body {
   background-color: #eef;
   display: inline-block;
@@ -35,6 +23,20 @@ div.content {
   width: 1200px;
   margin: auto;
   position: relative;
+  text-align: left;
+}
+#canvas-container-1 {
+  width: 400px;
+  height: 400px;
+  margin-left: -4px;
+  float: right;
+}
+#editor {
+  width: 800px;
+  height: 400px;
+  display: inline-block;
+  text-align: left;
+  font-size: 18;
 }
 
 #embed2, #embed3 {
@@ -58,7 +60,7 @@ div.content {
   left: 0;
   width: 500px;
 }
-#canvas2, #canvas3 {
+#canvas-container-2, #canvas-container-3 {
   position: absolute;
   top: 0;
   left: 500px;
@@ -78,7 +80,10 @@ div.content {
 
 <div id="embed2">
   <div id="editor2" class="editor is-hidden">(+ 2 3)</div>
-  <canvas id="canvas2" width="1" height="1"></canvas>
+  <div id="canvas-container-2" class="dalsegno-canvas-container">
+    <canvas></canvas>
+    <canvas></canvas>
+  </div>
   <div id="errorbar2"></div>
   <textarea id="console2"></textarea>
 </div>
@@ -96,7 +101,7 @@ replay:
 <button id="ffkeyframe" onclick="embed2.forkTimeline()" title="fork the timelines">kill the future</button>
 <button id="ffkeyframe" onclick="embed2.replay()" title="replay at normal speed">replay</button>
 <script>
-var embed2 = new DalSegno('editor2', 'canvas2', 'errorbar2', 'console2', 'scrubber2', window.breakoutProgram)
+var embed2 = new DalSegno('editor2', 'canvas-container-2', 'errorbar2', 'console2', 'scrubber2', window.breakoutProgram)
 embed2.speed = 50;  // how many ticks to run at a time, default is 500
 embed2.onChangeIfValid = function(){
   var fullscreen = document.getElementById('fullscreen2');
@@ -112,11 +117,14 @@ document.getElementById('speed2').addEventListener('input', function(){
 <h2>Language</h2>
 <div class="embed">
   <div id="editor" class="editor is-hidden"></div>
-  <canvas id="canvas" class="canvas" width="1" height="1"></canvas>
+  <div id="canvas-container-1" class="dalsegno-canvas-container">
+    <canvas></canvas>
+    <canvas></canvas>
+  </div>
   <div id="errorbar" class="errorbar"></div>
 </div>
 <script>
-var embed = new DalSegno('editor', 'canvas', 'errorbar', undefined, undefined, window.simpleProgram)
+var embed = new DalSegno('editor', 'canvas-container-1', 'errorbar', undefined, undefined, window.simpleProgram)
 embed.editor.setTheme("ace/theme/dawn");
 embed.speed = 1;
 embed.highlight = true;
@@ -133,13 +141,16 @@ was run so that the new behavior of the edited function can immediately be seen.
 
 <div id="embed3">
   <div id="editor3" class="editor is-hidden">(+ 2 3)</div>
-  <canvas id="canvas3" width="1" height="1"></canvas>
+  <div id="canvas-container-3" class="dalsegno-canvas-container">
+    <canvas></canvas>
+    <canvas></canvas>
+  </div>
   <div id="errorbar3"></div>
   <textarea id="console3"></textarea>
 </div>
 <a id="fullscreen3" href="#">Open fullscreen</a>
 <script>
-var embed3 = new DalSegno('editor3', 'canvas3', 'errorbar3', 'console3', undefined, window.spaceLightProgram)
+var embed3 = new DalSegno('editor3', 'canvas-container-3', 'errorbar3', 'console3', undefined, window.spaceLightProgram)
 embed3.onChangeIfValid = function(){
   var fullscreen = document.getElementById('fullscreen3');
   fullscreen.setAttribute('href', embed2.link());

@@ -50,7 +50,7 @@ var EM = {
  *
  */
 
-function DalSegno(editorId, canvasId, errorBarId, consoleId, scrubberId, initialProgramId){
+function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId, initialProgramId){
   //These are the four important state properties
   this.playerState = PS.Initial;
   this.runSomeScheduled = false;
@@ -81,7 +81,7 @@ function DalSegno(editorId, canvasId, errorBarId, consoleId, scrubberId, initial
   this.rewindEffectCleared = true;
 
   this.editorId = editorId;
-  this.canvasId = canvasId;
+  this.canvasContainerId = canvasContainerId;
   this.consoleId = consoleId;
   this.errorBarId = errorBarId;
   this.scrubberId = scrubberId;
@@ -595,26 +595,21 @@ DalSegno.prototype.initTrackers = function(){
   this.keyboardTracker = new KeyboardTracker(this.effectCanvasId);
 };
 DalSegno.prototype.initGraphics = function(){
-  if (!this.canvasId){ throw Error('No canvas id provided'); }
-  if (!document.getElementById(this.canvasId)){ throw Error("can't find canvas from id"); }
-  this.canvas = document.getElementById(this.canvasId);
-  this.canvas.classList.add('dalsegno-canvas');
-  this.canvas.width = this.canvas.clientWidth;
-  this.canvas.height = this.canvas.clientHeight;
+  if (!this.canvasContainerId){ throw Error('No canvas container provided'); }
+  this.canvasContainer = document.getElementById(this.canvasContainerId);
+  [this.canvas, this.effectCanvas] = this.canvasContainer.querySelectorAll('canvas');
+  if (!this.canvas || !this.effectCanvas){ throw Error("can't find both canvases"); }
+  this.canvas.width = this.canvasContainer.offsetWidth;
+  this.canvas.height = this.canvasContainer.offsetHeight;
+  this.effectCanvas.width = this.canvasContainer.offsetWidth;
+  this.effectCanvas.height = this.canvasContainer.offsetHeight;
+  this.canvasId = uniqueId(this.canvas);
+  this.effectCanvasId = uniqueId(this.effectCanvas);
+  this.effectCanvas.style.backgroundColor = 'transparent';
+
   this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, false);
   this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
-  this.effectCanvasId = this.canvasId + '-effect';
-  this.effectCanvas = document.createElement('canvas');
-  this.effectCanvas.width = this.canvas.width
-  this.effectCanvas.height = this.canvas.height
-  this.effectCanvas.id = this.effectCanvasId;
-  this.effectCanvas.style.cssText = document.defaultView.getComputedStyle(this.canvas, "").cssText;
-  this.effectCanvas.style.backgroundColor = 'transparent';
-  this.effectCanvas.classList.add('dalsegno-canvas');
-  this.effectCanvas.classList.add('temp-identifier');
-  this.canvas.parentElement.insertBefore(this.effectCanvas, this.canvas.nextSibling);
-  this.effectCanvas = document.getElementsByClassName('temp-identifier')[0];
-  this.effectCanvas.classList.remove('temp-identifier');
+
   this.effectCtx = this.effectCanvas.getContext('2d');
   this.effectCtx.clearRect(0, 0, 10000, 10000);
 };
@@ -659,6 +654,18 @@ BackupConsole.prototype.display = function(){
   return console.log.apply(console, args);
 };
 var backupConsole = new BackupConsole();
+
+function uniqueId(element){
+  if (element.id !== ""){
+    return element.id;
+  }
+  var sym = "";
+  do {
+    sym = "generated-id-"+Math.random();
+  } while (document.getElementById(sym) !== null);
+  element.id = sym;
+  return sym;
+}
 
 DalSegno.DalSegno = DalSegno;
 

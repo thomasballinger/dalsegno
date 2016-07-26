@@ -5,12 +5,16 @@ div.dalsegno {
   font-size: 8px;
   text-align: left;
 }
-.dalsegno-canvas {
+.dalsegno-canvas-container, .dalsegno-canvas-container canvas {
   background-color: #777777;
   -webkit-user-select: none;
   -moz-user-select: none;
   -khtml-user-select: none;
   -ms-user-select: none;
+  text-align: left;
+}
+.dalsegno-canvas-container canvas {
+  position: absolute;
 }
 .is-hidden {
   display: none;
