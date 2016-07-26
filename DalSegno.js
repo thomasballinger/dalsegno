@@ -44,6 +44,12 @@ var EM = {
   SemanticDifference: new State('SemanticDifference', ``),
 };
 
+/* message passing rules:
+ *
+ *
+ *
+ */
+
 function DalSegno(editorId, canvasId, errorBarId, consoleId, scrubberId, initialProgramId){
   //These are the four important state properties
   this.playerState = PS.Initial;
@@ -343,8 +349,10 @@ DalSegno.prototype.forkTimeline = function(){
   //todo do this through message passing instead of invoking directly
 
   this.runner.clearBeyond();
-  this.playerState = PS.Unfinished;
-  this.go();
+  this.scrubber.dropBeyond(()=>{
+    this.playerState = PS.Unfinished;
+    this.go();
+  });
 };
 DalSegno.prototype.replay = function(){
   //TODO maybe just set some state, then add conditionals to this.runSome
