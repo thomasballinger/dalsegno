@@ -14,6 +14,7 @@ var stdlibcode = require("./stdlibcode.js");
 var LazyCanvasCtx = require("./LazyCanvasCtx.js");
 var DrawHelpers = require("./DrawHelpers.js");
 var Console = require("./Console.js");
+var Scrubber = require("./Scrubber.js");
 
 
 //Player State enums
@@ -405,7 +406,7 @@ DalSegno.prototype.stepHistoryForward = function(n){
 
     // this means it's a key frame
     var sliderIndex = this.runner.prevKeyframeIndex();
-    this.scrubber.value = sliderIndex;
+    this.scrubber.setCurrentIndex(sliderIndex);
     if (n > 1){
       setTimeout(()=> this.stepHistoryForward(n-1), 0);
     }
@@ -430,7 +431,7 @@ DalSegno.prototype.stepHistoryBackward = function(n){
     this.highlightCurSpot(this.runner.getCurrentAST());
     this.drawRewindEffect();
     var sliderIndex = this.runner.prevKeyframeIndex();
-    this.scrubber.value = sliderIndex;
+    this.scrubber.setCurrentIndex(sliderIndex);
     if (n > 1){
       setTimeout(()=> this.stepHistoryBackward(n-1), 0);
     }
@@ -568,31 +569,18 @@ DalSegno.prototype.initConsole = function(){
 };
 DalSegno.prototype.initStepControls = function(){
   //TODO 
-}
+};
 DalSegno.prototype.initScrubber = function(){
-  this.scrubber = document.getElementById(this.scrubberId);
-  this.scrubber.min = 0;
-  this.scrubber.max = 0;
-  this.scrubber.value = 0;
+  this.scrubber = new Scrubber(this.scrubberId);
+  this.scrubber.update(0, 0);
   var onRender = (nums) => {
-    this.updateScrubber(nums.length, nums.length);
+    this.scrubber.update(nums.length, nums.length);
   };
   this.runner.registerRenderCallback(onRender);
-  this.scrubber.addEventListener('input', ()=>{
-    var num = parseInt(this.scrubber.value);
-    if (this.scrubber.value === this.scrubber.min){
-      this.scrubberMessage = 'first';
-    } else if (this.scrubber.value === this.scrubber.max){
-      this.scrubberMessage = 'last';
-    } else {
-      this.scrubberMessage = num - 1;
-    }
+  this.scrubber.callback = (msg) => {
+    this.scrubberMessage = msg;
     this.ensureRunSomeScheduled();
-  });
-};
-DalSegno.prototype.updateScrubber = function(numFrames, curFrame){
-    this.scrubber.max = numFrames + 1;
-    this.scrubber.value = curFrame + 1;
+  };
 };
 DalSegno.prototype.initTrackers = function(){
   this.mouseTracker = new MouseTracker(this.effectCanvasId);
