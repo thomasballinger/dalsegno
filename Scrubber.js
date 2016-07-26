@@ -46,9 +46,7 @@ Scrubber.prototype.update = function(numFrames, curFrame){
 };
 /** called by input handler */
 Scrubber.prototype.onInput = function(e){
-  console.log('changed to', this.rangeElement.value);
   var val = parseInt(this.rangeElement.value);
-  console.log('sending message');
   var msg;
   if (this.rangeElement.value === this.rangeElement.min){
     msg = 'first';
@@ -66,7 +64,7 @@ Scrubber.prototype.setCurrentIndex = function(val){
 };
 Scrubber.prototype.makeCoverer = function(){
   var c = document.createElement('div');
-  c.style.background = '#fff';
+  c.style.background = '#eef';
   var els = window.getComputedStyle(this.rangeElement);
   c.style.position = els.position=='fixed' ? 'fixed':'absolute';
   c.style.zIndex = parseInt(els.zIndex)+1;

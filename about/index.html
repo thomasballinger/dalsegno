@@ -87,21 +87,36 @@ div.content {
   <div id="errorbar2"></div>
   <textarea id="console2"></textarea>
 </div>
-<a id="fullscreen2" href="#">Open fullscreen</a>
-execution speed:
-<input type="range" id="speed2" min="1" max="200"/>
-replay:
-<button id="rwkeyframe" onclick="embed2.stepHistoryToPrevKeyframe()">|&lt;&lt;</button>
-<button id="rw100" onclick="embed2.stepHistoryBackward(1000)">&lt;&lt;</button>
-<button id="rw1" onclick="embed2.stepHistoryBackward()">&lt;</button>
-<input type="range" id="scrubber2"/>
-<button id="fw100" onclick="embed2.stepHistoryForward(1000)" title="step forward 1000 bytecode executions">&gt;&gt;</button>
-<button id="fw1" onclick="embed2.stepHistoryForward()" title="step forward a single bytecode execution">&gt;</button>
-<button id="ffkeyframe" onclick="embed2.stepHistoryToNextKeyframe()" title="step through execution until next key frame">&gt;&gt;|</button>
-<button id="ffkeyframe" onclick="embed2.forkTimeline()" title="fork the timelines">kill the future</button>
-<button id="ffkeyframe" onclick="embed2.replay()" title="replay at normal speed">replay</button>
+<div id="controls2">
+  <a id="fullscreen2" href="#">Open fullscreen</a>
+  execution speed:
+  <input type="range" id="speed2" min="1" max="200"/>
+  replay:
+  <button
+    class="dalsegno-prev-keyframe">|&lt;&lt;</button>
+  <button
+    class="dalsegno-rw-1000">&lt;&lt;</button>
+  <button
+    class="dalsegno-rw-1">&lt;</button>
+  <input type="range" id="scrubber2"/>
+  <button
+    title="step forward 1000 bytecode executions"
+    class="dalsegno-fw-1000" >&gt;&gt;</button>
+  <button id="fw1"
+    title="step forward a single bytecode execution"
+    class="dalsegno-fw-1">&gt;</button>
+  <button id="ffkeyframe"
+    title="step through execution until next key frame"
+    class="dalsegno-next-keyframe">&gt;&gt;|</button>
+  <button id="fork"
+    title="fork the timelines"
+    class="dalsegno-fork-timeline">kill the future</button>
+  <button id="fork"
+    title="advance to the end and continue execution"
+    class="dalsegno-fork-timeline">continue from end</button>
+</div>
 <script>
-var embed2 = new DalSegno('editor2', 'canvas-container-2', 'errorbar2', 'console2', 'scrubber2', window.breakoutProgram)
+var embed2 = new DalSegno('editor2', 'canvas-container-2', 'errorbar2', 'console2', 'scrubber2', window.breakoutProgram, 'controls2');
 embed2.speed = 50;  // how many ticks to run at a time, default is 500
 embed2.onChangeIfValid = function(){
   var fullscreen = document.getElementById('fullscreen2');

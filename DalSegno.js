@@ -17,10 +17,11 @@ var Console = require("./Console.js");
 var Scrubber = require("./Scrubber.js");
 
 
-//Player State enums
 function State(state){ this.state = state; }
 State.prototype.toString = function(){ return this.state + ': '+this.msg; };
 // Always use object identity to compare these (===)
+
+
 var PS = {
   Initial: new State('Initial', `mousein to start`),
   Unfinished: new State('Unfinished', `mousein to resume`),
@@ -28,13 +29,12 @@ var PS = {
   Error: new State('Error', `No handlers needed, editor onChange has got it`),
   History: new State('History', `viewing old history`),
 
-  /* probably also will need:
-   *
-   * * paused on keyframe <- disable advance to keyframe buttons
-   * * paused at end
-   * * paused between keyframes
-   * * paused at beginning
-   */
+  // going to expand History into these:
+
+  HistoryKeyframe: new State('PausedAtKeyframe', ``),
+  HistoryAtEnd: new State('Unfinished, but paused', ``),
+  HistoryAtBeginning: new State('Initial, but paused', ``),
+  HistoryBetweenKeyframes: new State('stepping between things'),
 };
 
 // Editor messages
@@ -50,13 +50,14 @@ var EM = {
  *
  */
 
-function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId, initialProgramId){
+function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId, initialProgramId, controlsContainerId){
   //These are the four important state properties
   this.playerState = PS.Initial;
   this.runSomeScheduled = false;
   this.editorMessage = null;
   this.mouseMessage = null;
   this.scrubberMessage = null;
+  this.controlsMessage = null;
   Object.defineProperty(this, "isActive", {
     get: () => DalSegno.activeWidget === this,
     set: (x) => {
@@ -85,6 +86,7 @@ function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId
   this.consoleId = consoleId;
   this.errorBarId = errorBarId;
   this.scrubberId = scrubberId;
+  this.controlsContainerId = controlsContainerId;
 
   initialProgramId = initialProgramId || editorId;
   this.initialContent = document.getElementById(initialProgramId);
@@ -103,6 +105,9 @@ function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId
   this.initGraphics();
   this.initTrackers();
   if (this.scrubberId){ this.initScrubber(); }
+  if (this.controlsContainerId){
+    this.initControls();
+  }
 
   this.runner.registerStateful(this.lazyCanvasCtx);
   this.runner.registerRenderRequester(this.lazyCanvasCtx);
@@ -226,8 +231,20 @@ DalSegno.prototype.ensureRunSomeScheduled = function(){
  * to determine what to do.
  * */
 DalSegno.prototype.runSome = function(){
+
+  /* TODO follow this goal structure:
+   * Events may be tossed based on current state
+   * Events change these intention variables
+   * Actions are taken based on intention variables,
+   * these actions may change the current playerState
+   */
+
   var doUpdate = false;
   var seekTo = false;
+  var stepDelta = false;
+  var stepToPrevKeyframe = false;
+  var stepToNextKeyframe = false;
+  var forkTimeline = false;
 
   // Check Queued Events
   if (this.editorMessage === EM.SyntacticDifference){
@@ -237,11 +254,11 @@ DalSegno.prototype.runSome = function(){
   } else if (this.editorMessage === EM.SemanticDifference){
     this.clearError();
     doUpdate = true;
-    this.playerState = PS.Unfinished;
+    this.playerState = PS.Unfinished;  //TODO the action should trigger this instead
     this.editorMessage = null;
     this.isActive = true;
   } else if (this.editorMessage === EM.Error){
-    this.playerState = PS.Error;
+    this.playerState = PS.Error;  //TODO the action should trigger this instead
     this.editorMessage = null;
     this.isActive = true;
   } else if (this.mouseMessage){
@@ -255,10 +272,54 @@ DalSegno.prototype.runSome = function(){
     console.log('scrubber message received:', this.scrubberMessage);
     this.clearError();
     this.isActive = true;
-    this.playerState = PS.History;
+    this.playerState = PS.History;  //TODO the action should trigger this instead
     seekTo = this.scrubberMessage;
     this.scrubberMessage = null;
+  } else if (this.controlsMessage !== null){
+    console.log('got a controls message:', this.controlsMessage);
+    var [action, arg] = this.controlsMessage;
+    this.controlsMessage = null;
+
+
+    if (action === 'step back'){
+      stepDelta = -1 * arg;
+    } else if (action === 'step forward'){
+      stepDelta = arg;
+    } else if (action === 'next keyframe'){
+      stepToNextKeyframe = true;
+    } else if (action === 'prev keyframe'){
+      stepToPrevKeyframe = true;
+    } else if (action === 'fork timeline'){
+      forkTimeline = true;
+    } else {
+      throw Error('bad controlsMessage action:', action);
+    }
+
+    //TODO check state before doing these!
+    //TODO set state once they're finished! Or in their logic.
+    //What should playerState be while they're running?
+    if (stepDelta){
+      if (stepDelta < 0){
+        this.stepHistoryBackward(-1 * stepDelta);
+      } else {
+        this.stepHistoryForward(stepDelta);
+      }
+      return;
+    }
+    if (stepToPrevKeyframe){
+      this.stepHistoryToPrevKeyframe();
+      return;
+    }
+    if (stepToNextKeyframe){
+      this.stepHistoryToNextKeyframe();
+      return;
+    }
+    if (forkTimeline){
+      this.forkTimeline();
+      return;
+    }
   }
+  this.updateControls();
 
   // Determine next action based on state
   if (this.playerState === PS.Initial){
@@ -287,8 +348,10 @@ DalSegno.prototype.runSome = function(){
     if (seekTo !== false){
       if (seekTo === 'first'){
         console.log('special case beginning');
+        this.playerState === PS.HistoryAtBeginning;
       } else if (seekTo === 'last'){
         console.log('special case end');
+        this.playerState === PS.HistoryAtEnd;
       } else {
         console.log('seeking to', seekTo);
         this.runner.instantSeekToNthKeyframe(seekTo);
@@ -354,11 +417,6 @@ DalSegno.prototype.forkTimeline = function(){
     this.go();
   });
 };
-DalSegno.prototype.replay = function(){
-  //TODO maybe just set some state, then add conditionals to this.runSome
-  alert('not implemented')
-  throw Error('not impemented')
-};
 DalSegno.prototype.stepHistoryToNextKeyframe = function(){
   var dest = this.runner.nextKeyframeIndex(this.runner.counter+1);
   if (dest === null){
@@ -403,10 +461,14 @@ DalSegno.prototype.stepHistoryTo = function(dest){
   }
 };
 DalSegno.prototype.stepHistoryForward = function(n){
+  if (this.runner.atEnd()){
+    // one forward from the last step is the special end spot
+    this.playerState = PS.HistoryAtEnd;
+    //TODO update slider too, or put that in updateControls
+    return;
+  }
+  this.playerState = PS.History;
   return this.withStrictCanvas(()=>{
-    if (this.playerState !== PS.History){
-      throw Error('bad player state!');
-    }
     if (n === undefined){ n = 1; }
     this.highlightCurSpot(this.runner.getCurrentAST());
     this.drawRewindEffect();
@@ -418,16 +480,19 @@ DalSegno.prototype.stepHistoryForward = function(n){
     if (n > 1){
       setTimeout(()=> this.stepHistoryForward(n-1), 0);
     }
-    //TODO check if we've reach a keyframe and if so adjust slider to that point
     //TODO check to see if there are no more history frames left!
     // (needs to be saved somewhere: the last counter ever run)
   });
 };
 DalSegno.prototype.stepHistoryBackward = function(n){
+  if (this.runner.atStart()){
+    //one back from the beginning is the special start space
+    this.playerState = PS.HistoryAtBeginning;
+    //TODO update slider too, or put that in updateControls
+    return;
+  }
+  this.playerState = PS.History;
   return this.withStrictCanvas(()=>{
-    if (this.playerState !== PS.History){
-      throw Error('bad player state!');
-    }
     if (n === undefined){ n = 1; }
 
     // goes one frame at a time
@@ -443,7 +508,6 @@ DalSegno.prototype.stepHistoryBackward = function(n){
     if (n > 1){
       setTimeout(()=> this.stepHistoryBackward(n-1), 0);
     }
-    //TODO check if we've reach a keyframe and if so adjust slider to that point
     //TODO check to see if there are no more history frames left!
     // (needs to be saved somewhere: the last counter ever run)
   });
@@ -575,8 +639,61 @@ DalSegno.prototype.initConsole = function(){
 
   this.console = new Console(this.consoleId);
 };
-DalSegno.prototype.initStepControls = function(){
-  //TODO 
+DalSegno.prototype.updateControls = function(){
+  if (this.playerState === this.lastUpdateControlsState){ return; }
+  this.lastUpdateControlsState = this.playerState;
+  console.log('current state is', this.playerState);
+  if (this.playerState === PS.Initial){
+    console.log('should disable steppers and KTF');
+  } else if (this.playerState === PS.Unfinished){
+    console.log('should disable stepping forward and KTF');
+  } else if (this.playerState === PS.Finished){
+    console.log('should disable stepping forward and KTF');
+  } else if (this.playerState === PS.HistoryAtEnd){
+    console.log('should disable stepping forward and KTF');
+  } else if (this.playerState === PS.HistoryAtBeginning){
+    console.log('should disable stepping backwards');
+  } else if (this.playerState === PS.History){
+    console.log('turn everything on');
+  } else {
+    throw Error('bad player state');
+  }
+
+  //TODO update slider here as well
+
+  //TOMHERE next to do: hook up the buttons! Once they do things it'll be more
+  //fun to disable/enable them as appropriate
+};
+DalSegno.prototype.initControls = function(){
+  // Look for each control and
+  //   * hook it up
+  //   * remember to enable/disable it as appropriate
+  // Identify their action by class
+  //
+
+  var inputClasses = {
+    'dalsegno-rw-1': ['step back', 1],
+    'dalsegno-rw-1000': ['step back', 1000],
+    'dalsegno-fw-1': ['step forward', 1],
+    'dalsegno-fw-1000': ['step forward', 1000],
+    'dalsegno-prev-keyframe': ['prev keyframe', null],
+    'dalsegno-next-keyframe': ['next keyframe', null],
+    'dalsegno-fork-timeline': ['fork timeline', null],
+  };
+
+  this.controlsContainer = document.getElementById(this.controlsContainerId);
+  for (var el of this.controlsContainer.getElementsByTagName('*')){
+    if (el.className in inputClasses){
+      console.log('found', el.className);
+      el.addEventListener('click', ((classname)=>{
+        return ()=>{
+          this.controlsMessage = inputClasses[classname];
+          console.log('clicked control!');
+          this.ensureRunSomeScheduled();
+        };
+      })(el.className));
+    }
+  }
 };
 DalSegno.prototype.initScrubber = function(){
   this.scrubber = new Scrubber(this.scrubberId);

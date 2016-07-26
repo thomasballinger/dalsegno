@@ -37,6 +37,14 @@ function Runner(funs, scopeCheck, debug){
   this.keyframeCallbacks = [];
   this.cachedNondetResults = {};  // mapping of counters to input results
 }
+/** Whether there are future serialized states */
+Runner.prototype.atEnd = function(){
+  return this.counterMax === this.counter;
+};
+/** Whether there are past serialized states */
+Runner.prototype.atStart = function(){
+  return this.counter === 0;
+};
 /** Add object to be saved and restored with state during saves and restores */
 Runner.prototype.registerStateful = function(obj){
   if (typeof obj.saveState === 'undefined'){ throw Error('Stateful object need a saveState method'); }
