@@ -133,7 +133,7 @@ e.g. `log` -> `console.log.bind(console)`
 
 # Development
 
-To run the code locally, run make to download a dependency then run a static file server:
+To run the code locally you'll need webpack.
 
     make
     python3 -m http.server 8000  # or any other static file server
