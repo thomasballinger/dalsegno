@@ -714,7 +714,11 @@ DalSegno.prototype.initTrackers = function(){
 DalSegno.prototype.initGraphics = function(){
   if (!this.canvasContainerId){ throw Error('No canvas container provided'); }
   this.canvasContainer = document.getElementById(this.canvasContainerId);
-  [this.canvas, this.effectCanvas] = this.canvasContainer.querySelectorAll('canvas');
+
+  var r = this.canvasContainer.querySelectorAll('canvas');
+  [this.canvas, this.effectCanvas] = [r[0], r[1]];
+  // hack b/c in Safari nodelist (what querySelectorAll returns) seems not to be destructurable?
+
   if (!this.canvas || !this.effectCanvas){ throw Error("can't find both canvases"); }
   this.canvas.width = this.canvasContainer.offsetWidth;
   this.canvas.height = this.canvasContainer.offsetHeight;

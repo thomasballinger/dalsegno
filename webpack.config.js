@@ -5,17 +5,17 @@ module.exports = {
         filename: "bundle.js"
     },
     devtool: 'source-map',
-    loaders: [
-        { test: /\.css$/,
-          exclude: /(node_modules|bower_components)/,
-          loader: 'babel',
-          query: {
-            presets: ['es2015'],
-            cacheDirectory: true,
+    module: {
+      loaders: [
+          { test: /\.js$/,
+            loader: 'babel',
+            query: {
+              presets: ['es2015'],
+            },
+            exclude: /(node_modules|bower_components)/,
           },
-        },
-        { test: /\.js$/, loader: "style!css" }
-    ],
+      ],
+    },
     externals: {
       'ace': "ace",
     },
