@@ -147,8 +147,9 @@ LazyCanvasCtx.prototype.setRenderRequester = function(f){
 LazyCanvasCtx.prototype.getPropState = function(){
   var properties = ['fillStyle'];
   var propState = {};
-  properties.forEach( prop => {
-    propState[prop] = this.ctx[prop];
+  var self = this;
+  properties.forEach(function(prop) {
+    propState[prop] = self.ctx[prop];
   });
   return propState;
 };
@@ -163,11 +164,12 @@ LazyCanvasCtx.prototype.trigger = function(){
 
   var returnValue;
   try {
-    this.operations.reverse().forEach( operation => {
-      returnValue = operation[0].apply(this.ctx, operation[1]);
+    var self = this;
+    this.operations.reverse().forEach( function(operation){
+      returnValue = operation[0].apply(self.ctx, operation[1]);
       // ugh this is ugly, and possibly slow?
       if (!operation[0].DONOTRECORDINSINCELASTCLEAR){
-        this.operationsSinceLastClear = this.operationsSinceLastClear.push(operation);
+        self.operationsSinceLastClear = self.operationsSinceLastClear.push(operation);
       }
     });
   } finally {
@@ -208,16 +210,17 @@ LazyCanvasCtx.prototype.restoreState = function(state){
   if (!Immutable.Map.isMap(state)){
     throw Error("Lazy canvas restored with bad state:"+state);
   }
-  Object.keys(state.get('propState')).forEach( prop => {
-    this.ctx[prop] = state.get('propState')[prop];
+  var self = this;
+  Object.keys(state.get('propState')).forEach(function(prop){
+    self.ctx[prop] = state.get('propState')[prop];
   });
   this.propStateAtLastClear = state.get('propState');
   this.operationsSinceLastClear = state.get('operationsSinceLastClear');
   this.operations = state.get('queuedOperations');
 
   // these operations have successfully been run on this canvas before
-  this.operationsSinceLastClear.reverse().forEach( operation => {
-    operation[0].apply(this.ctx, operation[1]);
+  this.operationsSinceLastClear.reverse().forEach(function(operation){
+    operation[0].apply(self.ctx, operation[1]);
   });
 };
 LazyCanvasCtx.prototype.drawPlayIcon = function(){
