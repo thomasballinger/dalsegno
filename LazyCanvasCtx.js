@@ -96,6 +96,7 @@ function LazyCanvasCtx(canvasId, lazy, showFPS){
         };
       }(property);
     } else if (this.ctx.__lookupSetter__(property) || this.ctx.__lookupGetter__(property)) {
+      //TODO __lookupGetter__ seems not to work in Safari
       var getter = this.ctx.__lookupGetter__(property);
       var setter = this.ctx.__lookupSetter__(property);
       (function(getter, setter, property){
