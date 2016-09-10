@@ -18,7 +18,7 @@ about_with_tracking: about/index.html
 	./addGoogleTracking googletracking.html about/index.html about_with_tracking
 
 deploy: bundle.js bundle.js.map ace-builds index_with_tracking about_with_tracking
-	rsync -r dalsegno.css ace-builds about bundle.js tom:/home/tomb/dalsegno
+	rsync -r dalsegno.css ace-builds about bundle.js bundle.js.map tom:/home/tomb/dalsegno
 	rsync index_with_tracking tom:/home/tomb/dalsegno/index.html
 	rsync about_with_tracking tom:/home/tomb/dalsegno/about/index.html
 	rm index_with_tracking
