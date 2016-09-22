@@ -10,6 +10,30 @@ if (typeof __webpack_require__ === 'function'){
   var Immutable = window.Immutable;
 }
 
+var ContextPropertiesWithAGetterOrSetter = {
+  "canvas": true,
+  "globalAlpha": true,
+  "globalCompositeOperation": true,
+  "filter": true,
+  "webkitImageSmoothingEnabled": true,
+  "imageSmoothingEnabled": true,
+  "strokeStyle": true,
+  "fillStyle": true,
+  "shadowOffsetX": true,
+  "shadowOffsetY": true,
+  "shadowBlur": true,
+  "shadowColor": true,
+  "lineWidth": true,
+  "lineCap": true,
+  "lineJoin": true,
+  "miterLimit": true,
+  "lineDashOffset": true,
+  "font": true,
+  "textAlign": true,
+  "textBaseline": true,
+};
+
+
 /**
  * When in lazy mode:
  * Method calls are recorded in this.operations
@@ -25,7 +49,7 @@ if (typeof __webpack_require__ === 'function'){
  * When turning off lazy mode:
  * Queued operations are immediately run
  *
- * It makes sense to turn off lazy when stepping the interpreter,
+ * It makes sense to turn off lazy when stepping the interpreter:
  * but having it on makes drawing appear smoother.
  */
 function LazyCanvasCtx(canvasId, lazy, showFPS){
@@ -95,11 +119,8 @@ function LazyCanvasCtx(canvasId, lazy, showFPS){
           }
         };
       }(property);
-    } else if (this.ctx.__lookupSetter__(property) || this.ctx.__lookupGetter__(property)) {
-      //TODO __lookupGetter__ seems not to work in Safari
-      var getter = this.ctx.__lookupGetter__(property);
-      var setter = this.ctx.__lookupSetter__(property);
-      (function(getter, setter, property){
+    } else if (property in ContextPropertiesWithAGetterOrSetter) {
+      (function(property){
         var descriptors = {};
         if (getter){
           descriptors.get = function(){
@@ -131,7 +152,7 @@ function LazyCanvasCtx(canvasId, lazy, showFPS){
           };
         }
         Object.defineProperty(this, property, descriptors);
-      }).call(this, getter, setter, property);
+      }).call(this, property);
     }
   }
 }

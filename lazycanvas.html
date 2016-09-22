@@ -61,10 +61,20 @@ console.log(ctx.strokeStyle);  // implicit .trigger() call, queued operations ar
 This might be useful for batching draw operations that logically go together, but could be interrupted by DOM renders that would show the intermediate state.
 </p>
 
+
+<!--There are some odd script tag choices here so that this file works in two situations:
+1) on a developer's computer without internet (files served locally)
+2) online at https://rawgit.com/thomasballinger/dalsegno/master/lazycanvas.html (so files
+    that are not part of the repository, so can't be relatively linked, are served from cdns
+-->
 <script src="Immutable.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/immutable/3.8.1/immutable.js"></script>
+<!-- one of these two may fail -->
+
+
 <script src="LazyCanvasCtx.js"></script>
 <script>
 var ctx = new LazyCanvasCtx('canvas');
 </script>
+
 </html>
