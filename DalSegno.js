@@ -51,6 +51,7 @@ var EM = {
  */
 
 function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId, initialProgramId, controlsContainerId){
+  console.log(arguments);
   //These are the four important state properties
   this.playerState = PS.Initial;
   this.runSomeScheduled = false;
@@ -776,18 +777,89 @@ BackupConsole.prototype.display = function(){
 };
 var backupConsole = new BackupConsole();
 
+/** If string, passthrough. If element, that element's id */
 function uniqueId(element){
+  if (!element){ return element; }
+  if (typeof element === 'string'){ return element; }
   if (element.id !== ""){
     return element.id;
   }
   var sym = "";
   do {
-    sym = "generated-id-"+Math.random();
+    sym = "generated-id-" + Math.random().toString(16).slice(2);
   } while (document.getElementById(sym) !== null);
   element.id = sym;
   return sym;
 }
 
+function findScriptTags(){
+  var tags = Array.prototype.slice.call(document.querySelectorAll('script'));
+  var dalSegnoTags = tags.filter((el)=>el.type == 'dalsegno');
+  console.log(dalSegnoTags);
+  dalSegnoTags.forEach((el)=>createEmbed(el));
+}
+
+function createEmbed(script){
+  var enclosing = script.parentNode;
+  if (enclosing.tagName !== "DIV"){
+    console.warn('Embed failed, dalsegno script must be inside a div');
+  }
+
+  var canvasWidth = parseInt(script.canvasWidth) || 400;
+  var canvasHeight = parseInt(script.canvasHeight) || 400;
+  console.log('instructed canvas size:', canvasWidth, canvasHeight);
+
+  var leftPanel = document.createElement('div');
+  leftPanel.className = 'left-panel';
+  var editorDiv = document.createElement('div');
+  editorDiv.style.height = enclosing.clientHeight;
+  editorDiv.style.width = enclosing.clientWidth - canvasWidth;
+  editorDiv.className = 'editor';
+  leftPanel.appendChild(editorDiv);
+  var textarea = document.createElement('textarea');
+  textarea.className = 'console';
+  leftPanel.appendChild(textarea);
+  enclosing.appendChild(leftPanel);
+
+  console.log("desired canvas size:", canvasWidth, canvasHeight);
+
+  var canvasContainer = document.createElement('div');
+  canvasContainer.className = 'canvas-container';
+  var canvas1 = document.createElement('canvas');
+  var canvas2 = document.createElement('canvas');
+  canvasContainer.style.width = canvasWidth;
+  canvasContainer.style.height = canvasHeight;
+
+  canvasContainer.appendChild(canvas1);
+  canvasContainer.appendChild(canvas2);
+  enclosing.appendChild(canvasContainer);
+  var errorDiv = document.createElement('div');
+  enclosing.appendChild(errorDiv);
+
+  enclosing.classList.add('dalsegno-embed');
+
+  console.log(enclosing);
+  var embed = new DalSegno(uniqueId(editorDiv),
+                           uniqueId(canvasContainer),
+                           uniqueId(errorDiv),
+                           uniqueId(textarea),
+                           uniqueId(undefined), // scrubber
+                           window.breakoutProgram,
+                           uniqueId(undefined) // controls container
+  );
+  embed.speed = 50;  // how many ticks to run at a time, default is 500
+    /*
+  embed.onChangeIfValid = function(){
+    var fullscreen = document.getElementById('fullscreen2');
+    fullscreen.setAttribute('href', embed.link());
+  };
+  embed.onChangeIfValid(embed.initialContent);
+  */
+
+
+}
+
 DalSegno.DalSegno = DalSegno;
+DalSegno.findScriptTags = findScriptTags;
 
 module.exports = DalSegno;

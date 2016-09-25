@@ -1,0 +1,138 @@
+body {
+  background-color:#FCFBE8;
+  background-image: linear-gradient(rgba(230,230,230,1) 1px, transparent 2px),
+    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
+    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
+    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
+    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
+    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
+    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
+    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
+    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
+    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px);
+  background-size:
+    10px 200px,
+    10px 200px,
+    10px 200px,
+    10px 200px,
+    10px 200px,
+    10px 200px,
+    10px 200px,
+    10px 200px,
+    10px 200px,
+    10px 200px;
+  background-position:
+    0px 30px,
+    0px 40px,
+    0px 50px,
+    0px 60px,
+    0px 70px,
+    0px 106px,
+    0px 116px,
+    0px 126px,
+    0px 136px;
+    0px 146px,
+}
+
+.container {
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+
+  margin-top: 20px;
+  margin-bottom: 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+  background-color:#FCFBE8;
+}
+
+.container > div {
+  margin: 24px;
+}
+
+#hero, .subhero {
+  font-size: 3em;
+  line-height: 48px;
+  font-family: 'Roboto', sans-serif;
+  margin-bottom: 24px;
+}
+.hero-container {
+  text-align: center;
+  background-color:#FCFBE8;
+  border-radius: 10px;
+  padding: 10px;
+}
+#hero img {
+  vertical-align: middle;
+  padding-left: 20px;
+}
+.subhero {
+  font-size: 2em;
+  margin-bottom: 0px;
+}
+#header-segno {
+  height: 48px;
+  margin-bottom: 24px;
+}
+
+h1, h2, h3 {
+  line-height 48px;
+  font-family: 'Roboto', sans-serif;
+  display: block;
+}
+h2 {
+  padding-top: 24px;
+  font-size: 1.5em;
+  padding-bottom: 24px;
+}
+
+.links-box {
+  text-align: center;
+}
+
+p.emphasis {
+  text-align: center;
+  margin: 20px;
+}
+
+aside {
+  background-color: #fffee0;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 8px;
+}
+
+p, li, aside {
+  font-family: 'Open Sans', sans-serif;
+  line-height: 24px;
+}
+.container > p {
+  padding-bottom: 24px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+
+.edit-to-rewind-example {
+  height: 400px;
+  width: 100%;
+  background-color: blue;
+}
+
+
+
+
+
+
+
+
+/* get rid of page effect on smaller screens */
+@media all and (max-width: 960px) {
+    .container {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+}

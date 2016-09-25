@@ -2,24 +2,88 @@
 <head>
 <meta charset="UTF-8">
 <title>Dal Segno</title>
-<link rel="stylesheet" href="about.css">
+<link rel="stylesheet" href="reset.css">
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="embed.css">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto:300" rel="stylesheet">
 </head>
 <body>
+<div class="container">
 <script src="../ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="../bundle.js"></script>
 
+<div class="hero-container">
+<h1 id="hero">Dal Segno</h1>
+<img id="header-segno" src="segno.svg" alt="Dal Segno sign from music notation">
+<p class="subhero">See the effect of code changes instantly</p>
+</div>
+
+
+<div class="links-box">
+  <ul>
+    <li><a href="https://github.com/thomasballinger/dalsegno">Project Repo on GitHub</a></li>
+    <li><a href="http://dalsegno.ballingt.com">Try it fullscreen</a></li>
+  </ul>
+</div>
+<p>Have you every tried to make changes to a long-running program, and each time had to restart the program and wait for it to get to the part where the changees you've made will make a difference?
+</p>
+<p>
+Dal Segno rewinds your program back to just before the function you change was last executed. Ideally, this makes modifying your code as experimentation-friendly as tweaking css.
+</p>
+
+<h2>Simple example where editing a function rewinds to the beginning of the last jump of a bouncing ball</h2>
+When on mobile, this should be a youtube video!
+<div class="edit-to-rewind-example">
+
 <script type="dalsegno"
-        code-buttons="true"
-        code-speed-slider="true"
-        code-console="true"
-        code-fullscreen-link="true"
-        code-speed="50"
-        code-ast-highlight="false"
-        code-editor="true"
-        code-height="600"
-        code-canvas-width="400"
-        code-editor-width="600">
+        data-console="true"
+        data-fullscreen-link="false"
+        data-speed="50"
+        data-ast-highlight="false"
+        data-editor="true"
+        data-canvas-width="400"
+        >
 </script>
+</div>
+
+<h2>Explore alternate timelines</h2>
+<div class="dal-segno-standin edit-to-rewind-example">
+<h2>Pong with all the stepping controls, maybe without editable code?</h2>
+</div>
+
+
+<aside>
+Dal Segno takes actual snapshots of the program state instead of recording user inputs and rerunning the program deterministically. This second approach is the more sensible way to implement hot-swapping of code, and ise
+</aside>
+
+<aside>
+  Dal Segno takes snapshots of program state not every rendering frame or tick of the game, but instead. While limiting the user to specific program structures like Processing does with its <code>setup()</code> and <code>draw()</code> methods wwould make this easier to implement, Dal Segno's lack of required structures allows the user to write programs free of these constraints. In practice, such constraints are probably a good idea.
+</aside>
+
+
+<h2>Language</h2>
+<h2>Simple ball moving example describing the scheme-like language</h2>
+
+<h2>Write games</h2>
+<h2>Asteroids example, </h2>
+
+<h2>Try it out</h2>
+Link to fullscreen version
+
+<hr>
+
+<h2>About</h2>
+
+Read this blog post!
+
+Code Lauren
+
+Space game
+
+
+<footer>
+  Segno image licenced CC BY-SA, <a href="https://commons.wikimedia.org/wiki/File:SegnoTeken.svg">https://commons.wikimedia.org/wiki/File:SegnoTeken.svg</a>
+</footer>
 </div>
 
 <!--
@@ -40,5 +104,9 @@
   Would be cool to have a slider without an editor I guess...
 
   -->
+
+<script>
+DalSegno.findScriptTags();
+</script>
 </body>
 </html>
