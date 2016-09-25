@@ -122,35 +122,21 @@ function LazyCanvasCtx(canvasId, lazy, showFPS){
     } else if (property in ContextPropertiesWithAGetterOrSetter) {
       (function(property){
         var descriptors = {};
-        if (getter){
-          descriptors.get = function(){
-            self.trigger();
-            self.operations = self.operations.push([getter, []]);
-            return self.trigger();
+        descriptors.get = function(){
+          self.trigger();
+          var simpleGetter = function(){
+            return this[property];
           };
-        } else {
-          descriptors.get = function(){
-            self.trigger();
-            var simpleGetter = function(){
-              return this[property];
-            };
-            self.operations = self.operations.push([simpleGetter, []]);
-            return self.trigger();
+          self.operations = self.operations.push([simpleGetter, []]);
+          return self.trigger();
+        };
+        descriptors.set = function(value){
+          var simpleSetter = function(value){
+            this[property] = value;
+            return value;
           };
-        }
-        if (setter) {
-          descriptors.set = function(value){
-            self.operations = self.operations.push([setter, [value]]);
-          };
-        } else {
-          descriptors.set = function(value){
-            var simpleSetter = function(value){
-              this[property] = value;
-              return value;
-            };
-            self.operations = self.operations.push([simpleSetter, []]);
-          };
-        }
+          self.operations = self.operations.push([simpleSetter, [value]]);
+        };
         Object.defineProperty(this, property, descriptors);
       }).call(this, property);
     }
