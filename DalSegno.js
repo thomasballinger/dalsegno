@@ -848,6 +848,7 @@ function createEmbed(script){
                            uniqueId(undefined) // controls container
   );
   embed.speed = 50;  // how many ticks to run at a time, default is 500
+  embed.editor.setTheme("ace/theme/solarized_light");
     /*
   embed.onChangeIfValid = function(){
     var fullscreen = document.getElementById('fullscreen2');

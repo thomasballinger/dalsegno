@@ -1,12 +1,20 @@
 // vim: set ft=scheme:
-window.breakoutProgram = `
-(define paddle-x 100)
+window.breakoutProgram = `(define paddle-x 100)
 (define paddle-y (- height 20))
 (define ball-x 100)
 (define ball-y (- height 50))
 (define dx 1)
 (define dy 1)
 (define paddle-w 100)
+
+(defn main ()
+  (move 1)
+  (draw)
+  (main))
+
+(defn bounce ()
+  (set! dy (- 0 dy)))
+
 (defn move (speed)
   (set! paddle-x (mousex))
   (set! ball-x (+ ball-x (* dx speed)))
@@ -23,10 +31,9 @@ window.breakoutProgram = `
       (display "restart")
       (set! ball-x 100)
       (set! ball-y 100))))
-(defn bounce ()
-  (set! dy (- 0 dy)))
+
 (defn draw ()
-  (color 200 200 30)
+  (color 130 200 230)
   (fillRect 0 0 width height)
   (color 200 0 100)
   (fillRect (- paddle-x (/ paddle-w 2))
@@ -35,8 +42,4 @@ window.breakoutProgram = `
   (fillRect (- ball-x 5) (- ball-y 5) 10 10)
   (render))
 
-(defn main ()
-  (move 1)
-  (draw)
-  (main))
 (main)`;
