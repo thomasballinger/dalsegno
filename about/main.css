@@ -46,7 +46,7 @@ body {
   flex-direction: column;
   align-items: center;
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
-  background-color:#FCFBE8;
+  background-color: #FDF6E3;
 }
 
 .container > div {
@@ -61,7 +61,6 @@ body {
 }
 .hero-container {
   text-align: center;
-  background-color:#FCFBE8;
   border-radius: 10px;
   padding: 10px;
 }
@@ -119,7 +118,6 @@ p, li, aside {
 .edit-to-rewind-example {
   height: 400px;
   width: 100%;
-  background-color: blue;
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
 }
 

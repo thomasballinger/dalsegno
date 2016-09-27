@@ -153,7 +153,7 @@ Runner.prototype.update = function(s, cb){
         var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 50);
 
         this.visualSeek(0, () => {
-          this.clearKeyframesBeyond()
+          this.clearKeyframesBeyond();
           reset();
           cb(updateIsRewind);
         }, framesample.makeAccelDecelSampler(rewindLength));
@@ -508,7 +508,7 @@ Runner.prototype.instantSeekToKeyframeBeforeBack = function(n){
   this.restoreState(deepCopy(state));
   return dest - counter;
 };
-Runner.prototype.visualSeek = function(dest, cb, frameChooser){
+Runner.prototype.visualSeek = function(dest, cb, frameChooser, eachStepCallback){
   if (dest > Math.max(Math.max.apply(null, this.keyframeNums), this.counter)){
     throw Error('destination is beyond the knowable future: '+dest);
   }

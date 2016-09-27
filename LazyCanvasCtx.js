@@ -230,6 +230,9 @@ LazyCanvasCtx.prototype.restoreState = function(state){
   this.operationsSinceLastClear.reverse().forEach(function(operation){
     operation[0].apply(self.ctx, operation[1]);
   });
+  if (this.lazy && this.drawRewindEffect){
+    this.drawRewindEffect();
+  }
 };
 LazyCanvasCtx.prototype.drawPlayIcon = function(){
   this.ctx.save();

@@ -115,8 +115,11 @@ function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId
 
   this.initWindowWatcher();
   this.setMouseinToPlay();
+
+  DalSegno.widgets.push(this);
 }
 DalSegno.activeWidget = undefined;
+DalSegno.widgets = [];
 DalSegno.windowWatcherSet = false;
 /** User wants to see something */
 DalSegno.prototype.go = function(){
@@ -656,6 +659,8 @@ DalSegno.prototype.updateControls = function(){
     console.log('should disable stepping backwards');
   } else if (this.playerState === PS.History){
     console.log('turn everything on');
+  } else if (this.playerState === PS.Error){
+    console.log('Error state, I gugess all buttons should be off? I dunno what should happen to buttons.');
   } else {
     throw Error('bad player state');
   }
@@ -730,12 +735,14 @@ DalSegno.prototype.initGraphics = function(){
   this.effectCanvas.style.backgroundColor = 'transparent';
 
   this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, false);
+  this.lazyCanvasCtx.drawRewindEffect = ()=>{ this.drawRewindEffect(); }
   this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
 
   this.effectCtx = this.effectCanvas.getContext('2d');
   this.effectCtx.clearRect(0, 0, 10000, 10000);
 };
 DalSegno.prototype.drawRewindEffect = function(){
+  console.log("drawing rewind effect...");
   this.rewindEffectCleared = false;
   var w = this.effectCanvas.width;
   var h = this.effectCanvas.height;
