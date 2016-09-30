@@ -812,8 +812,8 @@ function createEmbed(script){
     console.warn('Embed failed, dalsegno script must be inside a div');
   }
 
-  var canvasWidth = parseInt(script.canvasWidth) || 400;
-  var canvasHeight = parseInt(script.canvasHeight) || 400;
+  var canvasWidth = parseInt(script.dataset.canvasWidth) || 400;
+  var canvasHeight = parseInt(script.dataset.canvasHeight) || 400;
   console.log('instructed canvas size:', canvasWidth, canvasHeight);
 
   var leftPanel = document.createElement('div');
@@ -826,6 +826,15 @@ function createEmbed(script){
   var textarea = document.createElement('textarea');
   textarea.className = 'console';
   leftPanel.appendChild(textarea);
+  var controlsDiv;
+  var scrubber;
+  if (script.dataset.stepControls){
+    controlsDiv = document.createElement('div');
+    controlsDiv.className = 'controls';
+    leftPanel.appendChild(controlsDiv);
+    controlsDiv.innerHTML = CONTROLS_HTML;
+    var scrubber = controlsDiv.querySelector('input');
+  }
   enclosing.appendChild(leftPanel);
 
   console.log("desired canvas size:", canvasWidth, canvasHeight);
@@ -850,10 +859,14 @@ function createEmbed(script){
                            uniqueId(canvasContainer),
                            uniqueId(errorDiv),
                            uniqueId(textarea),
-                           uniqueId(undefined), // scrubber
-                           window.breakoutProgram,
-                           uniqueId(undefined) // controls container
+                           uniqueId(scrubber),
+                           window[script.dataset.program] || '(display "program not found")',
+                           uniqueId(controlsDiv)
   );
+  if (script.dataset.editor === 'read-only'){
+    embed.editor.setReadOnly(true);
+    embed.editor
+  }
   embed.speed = 50;  // how many ticks to run at a time, default is 500
   embed.editor.setTheme("ace/theme/solarized_light");
     /*
@@ -866,6 +879,31 @@ function createEmbed(script){
 
 
 }
+
+var CONTROLS_HTML = `
+  <button
+    class="dalsegno-prev-keyframe">|&lt;&lt;</button>
+  <button
+    class="dalsegno-rw-1000">&lt;&lt;</button>
+  <button
+    class="dalsegno-rw-1">&lt;</button>
+  <input type="range" id="scrubber2"/>
+  <button
+    title="step forward 1000 bytecode executions"
+    class="dalsegno-fw-1000" >&gt;&gt;</button>
+  <button id="fw1"
+    title="step forward a single bytecode execution"
+    class="dalsegno-fw-1">&gt;</button>
+  <button id="ffkeyframe"
+    title="step through execution until next key frame"
+    class="dalsegno-next-keyframe">&gt;&gt;|</button>
+  <button id="fork"
+    title="fork the timelines"
+    class="dalsegno-fork-timeline">kill the future</button>
+  <button id="fork"
+    title="advance to the end and continue execution"
+    class="dalsegno-fork-timeline">continue from end</button>
+    `;
 
 DalSegno.DalSegno = DalSegno;
 DalSegno.findScriptTags = findScriptTags;

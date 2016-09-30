@@ -120,6 +120,11 @@ p, li, aside {
   width: 100%;
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
 }
+.stepping-example {
+  height: 400px;
+  width: 100%;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+}
 
 
 
