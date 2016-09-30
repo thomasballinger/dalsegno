@@ -9,7 +9,7 @@ window.simpleProgram = `;semicolons make the rest of a line a comment
   (color 0 0 230)
   (drawArc 150 y 111)   ;queues a circle to be drawn
   (render)              ;actually paints queued drawings
-  (set! y (+ y 5))      ;change var wherever it was defined
+  (set! y (+ y 5))      ;update the value of y
   (if (> y 300)         ;you've got if, set!, define, defn,
       (set! y 0))       ; and lambda for special forms
   (recur))              ;no loops; recurse, recurse!
