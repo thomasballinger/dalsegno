@@ -868,6 +868,12 @@ function createEmbed(script){
     embed.editor
   }
   embed.speed = 50;  // how many ticks to run at a time, default is 500
+  if (script.dataset.speed){
+    embed.speed = parseInt(script.dataset.speed);
+  }
+  if (script.dataset.astHighlight){
+    embed.highlight = true;
+  }
   embed.editor.setTheme("ace/theme/solarized_light");
     /*
   embed.onChangeIfValid = function(){
