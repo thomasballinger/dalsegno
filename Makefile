@@ -1,9 +1,10 @@
-all: ace-build-version Immutable.js bundle.js
-ace-build-version: ace-builds
-	#cd ace-builds; git checkout v1.1.9
-	cd ace-builds; git checkout v1.2.3
-ace-builds:
-	git clone git://github.com/ajaxorg/ace-builds.git ace-builds
+all: ace-builds Immutable.js bundle.js
+ace-builds-before-patch:
+	git clone git://github.com/ajaxorg/ace-builds.git ace-builds-before-patch
+ace-builds: ace-builds-before-patch lightened_colors.diff
+	cd ace-builds-before-patch; git checkout v1.2.3
+	patch ace-builds-before-patch/src-noconflict/theme-solarized_light.js lightened_colors.diff
+	cp -rf ace-builds-before-patch ace-builds
 Immutable.js:
 	curl https://raw.githubusercontent.com/facebook/immutable-js/master/dist/immutable.min.js > Immutable.js
 lazycanvasbundle.js:

@@ -874,7 +874,8 @@ function createEmbed(script){
   if (script.dataset.astHighlight){
     embed.highlight = true;
   }
-  embed.editor.setTheme("ace/theme/solarized_light");
+  var theme = script.dataset.theme || "solarized_light";
+  embed.editor.setTheme("ace/theme/"+theme);
     /*
   embed.onChangeIfValid = function(){
     var fullscreen = document.getElementById('fullscreen2');
