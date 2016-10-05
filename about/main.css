@@ -1,37 +1,68 @@
 body {
-  background-color: #811F24;
-  background-image: linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
-    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
-    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
-    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
-    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
-    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
-    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
-    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
-    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
-    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px);
+  background-color: #A09070;
+  background-image: linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px),
+    linear-gradient(rgba(60,60,60,1) 1px, transparent 1px);
+
   background-size:
-    10px 200px,
-    10px 200px,
-    10px 200px,
-    10px 200px,
-    10px 200px,
-    10px 200px,
-    10px 200px,
-    10px 200px,
-    10px 200px,
-    10px 200px;
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px,
+    10px 350px;
   background-position:
-    0px 30px,
     0px 40px,
     0px 50px,
     0px 60px,
     0px 70px,
-    0px 106px,
-    0px 116px,
-    0px 126px,
-    0px 136px,
-    0px 146px;
+    0px 80px,
+    0px 100px,
+    0px 110px,
+    0px 120px,
+    0px 130px,
+    0px 140px,
+    0px 190px,
+    0px 200px,
+    0px 210px,
+    0px 220px,
+    0px 230px,
+    0px 250px,
+    0px 260px,
+    0px 270px,
+    0px 280px,
+    0px 290px;
 }
 
 .container {
@@ -47,7 +78,7 @@ body {
   flex-direction: column;
   align-items: center;
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
-  background-color: #FFFDF0;
+  background-color: #F0E0C0;
 }
 
 #hero {
@@ -62,7 +93,7 @@ body {
 .hero-container {
   text-align: center;
   border-radius: 10px;
-  padding: 40px;
+  padding-top: 20px;
 }
 #hero img {
   vertical-align: middle;
@@ -88,14 +119,19 @@ h2 {
 }
 
 .rows {
-  border: solid 5px rgb(200,0,100);
-  padding: 20px;
+  border: solid 1px gray;
+  margin: 50px;
+  padding: 10px;
+  display: flex;
+  flex-direction: row;
+}
+.rows p {
+  font-size: 16px;
 }
 
 .links-box {
   text-align: center;
-
-  padding: 20px;
+  min-width: 200px;
 }
 
 p.emphasis {
@@ -115,7 +151,8 @@ p, li, aside {
   line-height: 24px;
 }
 .container > p {
-  padding-bottom: 24px;
+  margin-top: 12px;
+  padding-bottom: 12px;
   padding-left: 24px;
   padding-right: 24px;
 }
