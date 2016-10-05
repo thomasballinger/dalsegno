@@ -153,11 +153,8 @@ in Chrome, Firefox, and Node without requiring any flags.
 
 potential todos
 
-* Scrubber for viewing preview states and play button to resume
-  execution at that arbitrary point
 * display most recently run named functions and when they were run,
   and clicking them rewinds state to that time.
-* save canvas state for restores: save/restore for scope objects
 * pause builtin function
 * branches of ifs acting like functions: changing them rewinds
   back to last time they were changed
@@ -174,11 +171,6 @@ potential todos
 * button to restore source to last parsable state
 * inline documentation viewer
 * prettier error message display
-* write a virtual machine instead of using generators
-* code improvements
-  * use a real module system instead of the hacks
-  * allow external files so scm programs are in their own files (requires
-    a build system)
 * Use a better syntax for beginners - something like http://codelauren.com/
   * `=`, `->` or `<-` for assignment
   * Lisp 2 (require apply for first element of a form to be dynamically

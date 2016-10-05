@@ -15,23 +15,8 @@
 <div class="hero-container">
 <h1 id="hero">Dal Segno</h1>
 <img id="header-segno" src="segno.svg" alt="Dal Segno sign from music notation">
-<p class="subhero">See the effect of code changes instantly</p>
 </div>
 
-
-<div class="links-box">
-  <ul>
-    <li><a href="https://github.com/thomasballinger/dalsegno">project repo on GitHub</a></li>
-    <li><a href="http://dalsegno.ballingt.com">try it fullscreen</a></li>
-  </ul>
-</div>
-<p>Have you every tried to make changes to a long-running program, and each time had to restart the program and wait for it to get to the part where the changees you've made will make a difference?
-</p>
-<p>
-Dal Segno rewinds your program back to just before the function you change was last executed. Ideally, this makes modifying your code as experimentation-friendly as tweaking css.
-</p>
-
-When on mobile, this should be a youtube video!
 <div class="edit-to-rewind-example">
 <script type="dalsegno"
         data-console="true"
@@ -40,11 +25,84 @@ When on mobile, this should be a youtube video!
         data-canvas-width="400"
         data-program="breakoutProgram"
         data-speed="100"
+        data-theme="solarized_light"
         >
 </script>
 </div>
 
-<h2>Explore alternate timelines</h2>
+<h2>See the effect of code changes instantly</h2>
+<div class="rows">
+  <div>
+  <p>Have you every tried to make changes to a long-running program, and each time had to restart the program and wait for it to get to the part where the changes you've made will make a difference?
+  </p>
+  </div>
+  <div class="links-box">
+    <ul>
+      <li><a href="https://github.com/thomasballinger/dalsegno">project repo on GitHub</a></li>
+      <li><a href="http://dalsegno.ballingt.com">try it fullscreen</a></li>
+    </ul>
+  </div>
+  <div>
+  <p>
+  Dal Segno rewinds your program back to just before the function you change was last executed. This makes modifying your code as experimentation-friendly as tweaking css.
+  </p>
+  </div>
+</div>
+
+When on mobile, this should be a youtube video!
+
+<h2>Language</h2>
+
+<div class="simple-example">
+<script type="dalsegno"
+        data-console="true"
+        data-speed="1"
+        data-ast-highlight="true"
+        data-canvas-width="300"
+        data-program="simpleProgram"
+        >
+</script>
+</div>
+
+You can read the <a href="https://github.com/thomasballinger/dalsegno#language">documentation in the project readme</a>
+
+<h2>Write games</h2>
+<div class="simple-example">
+<script type="dalsegno"
+        data-console="true"
+        data-speed="500"
+        data-canvas-width="500"
+        data-program="golfProgram"
+        >
+</script>
+</div>
+<p>In this golf game, it's convenient to be able to change <code>fly-loop</code> or <code>collision</code> code without restarting the program.</p>
+
+<hr>
+
+<p class="instructions">Use spacebar and the mouse to avoid the hidden asteroids.</p>
+<div class="simple-example">
+<script type="dalsegno"
+        data-console="true"
+        data-speed="500"
+        data-canvas-width="500"
+        data-program="spaceLightProgram"
+        >
+</script>
+</div>
+<p class="notes">
+Try tweaking the size and shape of the floodlight (line 62), or the shape of the ship. Changing this code will rewind the program by only one frame, while changes initial conditions will return the game to the beginning of a session.
+</p>
+
+<h2>Try it out</h2>
+Write your own programs at <a href="http://dalsegno.ballingt.com">dalsegno.ballingt.com</a>
+and me the resulting url, and I'll post the result here!
+
+<hr>
+
+<h2>About</h2>
+
+<h2>Stepping through history</h2>
 <div class="stepping-example">
 <script type="dalsegno"
         data-console="true"
@@ -67,52 +125,41 @@ Dal Segno takes actual snapshots of the program state instead of recording user 
 </aside>
 
 
-<h2>Language</h2>
 
-<div class="simple-example">
-<script type="dalsegno"
-        data-console="true"
-        data-speed="1"
-        data-ast-highlight="true"
-        data-canvas-width="300"
-        data-program="simpleProgram"
-        >
-</script>
-</div>
-<h2>Write games</h2>
-<div class="simple-example">
-<script type="dalsegno"
-        data-console="true"
-        data-speed="500"
-        data-canvas-width="500"
-        data-program="golfProgram"
-        >
-</script>
-</div>
+<h3>Motivation</h3>
 
-<p class="instructions">Use spacebar and the mouse to avoid the hidden asteroids</p>
-<div class="simple-example">
-<script type="dalsegno"
-        data-console="true"
-        data-speed="500"
-        data-canvas-width="500"
-        data-program="spaceLightProgram"
-        >
-</script>
-</div>
+Code Lauren!
 
-<h2>Try it out</h2>
-Link to fullscreen version
 
-<hr>
+Project history:
+<ol>
+  <li>simple interpreter</li>
+  <li>resumable interpreter with generators</li>
+  <li>serializable interpreter with objects</li>
+  <li>restart-from-edited-function behavior</li>
+  <li>bytecode</li>
+  <li>use immutable data structures for fast copies</li>
+  <li>...uh oh, I guess that requires doing our own garbage collection of our mutable scopes</li>
+</ol>
 
-<h2>About</h2>
 
-Read this blog post!
+<h2>Want to use it?</h2>
 
-Code Lauren
+Frankly I'm not sure how useful it really is. The main use case I'm thinking about it game jams. The source of this page shows the most convenient way to embed Dal Segno.
 
-Space game
+<h2>Let's make it better</h2>
+
+There are a thousand directions I could imagine this going in. So far I've added features without much thought for product; this was a very experimental project that I've arbitrarily capped off at this point.
+
+The main reason to work on it is probably that you're interested in language implementation and bytecode interpreters. If this describes you, then let's talk! I'd love to walk you through the coe and we can find some useful things to change.
+
+
+<ul>
+  <li>An alternate interpreter mode that doesn't take snapshots (and will therefore have much more predictable performance)</li>
+  <li>More general JavaScript interop: currently only functions, but we could add jsSet and jsGet to deal with nested objects</li>
+  <li>Methods for loading external assets by url, or at least convenience functions for interacting with img elements</li>
+</ul>
+
 
 
 <footer>

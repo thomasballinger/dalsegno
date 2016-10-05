@@ -904,6 +904,7 @@ var CONTROLS_HTML = `
   <button id="ffkeyframe"
     title="step through execution until next key frame"
     class="dalsegno-next-keyframe">&gt;&gt;|</button>
+  <br/>
   <button id="fork"
     title="fork the timelines"
     class="dalsegno-fork-timeline">kill the future</button>

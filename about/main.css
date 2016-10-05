@@ -1,15 +1,15 @@
 body {
-  background-color:#FCFBE8;
-  background-image: linear-gradient(rgba(230,230,230,1) 1px, transparent 2px),
-    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
-    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
-    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
-    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
-    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
-    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
-    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
-    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px),
-    linear-gradient(rgba(230,230,230,1) 1px, transparent 1px);
+  background-color: #811F24;
+  background-image: linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px),
+    linear-gradient(rgba(0,0,0,1) 1px, transparent 1px);
   background-size:
     10px 200px,
     10px 200px,
@@ -30,12 +30,13 @@ body {
     0px 106px,
     0px 116px,
     0px 126px,
-    0px 136px;
-    0px 146px,
+    0px 136px,
+    0px 146px;
 }
 
 .container {
-  max-width: 960px;
+  max-width: 1000px;
+  min-width: 900px;
   margin-left: auto;
   margin-right: auto;
 
@@ -46,23 +47,22 @@ body {
   flex-direction: column;
   align-items: center;
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
-  background-color: #FDF6E3;
+  background-color: #FFFDF0;
 }
 
-.container > div {
-  margin: 24px;
+#hero {
+  margin-bottom: 12px;
 }
 
 #hero, .subhero {
   font-size: 3em;
   line-height: 48px;
   font-family: 'Roboto', sans-serif;
-  margin-bottom: 24px;
 }
 .hero-container {
   text-align: center;
   border-radius: 10px;
-  padding: 10px;
+  padding: 40px;
 }
 #hero img {
   vertical-align: middle;
@@ -74,7 +74,6 @@ body {
 }
 #header-segno {
   height: 48px;
-  margin-bottom: 24px;
 }
 
 h1, h2, h3 {
@@ -88,8 +87,15 @@ h2 {
   padding-bottom: 24px;
 }
 
+.rows {
+  border: solid 5px rgb(200,0,100);
+  padding: 20px;
+}
+
 .links-box {
   text-align: center;
+
+  padding: 20px;
 }
 
 p.emphasis {
@@ -117,17 +123,20 @@ p, li, aside {
 
 .edit-to-rewind-example {
   height: 400px;
-  width: 100%;
+  width: 900px;
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+}
+.edit-to-rewind-example .editor {
+  font-size: 16px;
 }
 .stepping-example {
   height: 400px;
-  width: 100%;
+  width: 900px;
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
 }
 .simple-example {
   height: 400px;
-  width: 100%;
+  width: 900px;
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
 }
 .simple-example .editor {
@@ -142,9 +151,17 @@ p, li, aside {
 
 
 /* get rid of page effect on smaller screens */
-@media all and (max-width: 960px) {
+@media all and (max-width: 1000px) {
     .container {
         margin-top: 0;
         margin-bottom: 0;
+    }
+    .dalsegno-embed {
+      display: none;
+    }
+}
+@media not (max-width: 1000px) {
+    .dalsegno-youtube-embed {
+      display: none;
     }
 }
