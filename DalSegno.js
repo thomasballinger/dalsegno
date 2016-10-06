@@ -51,7 +51,6 @@ var EM = {
  */
 
 function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId, initialProgramId, controlsContainerId){
-  console.log(arguments);
   //These are the four important state properties
   this.playerState = PS.Initial;
   this.runSomeScheduled = false;
@@ -690,7 +689,7 @@ DalSegno.prototype.initControls = function(){
   this.controlsContainer = document.getElementById(this.controlsContainerId);
   for (var el of this.controlsContainer.getElementsByTagName('*')){
     if (el.className in inputClasses){
-      console.log('found', el.className);
+      //console.log('found', el.className);
       el.addEventListener('click', ((classname)=>{
         return ()=>{
           this.controlsMessage = inputClasses[classname];
@@ -802,7 +801,6 @@ function uniqueId(element){
 function findScriptTags(){
   var tags = Array.prototype.slice.call(document.querySelectorAll('script'));
   var dalSegnoTags = tags.filter((el)=>el.type == 'dalsegno');
-  console.log(dalSegnoTags);
   dalSegnoTags.forEach((el)=>createEmbed(el));
 }
 
@@ -814,7 +812,6 @@ function createEmbed(script){
 
   var canvasWidth = parseInt(script.dataset.canvasWidth) || 400;
   var canvasHeight = parseInt(script.dataset.canvasHeight) || 400;
-  console.log('instructed canvas size:', canvasWidth, canvasHeight);
 
   var leftPanel = document.createElement('div');
   leftPanel.className = 'left-panel';
@@ -837,8 +834,6 @@ function createEmbed(script){
   }
   enclosing.appendChild(leftPanel);
 
-  console.log("desired canvas size:", canvasWidth, canvasHeight);
-
   var canvasContainer = document.createElement('div');
   canvasContainer.className = 'canvas-container';
   var canvas1 = document.createElement('canvas');
@@ -854,7 +849,6 @@ function createEmbed(script){
 
   enclosing.classList.add('dalsegno-embed');
 
-  console.log(enclosing);
   var embed = new DalSegno(uniqueId(editorDiv),
                            uniqueId(canvasContainer),
                            uniqueId(errorDiv),

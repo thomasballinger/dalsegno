@@ -220,8 +220,11 @@ p, li, aside {
 }
 
 
-.gh-button{
-  margin: 20px;
+.gh-button {
+  margin: 10px;
+}
+.twitter-follow-button {
+  margin: 10px
 }
 
 

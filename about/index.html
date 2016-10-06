@@ -42,12 +42,12 @@ See the effect of code changes instantly
 
 <div class="rows">
 <p>
-Each time a Dal Segno function is executed, the state of the program is saved just before the function body begins to run.
+Each time a function is executed, the state of the program is saved just before the function body begins to run.
 Then on each editor keystroke the ASTs of the new and old programs are diffed and the changed function is identified.
 </p>
 
 <p>
-The program state which was most recently stored just before that function was executed is restored with the old AST of the function swapped out for the new one.
+The program state which was stored before the most recent execution of that function is restored with the old AST of the function swapped out for the new one.
 This eliminates the wait for a program to reach the point where a change in its code would matter,
 ideally making trying out code as quick as tweaking CSS.
 </p>
@@ -105,7 +105,7 @@ Try changing <code>fly-loop</code> or <code>collision</code>.
 
 <img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
 
-<h2>Make this game easier</h2>
+<h2>This game is too hard</h2>
 <p class="instructions">Use spacebar and the mouse to avoid the hidden asteroids.</p>
 <div class="game-example">
 <script type="dalsegno"
@@ -124,9 +124,6 @@ Try changing <code>fly-loop</code> or <code>collision</code>.
 
 <p class="emphasis">
 Write your own at <a href="http://dalsegno.ballingt.com">dalsegno.ballingt.com</a>
-</p>
-<p class="emphasis">
-I'd love to see what you make, so send me the url!
 </p>
 
 <img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
@@ -160,23 +157,9 @@ Let me know! I'd love to hear from you at <a href="https://twitter.com/ballingt"
 
 <iframe class="gh-button" src="https://ghbtns.com/github-btn.html?user=thomasballinger&repo=dalsegno&type=star&count=true&size=large" frameborder="0" scrolling="0" width="115px" height="30px"></iframe>
 <a href="https://twitter.com/ballingt" class="twitter-follow-button" data-show-count="false">Follow @ballingt</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+<a href="http://ballingt.com">ballingt.com</a>
 
 <img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
-
-<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Next up is trying to get these jumps right... <a href="https://t.co/cIQwW5Db6F">pic.twitter.com/cIQwW5Db6F</a></p>&mdash; Thomas Ballinger (@ballingt) <a href="https://twitter.com/ballingt/status/716974122245468166">April 4, 2016</a></blockquote>
-<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Houston, we have tail call optimization <a href="https://t.co/3OecXNZ5jK">pic.twitter.com/3OecXNZ5jK</a></p>&mdash; Thomas Ballinger (@ballingt) <a href="https://twitter.com/ballingt/status/717897695743057920">April 7, 2016</a></blockquote>
-<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">rewind interface idea: displaying screen for each saved state that can be restored <a href="https://t.co/OOSQB9mgiB">pic.twitter.com/OOSQB9mgiB</a></p>&mdash; Thomas Ballinger (@ballingt) <a href="https://twitter.com/ballingt/status/724694111450730496">April 25, 2016</a></blockquote>
-<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">In honor of <a href="https://twitter.com/maryrosecook">@maryrosecook</a>&#39;s talk <a href="https://t.co/anBYGmH1Kf">https://t.co/anBYGmH1Kf</a> here&#39;s an incomplete space invaders: <a href="http://t.co/kH1IZNuXLd">http://t.co/kH1IZNuXLd</a> <a href="http://t.co/pbHTyzem8W">pic.twitter.com/pbHTyzem8W</a></p>&mdash; Thomas Ballinger (@ballingt) <a href="https://twitter.com/ballingt/status/606497854140620801">June 4, 2015</a></blockquote>
-<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Working on live code reloading in a toy lispy thing this afternoon, thanks <a href="https://twitter.com/maryrosecook">@maryrosecook</a> for inspiration! <a href="http://t.co/QvmJ3chpEZ">pic.twitter.com/QvmJ3chpEZ</a></p>&mdash; Thomas Ballinger (@ballingt) <a href="https://twitter.com/ballingt/status/592041225831718912">April 25, 2015</a></blockquote>
-<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 
 
