@@ -120,7 +120,6 @@ function Environment(mutableScope, libraryScopes, runner){
   libraryScopes.forEach(scope => {
     // in Chrome Canary 54 console.constructor is Object
     if (scope.constructor === Object && scope !== console){
-      console.log(scope);
       throw Error('Environment libraryScopes should not be simple objects: '+scope);
     }
   });
@@ -307,9 +306,12 @@ Environment.prototype.toString = function(){
     s += this.runner.scopeCheck.keys(this.mutableScope);
   }
   for (var i = this.libraryScopes.length - 1; i>=0; i--){
-    var obj = Object.keys(this.libraryScopes[i]);
+    var props = [];
+    for (var prop in this.libraryScopes[i]){
+      props.push(prop);
+    }
     s = s + "\n";
-    s = s + obj;
+    s = s + props;
   }
   s = s + "\n";
   if (this.runner){

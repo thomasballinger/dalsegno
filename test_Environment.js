@@ -85,4 +85,24 @@ describe('Environments', function(){
     assert.equal(env3.lookup('b'), 2);
     assert.equal(env3.lookup('c'), 20);
   });
+  it('includes keys from all scopes in env', function(){
+    var obj = {'+': function(a, b){return a + b; }};
+    function LibraryScope(){
+      this.abc = 1;
+    }
+    LibraryScope.prototype = { xyz: 2, constructor: LibraryScope };
+    var env = new Environment(obj, [new LibraryScope()]);
+    assert.equal(env.lookup('+'), obj['+']);
+    assert.equal(env.lookup('abc'), 1);
+    assert.equal(env.lookup('xyz'), 2);
+    assert.throws( () => env.lookup('a') );
+    try {
+      env.lookup('a');
+    } catch (e) {
+      var s = ''+e;
+      assert.include(s, '+');
+      assert.include(s, 'abc');
+      assert.include(s, 'xyz');
+    }
+  });
 });
