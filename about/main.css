@@ -220,10 +220,9 @@ p, li, aside {
 }
 
 
-
-
-
-
+.gh-button{
+  margin: 20px;
+}
 
 
 /* get rid of page effect on smaller screens */
