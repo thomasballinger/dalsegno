@@ -74,11 +74,12 @@ Try adding a method from the browser window or console, like <code>(alert "hello
 
 <div class="rows">
 <p>
-The language is pretty Scheme-like, but with the <code>defn</code> special form that defines global functions. These are the only functions that trigger saving interpreter state with every execution.
-Native arrays are immutable, but variable in namespaces can be rebound with <code>(set! name)</code>.
+The language is pretty Scheme-like, with the addition of a <code>(defn name (arg1 arg2 ...) body)</code> special form that defines global functions.
+These global functions trigger the saving interpreter state with every execution, while lambdas do not.
+Native arrays are immutable, but scopes aren't: variables in namespaces can be rebound with <code>(set! name)</code>.
 </p>
 <p>
-JavaScript interop works via name lookup: after the local and enclosing namespaces are searched fora variable, JavaScript objects are checked for that name. In these examples, a canvas context is included in this lookup chain for drawing, along with the JavaScript browser objects <code>window</code>, <code>console</code>, and helper objects for getting mouse position and pressed keys.
+JavaScript interop works via name lookup: after the local and enclosing namespaces are searched for variables that match a name, JavaScript objects are checked for that name. In these examples a canvas context is included in this lookup chain for drawing, along with the JavaScript browser objects <code>window</code>, <code>console</code>, and helper objects for getting mouse position and pressed keys.
 </p>
 </div>
 
@@ -99,7 +100,7 @@ You can read the <a href="https://github.com/thomasballinger/dalsegno#language">
 </script>
 </div>
 <p class="instructions">
-Try changing <code>fly-loop</code> or <code>collision</code>.
+Try changing <code>fire</code> or <code>fly-loop</code> after taking a shot.
 <a href="http://dalsegno.ballingt.com/?code=golfProgram">Open fullscreen</a> for more space.
 </p>
 
