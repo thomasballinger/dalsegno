@@ -14,10 +14,13 @@
 
 <div class="hero-container">
 <h1 id="hero">Dal Segno</h1>
-<img id="header-segno" src="segno.svg" alt="Dal Segno sign from music notation">
+<img id="header-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
 </div>
 
-<h2>See the effect of code changes instantly</h2>
+
+<h2>
+See the effect of code changes instantly
+</h2>
 <div class="edit-to-rewind-example">
 <script type="dalsegno"
         data-console="true"
@@ -30,27 +33,29 @@
         >
 </script>
 </div>
-<p class="instructions">Try modifying the code! For example, change a number.</p>
+<p class="instructions">
+  Try changing this code; for example, change a number.
+  <a href="http://dalsegno.ballingt.com/?code=breakoutProgram">Open fullscreen</a> for more space.
+</p>
+
+<p class="emphasis">Dal Segno rewinds back to the last execution of a modified function.</p>
 
 <div class="rows">
-  <div>
-  <p>Normally when we make changes to long-running programs we have to restart them and wait for the program to get back to where the changes will make a difference.
-  </p>
-  </div>
-  <div class="links-box">
-    <ul>
-      <li><a href="https://github.com/thomasballinger/dalsegno">project repo on GitHub</a></li>
-      <li><a href="http://dalsegno.ballingt.com">try it fullscreen</a></li>
-    </ul>
-  </div>
-  <div>
-  <p>
-  Dal Segno rewinds your program back to just before the function you changed was last executed. Hopefully this makes modifying your code as experimentation-friendly as tweaking css.
-  </p>
-  </div>
+<p>
+Each time a Dal Segno function is executed, the state of the program is saved just before the function body begins to run.
+Then on each editor keystroke the ASTs of the new and old programs are diffed and the changed function is identified.
+</p>
+
+<p>
+The program state which was most recently stored just before that function was executed is restored with the old AST of the function swapped out for the new one.
+This eliminates the wait for a program to reach the point where a change in its code would matter,
+ideally making trying out code as quick as tweaking CSS.
+</p>
 </div>
 
-<h2>Language</h2>
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<h2>Language Overview</h2>
 
 <div class="simple-example">
 <script type="dalsegno"
@@ -62,11 +67,29 @@
         >
 </script>
 </div>
+<p class="instructions">
+Try adding a method from the browser window or console, like <code>(alert "hello")</code>.
+<a href="http://dalsegno.ballingt.com/?code=simpleProgram">Open fullscreen</a> for more space.
+</p>
 
-You can read the <a href="https://github.com/thomasballinger/dalsegno#language">documentation in the project readme</a>
+<div class="rows">
+<p>
+The language is pretty Scheme-like, but with the <code>defn</code> special form that defines global functions. These are the only functions that trigger saving interpreter state with every execution.
+Native arrays are immutable, but variable in namespaces can be rebound with <code>(set! name)</code>.
+</p>
+<p>
+JavaScript interop works via name lookup: after the local and enclosing namespaces are searched fora variable, JavaScript objects are checked for that name. In these examples, a canvas context is included in this lookup chain for drawing, along with the JavaScript browser objects <code>window</code>, <code>console</code>, and helper objects for getting mouse position and pressed keys.
+</p>
+</div>
 
-<h2>Write games</h2>
-<div class="simple-example">
+<p class="emphasis">
+You can read the <a href="https://github.com/thomasballinger/dalsegno#language">language documentation</a> in the project readme
+</p>
+
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<h2>Let's play golf</h2>
+<div class="game-example">
 <script type="dalsegno"
         data-console="true"
         data-speed="500"
@@ -75,12 +98,16 @@ You can read the <a href="https://github.com/thomasballinger/dalsegno#language">
         >
 </script>
 </div>
-<p>In this golf game, it's convenient to be able to change <code>fly-loop</code> or <code>collision</code> code without restarting the program.</p>
+<p class="instructions">
+Try changing <code>fly-loop</code> or <code>collision</code>.
+<a href="http://dalsegno.ballingt.com/?code=golfProgram">Open fullscreen</a> for more space.
+</p>
 
-<hr>
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
 
+<h2>Make this game easier</h2>
 <p class="instructions">Use spacebar and the mouse to avoid the hidden asteroids.</p>
-<div class="simple-example">
+<div class="game-example">
 <script type="dalsegno"
         data-console="true"
         data-speed="500"
@@ -89,19 +116,23 @@ You can read the <a href="https://github.com/thomasballinger/dalsegno#language">
         >
 </script>
 </div>
-<p class="notes">
-Try tweaking the size and shape of the floodlight (line 62), or the shape of the ship. Changing this code will rewind the program by only one frame, while changes initial conditions will return the game to the beginning of a session.
+<p class="instructions">
+  Try tweaking the size and shape of the floodlight (line 62) or the shape of the ship.
+  <a href="http://dalsegno.ballingt.com/?code=breakoutProgram">Open fullscreen</a> for more space.
 </p>
 
-<h2>Try it out</h2>
-Write your own programs at <a href="http://dalsegno.ballingt.com">dalsegno.ballingt.com</a>
-and me the resulting url, and I'll post the result here!
 
-<hr>
+<p class="emphasis">
+Write your own at <a href="http://dalsegno.ballingt.com">dalsegno.ballingt.com</a>
+</p>
+<p class="emphasis">
+I'd love to see what you make, so send me the url!
+</p>
 
-<h2>About</h2>
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
 
-<h2>Stepping through history</h2>
+<h2>Stepping through program execution</h2>
+
 <div class="stepping-example">
 <script type="dalsegno"
         data-console="true"
@@ -113,77 +144,25 @@ and me the resulting url, and I'll post the result here!
         >
 </script>
 </div>
+<p class="instructions">
+Use the slider to scroll through the program, or step through the code forwards or backwards.
+</p>
 
-
-<aside>
-Dal Segno takes actual snapshots of the program state instead of recording user inputs and rerunning the program deterministically. This second approach is the more sensible way to implement hot-swapping of code, and ise
-</aside>
-
-<aside>
+<div class="rows">
+<p>
+Dal Segno takes actual snapshots of the program state instead of recording user inputs and rerunning the program deterministically. This second approach is the more sensible way to implement hot-swapping of code, but this method allows.
+</p>
+<p>
   Dal Segno takes snapshots of program state not every rendering frame or tick of the game, but instead. While limiting the user to specific program structures like Processing does with its <code>setup()</code> and <code>draw()</code> methods wwould make this easier to implement, Dal Segno's lack of required structures allows the user to write programs free of these constraints. In practice, such constraints are probably a good idea.
-</aside>
-
-
-
-<h3>Motivation</h3>
-
-Code Lauren!
-
-
-Project history:
-<ol>
-  <li>simple interpreter</li>
-  <li>resumable interpreter with generators</li>
-  <li>serializable interpreter with objects</li>
-  <li>restart-from-edited-function behavior</li>
-  <li>bytecode</li>
-  <li>use immutable data structures for fast copies</li>
-  <li>...uh oh, I guess that requires doing our own garbage collection of our mutable scopes</li>
-</ol>
-
-
-<h2>Want to use it?</h2>
-
-Frankly I'm not sure how useful it really is. The main use case I'm thinking about it game jams. The source of this page shows the most convenient way to embed Dal Segno.
-
-<h2>Let's make it better</h2>
-
-There are a thousand directions I could imagine this going in. So far I've added features without much thought for product; this was a very experimental project that I've arbitrarily capped off at this point.
-
-The main reason to work on it is probably that you're interested in language implementation and bytecode interpreters. If this describes you, then let's talk! I'd love to walk you through the coe and we can find some useful things to change.
-
-
-<ul>
-  <li>An alternate interpreter mode that doesn't take snapshots (and will therefore have much more predictable performance)</li>
-  <li>More general JavaScript interop: currently only functions, but we could add jsSet and jsGet to deal with nested objects</li>
-  <li>Methods for loading external assets by url, or at least convenience functions for interacting with img elements</li>
-</ul>
-
-
-
-<footer>
-  Segno image licenced CC BY-SA, <a href="https://commons.wikimedia.org/wiki/File:SegnoTeken.svg">https://commons.wikimedia.org/wiki/File:SegnoTeken.svg</a>
-</footer>
+</p>
 </div>
 
-<!--
+<a href="https://twitter.com/ballingt" class="twitter-follow-button" data-show-count="false">Follow @ballingt</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
 
-  Cut some of these later!
-
-  Dal Segno should
-  * find script tags of its type
-  * whether buttons or not
-  * which script to load
-  * speed
-  * highlight ast or not
-  * rewind or not
-  * text editor or not
-  * canvas dimensions - pixel-by-pixel or
-  * create elements to fill containing div
-
-  Would be cool to have a slider without an editor I guess...
-
-  -->
+<footer>
+  Segno image by <a href="https://commons.wikimedia.org/wiki/File:SegnoTeken.svg">Johannes Rössel</a>, licenced <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en">CC BY-SA</a>
+</footer>
+</div>
 
 <script>
 DalSegno.findScriptTags();

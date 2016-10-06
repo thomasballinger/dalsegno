@@ -1,61 +1,8 @@
 // vim: set ft=scheme:
-window.golfProgram = `
-(defn terrain (n)
-  ; returns points and hole x y
-  (define hole-start (- (* 2 (/ width 3)) 12))
-  (define hole-end (+ (* 2 (/ width 3)) 12))
-  (define points-before (// (* n 2) 3))
-  (define points-after (// n 3))
-
-  (define last-y 0)
-  (define next-y (randint 0 height))
-  (defn gradual-slope (x)
-    (set! last-y next-y)
-    (set! next-y (max 100 (min (- height 100)
-      (+ last-y (randint -50 50)))))
-    last-y)
-
-  (define points (concat
-    (list (list 0 height))
-    (zip
-      (linspace 0 hole-start points-before)
-      (map gradual-slope (range points-before)))
-    (do
-      (set! next-y last-y)
-      (define hole-y (+ last-y 8))
-      (list (list (+ hole-start 5) last-y)
-            (list (+ hole-start 6) (+ last-y 15))
-            (list (- hole-end 6) (+ last-y 15))
-            (list (- hole-end 5) last-y)))
-    (zip
-      (linspace hole-end width points-after)
-      (map gradual-slope (range points-after)))
-    (list (list width height))))
-  (list points (/ (+ hole-start hole-end) 2) hole-y))
-
-(define ground-below-lookup)
-(defn init-ground-below (points)
-  (define 4-points (zip4 points
-                        (rest points)
-                        (rest (rest points))
-                        (rest (rest (rest points)))))
-  (defn below (x)
-    (find (lambda (points) (< x (first (get 2 points))))
-          4-points))
-  (define x-index 0)
-  (set! ground-below-lookup
-    (map (lambda (x)
-      (if (= x-index (- (length 4-points) 1))
-        (last 4-points)
-        (if (> x (first (get 2 (get x-index 4-points))))
-            (do
-              (set! x-index (+ 1 x-index))
-              (get x-index 4-points))
-            (get x-index 4-points))))
-    (range (+ width 1)))))
-(defn ground-below (x)
-  "the relevant points below the ball"
-  (get (// x 1) ground-below-lookup))
+window.golfProgram = `(defn start-spot (points)
+  (define index (randint 3 (// (length points) 2)))
+  (define point (get index points))
+  (list (first point) (- (get 1 point) 20)))
 
 (defn collision (x y points r)
   (define r (closestPointOrLine (list x y) points r))
@@ -68,11 +15,6 @@ window.golfProgram = `
       (drawPoly 0 0 points 0)
       (color "red")
       (drawArc x y 5))
-
-(defn start-spot (points)
-  (define index (randint 3 (// (length points) 2)))
-  (define point (get index points))
-  (list (first point) (- (get 1 point) 20)))
 
 (defn main ()
   (define stuff (terrain 20))
@@ -130,7 +72,8 @@ window.golfProgram = `
     (color "green")
     (define power (min (dist x y (mousex) (mousey)) 100))
     (define h (heading  (- (mousey) y) (- (mousex) x)))
-    (define lineEnd (list (+ x (* power (x_comp h))) (+ y (* power (y_comp h)))))
+    (define lineEnd (list (+ x (* power (x_comp h)))
+                          (+ y (* power (y_comp h)))))
     (fillLine (list (list x y) lineEnd))
     (render)
     (if (clicked)
@@ -141,4 +84,62 @@ window.golfProgram = `
     (fly-loop)
     (gameloop))
   (gameloop))
+
+(defn terrain (n)
+  ; returns points and hole x y
+  (define hole-start (- (* 2 (/ width 3)) 12))
+  (define hole-end (+ (* 2 (/ width 3)) 12))
+  (define points-before (// (* n 2) 3))
+  (define points-after (// n 3))
+
+  (define last-y 0)
+  (define next-y (randint 0 height))
+  (defn gradual-slope (x)
+    (set! last-y next-y)
+    (set! next-y (max 100 (min (- height 100)
+      (+ last-y (randint -50 50)))))
+    last-y)
+
+  (define points (concat
+    (list (list 0 height))
+    (zip
+      (linspace 0 hole-start points-before)
+      (map gradual-slope (range points-before)))
+    (do
+      (set! next-y last-y)
+      (define hole-y (+ last-y 8))
+      (list (list (+ hole-start 5) last-y)
+            (list (+ hole-start 6) (+ last-y 15))
+            (list (- hole-end 6) (+ last-y 15))
+            (list (- hole-end 5) last-y)))
+    (zip
+      (linspace hole-end width points-after)
+      (map gradual-slope (range points-after)))
+    (list (list width height))))
+  (list points (/ (+ hole-start hole-end) 2) hole-y))
+
+(define ground-below-lookup)
+(defn init-ground-below (points)
+  (define 4-points (zip4 points
+                        (rest points)
+                        (rest (rest points))
+                        (rest (rest (rest points)))))
+  (defn below (x)
+    (find (lambda (points) (< x (first (get 2 points))))
+          4-points))
+  (define x-index 0)
+  (set! ground-below-lookup
+    (map (lambda (x)
+      (if (= x-index (- (length 4-points) 1))
+        (last 4-points)
+        (if (> x (first (get 2 (get x-index 4-points))))
+            (do
+              (set! x-index (+ 1 x-index))
+              (get x-index 4-points))
+            (get x-index 4-points))))
+    (range (+ width 1)))))
+(defn ground-below (x)
+  "the relevant points below the ball"
+  (get (// x 1) ground-below-lookup))
+
 (main) `;
