@@ -43,6 +43,11 @@
   z-index:20;
   background-color:#22FF33;
 }
+.errorHighlight{
+  position:absolute;
+  z-index:20;
+  background-color:#F4B9B7;
+}
 .is-hidden {
   display: none;
 }

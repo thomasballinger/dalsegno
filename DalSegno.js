@@ -565,6 +565,7 @@ DalSegno.prototype.initWindowWatcher = function(){
 DalSegno.prototype.onRuntimeOrSyntaxError = function(e){
   console.log(e.stack);
   this.errorbar.innerText = humanize.humanize(e);
+  //this.errorbar.innerText = ''+e;
   this.errorbar.classList.remove('is-hidden');
   if (e.ast){
     console.log('Error has ast selection, should highlight');
@@ -662,7 +663,7 @@ DalSegno.prototype.updateControls = function(){
   } else if (this.playerState === PS.History){
     console.log('turn everything on');
   } else if (this.playerState === PS.Error){
-    console.log('Error state, I gugess all buttons should be off? I dunno what should happen to buttons.');
+    console.log('Error state, I guess all buttons should be off? I dunno what should happen to buttons.');
   } else {
     throw Error('bad player state');
   }
