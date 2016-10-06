@@ -690,7 +690,7 @@ DalSegno.prototype.initControls = function(){
   };
 
   this.controlsContainer = document.getElementById(this.controlsContainerId);
-  for (var el of this.controlsContainer.getElementsByTagName('*')){
+  for (var el of Array.prototype.slice.call(this.controlsContainer.getElementsByTagName('*'))){
     if (el.className in inputClasses){
       //console.log('found', el.className);
       el.addEventListener('click', ((classname)=>{
