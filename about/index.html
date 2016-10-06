@@ -2,221 +2,190 @@
 <head>
 <meta charset="UTF-8">
 <title>Dal Segno</title>
-<link rel="stylesheet" href="../dalsegno.css">
-<style>
-body {
-  background-color: #eef;
-  display: inline-block;
-  margin-top: 2em;
-}
-html {
-  text-align: center;
-}
-div.content {
-  width: 600px;
-  display: inline-block;
-  text-align: left;
-}
-.embed{
-  border: solid lightgray 4px;
-  display: inline-block;
-  width: 1200px;
-  margin: auto;
-  position: relative;
-  text-align: left;
-}
-#canvas-container-1 {
-  width: 400px;
-  height: 400px;
-  margin-left: -4px;
-  float: right;
-}
-#editor {
-  width: 800px;
-  height: 400px;
-  display: inline-block;
-  text-align: left;
-  font-size: 18;
-}
-
-#embed2, #embed3 {
-  position: relative;
-  width: 800px;
-  height: 400px;
-  margin: auto;
-  margin-top: 30px;
-}
-#editor2, #editor3 {
-  position: absolute;
-  top: 0;
-  bottom: 60;
-  left: 0;
-  width: 500px;
-}
-#console2, #console3 {
-  position: absolute;
-  top: 340px;
-  bottom: 0;
-  left: 0;
-  width: 500px;
-}
-#canvas-container-2, #canvas-container-3 {
-  position: absolute;
-  top: 0;
-  left: 500px;
-  width: 400px;
-  height: 400px;
-  background-color: gray;
-}
-
-</style>
+<link rel="stylesheet" href="reset.css">
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="embed.css">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto:300" rel="stylesheet">
 </head>
 <body>
-
+<div class="container">
 <script src="../ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="../bundle.js"></script>
 
-<h1>Dal Segno</h1>
-
-<script type="mything" code-stuff="stuff" code-morestuff=""></script>
-
-<script src="do stuff"></script>
-
-<div id="embed2">
-  <div id="editor2" class="editor is-hidden">(+ 2 3)</div>
-  <div id="canvas-container-2" class="dalsegno-canvas-container">
-    <canvas></canvas>
-    <canvas></canvas>
-  </div>
-  <div id="errorbar2"></div>
-  <textarea id="console2"></textarea>
+<div class="hero-container">
+<h1 id="hero">Dal Segno</h1>
+<img id="header-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
 </div>
-<div id="controls2">
-  <a id="fullscreen2" href="#">Open fullscreen</a>
-  execution speed:
-  <input type="range" id="speed2" min="1" max="200"/>
-  replay:
-  <button
-    class="dalsegno-prev-keyframe">|&lt;&lt;</button>
-  <button
-    class="dalsegno-rw-1000">&lt;&lt;</button>
-  <button
-    class="dalsegno-rw-1">&lt;</button>
-  <input type="range" id="scrubber2"/>
-  <button
-    title="step forward 1000 bytecode executions"
-    class="dalsegno-fw-1000" >&gt;&gt;</button>
-  <button id="fw1"
-    title="step forward a single bytecode execution"
-    class="dalsegno-fw-1">&gt;</button>
-  <button id="ffkeyframe"
-    title="step through execution until next key frame"
-    class="dalsegno-next-keyframe">&gt;&gt;|</button>
-  <button id="fork"
-    title="fork the timelines"
-    class="dalsegno-fork-timeline">kill the future</button>
-  <button id="fork"
-    title="advance to the end and continue execution"
-    class="dalsegno-fork-timeline">continue from end</button>
-</div>
-<script>
-var embed2 = new DalSegno('editor2', 'canvas-container-2', 'errorbar2', 'console2', 'scrubber2', window.breakoutProgram, 'controls2');
-embed2.speed = 50;  // how many ticks to run at a time, default is 500
-embed2.onChangeIfValid = function(){
-  var fullscreen = document.getElementById('fullscreen2');
-  fullscreen.setAttribute('href', embed2.link());
-}
-embed2.onChangeIfValid(embed2.initialContent);
-document.getElementById(embed2.editorId).style.fontSize='14px';
-document.getElementById('speed2').addEventListener('input', function(){
-  embed2.speed = parseInt(this.value);
-  console.log("setting speed to", embed2.speed);
-})
+
+
+<h2>
+See the effect of code changes instantly
+</h2>
+<div class="edit-to-rewind-example">
+<script type="dalsegno"
+        data-console="true"
+        data-speed="50"
+        data-editor="true"
+        data-canvas-width="400"
+        data-program="breakoutProgram"
+        data-speed="100"
+        data-theme="solarized_light"
+        >
 </script>
-<h2>Language</h2>
-<div class="embed">
-  <div id="editor" class="editor is-hidden"></div>
-  <div id="canvas-container-1" class="dalsegno-canvas-container">
-    <canvas></canvas>
-    <canvas></canvas>
-  </div>
-  <div id="errorbar" class="errorbar"></div>
 </div>
-<script>
-var embed = new DalSegno('editor', 'canvas-container-1', 'errorbar', undefined, undefined, window.simpleProgram)
-embed.editor.setTheme("ace/theme/dawn");
-embed.speed = 1;
-embed.highlight = true;
-</script>
+<p class="instructions">
+  Try changing this code; for example, change a number.
+  <a href="http://dalsegno.ballingt.com/?code=breakoutProgram">Open fullscreen</a> for more space.
+</p>
 
-<div class="content">
-Programs are written in a Scheme-like language with some drawing primitives
-in the global scope. <a href="https://github.com/thomasballinger/dalsegno#language">Read the documentation for the language on GitHub</a>.
+<p class="emphasis">Dal Segno rewinds back to the last execution of a modified function.</p>
+
+<div class="rows">
 <p>
-The name <a href="https://en.wikipedia.org/wiki/Dal_Segno">Dal Segno</a> comes from the environment's behavior when a named function is
-edited: the running program is rewound back to the last time that edited function
-was run so that the new behavior of the edited function can immediately be seen.
+Each time a Dal Segno function is executed, the state of the program is saved just before the function body begins to run.
+Then on each editor keystroke the ASTs of the new and old programs are diffed and the changed function is identified.
+</p>
+
+<p>
+The program state which was most recently stored just before that function was executed is restored with the old AST of the function swapped out for the new one.
+This eliminates the wait for a program to reach the point where a change in its code would matter,
+ideally making trying out code as quick as tweaking CSS.
+</p>
 </div>
 
-<div id="embed3">
-  <div id="editor3" class="editor is-hidden">(+ 2 3)</div>
-  <div id="canvas-container-3" class="dalsegno-canvas-container">
-    <canvas></canvas>
-    <canvas></canvas>
-  </div>
-  <div id="errorbar3"></div>
-  <textarea id="console3"></textarea>
-</div>
-<a id="fullscreen3" href="#">Open fullscreen</a>
-<script>
-var embed3 = new DalSegno('editor3', 'canvas-container-3', 'errorbar3', 'console3', undefined, window.spaceLightProgram)
-embed3.onChangeIfValid = function(){
-  var fullscreen = document.getElementById('fullscreen3');
-  fullscreen.setAttribute('href', embed2.link());
-}
-embed3.onChangeIfValid(embed3.initialContent);
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<h2>Language Overview</h2>
+
+<div class="simple-example">
+<script type="dalsegno"
+        data-console="true"
+        data-speed="1"
+        data-ast-highlight="true"
+        data-canvas-width="300"
+        data-program="simpleProgram"
+        >
 </script>
+</div>
+<p class="instructions">
+Try adding a method from the browser window or console, like <code>(alert "hello")</code>.
+<a href="http://dalsegno.ballingt.com/?code=simpleProgram">Open fullscreen</a> for more space.
+</p>
 
-<h2>Embedding</h2>
-  <div class="content">
-  To embed a Dal Segno widget, you'll need to:
-  <ul>
-    <li>Include about a dozen script tags</li>
-    <li>create a canvas, a div each for the editor and error display, and optionally a textarea, all with ids</li>
-    <li>write the following JavaScript: <code>
-      var embed = new DalSegno('editorid', 'canvasid', 'errorbarid', 'consoleid');
-    </code></li>
-  </ul>
-  Take a look at the page source for <a href="/">the demo</a> for a straightforward example.
+<div class="rows">
+<p>
+The language is pretty Scheme-like, but with the <code>defn</code> special form that defines global functions. These are the only functions that trigger saving interpreter state with every execution.
+Native arrays are immutable, but variable in namespaces can be rebound with <code>(set! name)</code>.
+</p>
+<p>
+JavaScript interop works via name lookup: after the local and enclosing namespaces are searched fora variable, JavaScript objects are checked for that name. In these examples, a canvas context is included in this lookup chain for drawing, along with the JavaScript browser objects <code>window</code>, <code>console</code>, and helper objects for getting mouse position and pressed keys.
+</p>
 </div>
 
-<h2>Contributing</h2>
+<p class="emphasis">
+You can read the <a href="https://github.com/thomasballinger/dalsegno#language">language documentation</a> in the project readme
+</p>
 
-<div class="content">
-  Writing a program and wish you had another builtin?
-  Think it's ridiculous that you have to include so many script tags
-  instead of a single concatenated script?
-  See the <a href="https://github.com/thomasballinger/dalsegno#development">readme</a> for information on contributing.
-  <p>
-  I hope the pure JavaScript approach of using no language extension-type
-  libraries (other than Immutable.js) and no module bundler makes the
-  project approachable for JavaScript programmers of a variety of experience levels.
-  <p>
-  There's a lot that could be added to the project,
-  and I will make time to support contributors.
-  I'd particularly love to see an inline documentation viewer,
-  a stepper debugger, and improved visual design.
-  I'm interested in changing the syntax from s-expressions
-  to something more familiar to more programmers,
-  probably something similar to the language used by
-  <a href="http://codelauren.com/">Code Lauren</a>.
-  I think changing language semantics such that all variables are global
-  would be an improvement because proper lexical scope is more confusion
-  to beginners than its worth. Maybe local variables could have a special
-  syntax?
-  I'd love to see visualization of expressions values in the editor
-  (Light Table-style) or another visualization of interpreter state.
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<h2>Let's play golf</h2>
+<div class="game-example">
+<script type="dalsegno"
+        data-console="true"
+        data-speed="500"
+        data-canvas-width="500"
+        data-program="golfProgram"
+        >
+</script>
+</div>
+<p class="instructions">
+Try changing <code>fly-loop</code> or <code>collision</code>.
+<a href="http://dalsegno.ballingt.com/?code=golfProgram">Open fullscreen</a> for more space.
+</p>
+
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<h2>Make this game easier</h2>
+<p class="instructions">Use spacebar and the mouse to avoid the hidden asteroids.</p>
+<div class="game-example">
+<script type="dalsegno"
+        data-console="true"
+        data-speed="500"
+        data-canvas-width="500"
+        data-program="spaceLightProgram"
+        >
+</script>
+</div>
+<p class="instructions">
+  Try tweaking the size and shape of the floodlight (line 62) or the shape of the ship.
+  <a href="http://dalsegno.ballingt.com/?code=breakoutProgram">Open fullscreen</a> for more space.
+</p>
+
+
+<p class="emphasis">
+Write your own at <a href="http://dalsegno.ballingt.com">dalsegno.ballingt.com</a>
+</p>
+<p class="emphasis">
+I'd love to see what you make, so send me the url!
+</p>
+
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<h2>Stepping through program execution</h2>
+
+<div class="stepping-example">
+<script type="dalsegno"
+        data-console="true"
+        data-speed="50"
+        data-editor="read-only"
+        data-canvas-width="500"
+        data-step-controls="true"
+        data-program="breakoutProgram"
+        >
+</script>
+</div>
+<p class="instructions">
+Use the slider to scroll through the program, or step through the code forwards or backwards.
+</p>
+
+<div class="rows">
+<p>
+Dal Segno takes actual snapshots of the program state instead of recording user inputs and rerunning the program deterministically. This second approach is the more sensible way to implement hot-swapping of code, but this method provides faster seeking through history.
+</p>
+<p>
+Want to use Dal Segno for something, fix it, add things to it, or find out more about it?
+Let me know! I'd love to hear from you at <a href="https://twitter.com/ballingt">@ballingt</a> on Twitter or by <a href="mailto:me@ballingt.com">email</a>. Someday soon I'll write a blog post about this, but I won't know what to say unless I get questions.
+</p>
 </div>
 
+<iframe class="gh-button" src="https://ghbtns.com/github-btn.html?user=thomasballinger&repo=dalsegno&type=star&count=true&size=large" frameborder="0" scrolling="0" width="115px" height="30px"></iframe>
+<a href="https://twitter.com/ballingt" class="twitter-follow-button" data-show-count="false">Follow @ballingt</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Next up is trying to get these jumps right... <a href="https://t.co/cIQwW5Db6F">pic.twitter.com/cIQwW5Db6F</a></p>&mdash; Thomas Ballinger (@ballingt) <a href="https://twitter.com/ballingt/status/716974122245468166">April 4, 2016</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Houston, we have tail call optimization <a href="https://t.co/3OecXNZ5jK">pic.twitter.com/3OecXNZ5jK</a></p>&mdash; Thomas Ballinger (@ballingt) <a href="https://twitter.com/ballingt/status/717897695743057920">April 7, 2016</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">rewind interface idea: displaying screen for each saved state that can be restored <a href="https://t.co/OOSQB9mgiB">pic.twitter.com/OOSQB9mgiB</a></p>&mdash; Thomas Ballinger (@ballingt) <a href="https://twitter.com/ballingt/status/724694111450730496">April 25, 2016</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">In honor of <a href="https://twitter.com/maryrosecook">@maryrosecook</a>&#39;s talk <a href="https://t.co/anBYGmH1Kf">https://t.co/anBYGmH1Kf</a> here&#39;s an incomplete space invaders: <a href="http://t.co/kH1IZNuXLd">http://t.co/kH1IZNuXLd</a> <a href="http://t.co/pbHTyzem8W">pic.twitter.com/pbHTyzem8W</a></p>&mdash; Thomas Ballinger (@ballingt) <a href="https://twitter.com/ballingt/status/606497854140620801">June 4, 2015</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Working on live code reloading in a toy lispy thing this afternoon, thanks <a href="https://twitter.com/maryrosecook">@maryrosecook</a> for inspiration! <a href="http://t.co/QvmJ3chpEZ">pic.twitter.com/QvmJ3chpEZ</a></p>&mdash; Thomas Ballinger (@ballingt) <a href="https://twitter.com/ballingt/status/592041225831718912">April 25, 2015</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+
+<footer>
+  Segno image by <a href="https://commons.wikimedia.org/wiki/File:SegnoTeken.svg">Johannes Rössel</a>, licenced <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en">CC BY-SA</a>
+</footer>
+
+<script>
+DalSegno.findScriptTags();
+</script>
 </body>
 </html>
