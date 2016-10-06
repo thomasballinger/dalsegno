@@ -11,6 +11,13 @@
   position: absolute;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 }
+.dalsegno-embed > .canvas-container > .dalsegno-errorbar {
+  position: absolute;
+  padding: 10px;
+  background-color: #ff99cc;
+  font-size: 1.2em;
+  z-index: 10;
+}
 .dalsegno-embed > .editor {
   width: 400px;
   height: 400px;
@@ -31,11 +38,6 @@
 .dalsegno-embed .dalsegno-console-animate {
   transition: background-color .2s ease;
 }
-.dalsegno-embed .errorHighlight{
-  position:absolute;
-  z-index:20;
-  background-color:#F4B9B7;
-}
 .curSpotHighlight{
   position:absolute;
   z-index:20;
@@ -43,9 +45,4 @@
 }
 .is-hidden {
   display: none;
-}
-.dalsegno-errorbar {
-  background-color: #ff99cc;
-  font-size: 1.3em;
-  z-index: 10;
 }

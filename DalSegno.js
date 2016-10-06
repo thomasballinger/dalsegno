@@ -15,6 +15,7 @@ var LazyCanvasCtx = require("./LazyCanvasCtx.js");
 var DrawHelpers = require("./DrawHelpers.js");
 var Console = require("./Console.js");
 var Scrubber = require("./Scrubber.js");
+var humanize = require("./humanize.js");
 
 
 function State(state){ this.state = state; }
@@ -58,6 +59,7 @@ function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId
   this.mouseMessage = null;
   this.scrubberMessage = null;
   this.controlsMessage = null;
+
   Object.defineProperty(this, "isActive", {
     get: () => DalSegno.activeWidget === this,
     set: (x) => {
@@ -562,9 +564,10 @@ DalSegno.prototype.initWindowWatcher = function(){
 };
 DalSegno.prototype.onRuntimeOrSyntaxError = function(e){
   console.log(e.stack);
-  this.errorbar.innerText = ''+e;
+  this.errorbar.innerText = humanize.humanize(e);
   this.errorbar.classList.remove('is-hidden');
   if (e.ast){
+    console.log('Error has ast selection, should highlight');
     Range = ace.require("ace/range").Range;
     //TODO investigate error annotations instead of markers
     if (this.badSpot){
@@ -841,11 +844,13 @@ function createEmbed(script){
   canvasContainer.style.width = canvasWidth;
   canvasContainer.style.height = canvasHeight;
 
+  var errorDiv = document.createElement('div');
+  canvasContainer.appendChild(errorDiv);
+
+  canvasContainer.appendChild(errorDiv);
   canvasContainer.appendChild(canvas1);
   canvasContainer.appendChild(canvas2);
   enclosing.appendChild(canvasContainer);
-  var errorDiv = document.createElement('div');
-  enclosing.appendChild(errorDiv);
 
   enclosing.classList.add('dalsegno-embed');
 
