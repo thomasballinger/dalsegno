@@ -150,6 +150,30 @@ The ES5/6 features in the code are limited to those implemented
 in Node without requiring any flags so the tests can be run
 without compiling.
 
+# TODO
+
+There are a lot of directions to take this, I capped it off pretty
+arbitrarily because I wanted to be able to show it to people.
+The most pressing items:
+
+* fix up DalSegno.js to allow editing and stepping in the same embed.
+  This mostly works, but not all of the state transitions are covered.
+* move all effects to the effect canvas, currently the main lazycanvas
+  is still doing extra work.
+* An alternate interpreter mode that does not save snapshots.
+  This would be nice for publishing programs for use.
+* faster GC and fix memory leaks
+
+I have a lot of smaller fixes I'd like to make,
+if you'd like to contribute let me know. Here are a few simple fixes:
+
+* AST highlighting regions are slightly off (one larger on each side)
+* Set focus on mouseover for Dal Segno widget for keyboard events
+* Save current program in localstorage instead of url
+* Save multiple programs at at time
+* Many more, if there's interest I can throw a lot of things up on an issue
+  tracker
+
 # About
 
 I wrote this to play with interpreters and so I could be informed as
