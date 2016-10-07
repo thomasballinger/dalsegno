@@ -855,6 +855,12 @@ function createEmbed(script){
 
   enclosing.classList.add('dalsegno-embed');
 
+  if (getComputedStyle(enclosing, null).display === 'none'){
+    // If the Dal Segno embed isn't visible, we won't be able to
+    // create its canvases anyway, so don't even bother making it.
+    return;
+  }
+
   var embed = new DalSegno(uniqueId(editorDiv),
                            uniqueId(canvasContainer),
                            uniqueId(errorDiv),

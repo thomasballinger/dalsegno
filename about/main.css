@@ -67,7 +67,7 @@ body {
 
 .container {
   max-width: 1000px;
-  min-width: 900px;
+  min-width: 300px;
   margin-left: auto;
   margin-right: auto;
 
@@ -122,6 +122,7 @@ h1, h2, h3 {
   line-height 48px;
   font-family: 'Roboto', sans-serif;
   display: block;
+  text-align: center;
 }
 h2 {
   padding-top: 24px;
@@ -135,23 +136,28 @@ h2 {
 }
 
 .rows {
-  margin-left: 50px;
-  margin-right: 50px;
+  margin-left: 30px;
+  margin-right: 30px;
   margin-top: 24px;
   margin-bottom: 24px;
   display: flex;
-  flex-direction: row;
+  flex-flow: column;
+  justify-content: center;
 }
 .rows p {
   font-size: 16px;
   text-align: justify;
-}
-.rows p:not(:first-child){
   margin-left: 20px;
-}
-.rows p:not(:last-child){
   margin-right: 20px;
+  margin-bottom: 30px;
 }
+
+@media (min-width: 768px) {
+  .rows {
+    flex-direction: row;
+  }
+}
+
 
 hr {
   margin-top: 40px;
@@ -166,6 +172,7 @@ p.emphasis {
   font-size: 24px;
   text-align: center;
   margin: 20px;
+  line-height: 36px;
 }
 p.instructions {
   margin-top: 12px;
@@ -234,10 +241,26 @@ p, li, aside {
         margin-top: 0;
         margin-bottom: 0;
     }
+}
+@media all and (max-width: 900px) {
     .dalsegno-embed {
-      display: none;
+      display: none !important;
+    }
+    .instructions {
+      display: none !important;
+    }
+    .replace-embed {
+      display: inline !important;
     }
 }
+
+
+.replace-embed {
+  display: none;
+  width: 100%;
+  min-width: 200px;
+}
+
 @media not (max-width: 1000px) {
     .dalsegno-youtube-embed {
       display: none;
