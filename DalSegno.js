@@ -254,8 +254,6 @@ DalSegno.prototype.runSome = function(){
   var stepToNextKeyframe = false;
   var forkTimeline = false;
 
-  this.console.display('runSome PS: '+this.playerState);
-
   // Check Queued Events
   if (this.editorMessage === EM.SyntacticDifference){
     console.log('difference in editor is only syntactic, nothing special to do');
@@ -290,8 +288,6 @@ DalSegno.prototype.runSome = function(){
     console.log('got a controls message:', this.controlsMessage);
     var [action, arg] = this.controlsMessage;
     this.controlsMessage = null;
-
-
     if (action === 'step back'){
       stepDelta = -1 * arg;
     } else if (action === 'step forward'){
@@ -306,30 +302,44 @@ DalSegno.prototype.runSome = function(){
       throw Error('bad controlsMessage action:', action);
     }
 
-    //TODO check state before doing these!
-    //TODO set state once they're finished! Or in their logic.
-    //What should playerState be while they're running?
-    if (stepDelta){
-      if (stepDelta < 0){
-        this.stepHistoryBackward(-1 * stepDelta);
-      } else {
-        this.stepHistoryForward(stepDelta);
+    if (this.playerState == PS.History){
+      // For now, all this history steps are only allowed if the slider
+      // has already been used.
+      //
+      //TODO set state once they're finished! Or in their logic.
+      //What should playerState be while they're running?
+      if (stepDelta){
+        if (stepDelta < 0){
+          this.stepHistoryBackward(-1 * stepDelta);
+        } else {
+          this.stepHistoryForward(stepDelta);
+        }
+        return;
       }
-      return;
-    }
-    if (stepToPrevKeyframe){
-      this.stepHistoryToPrevKeyframe();
-      return;
-    }
-    if (stepToNextKeyframe){
-      this.stepHistoryToNextKeyframe();
-      return;
-    }
-    if (forkTimeline){
-      this.forkTimeline();
-      return;
+
+      if (stepToPrevKeyframe){
+        this.stepHistoryToPrevKeyframe();
+        return;
+      }
+      if (stepToNextKeyframe){
+        this.stepHistoryToNextKeyframe();
+        return;
+      }
+      if (forkTimeline){
+        this.forkTimeline();
+        return;
+      }
+    } else if (this.playerState === PS.HistoryAtEnd){
+      if (forkTimeline){
+        console.log('fork timeline from end');
+      } else {
+        // For now the only thing that can make the program keep running
+        // is forkTimeline, so otherise return here.
+        return;
+      }
     }
   }
+
   this.updateControls();
 
   // Determine next action based on state
@@ -359,10 +369,10 @@ DalSegno.prototype.runSome = function(){
     if (seekTo !== false){
       if (seekTo === 'first'){
         console.log('special case beginning');
-        this.playerState === PS.HistoryAtBeginning;
+        this.playerState = PS.HistoryAtBeginning;
       } else if (seekTo === 'last'){
         console.log('special case end');
-        this.playerState === PS.HistoryAtEnd;
+        this.playerState = PS.HistoryAtEnd;
       } else {
         console.log('seeking to', seekTo);
         this.runner.instantSeekToNthKeyframe(seekTo);
