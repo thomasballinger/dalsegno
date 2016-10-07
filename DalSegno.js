@@ -332,9 +332,21 @@ DalSegno.prototype.runSome = function(){
     } else if (this.playerState === PS.HistoryAtEnd){
       if (forkTimeline){
         console.log('fork timeline from end');
+        // which is accomplished by just falling through
       } else {
         // For now the only thing that can make the program keep running
         // is forkTimeline, so otherise return here.
+        return;
+      }
+    } else if (this.playerState === PS.HistoryAtBeginning){
+      if (forkTimeline){
+        console.log('fork timeline from beginning');
+        this.playerState = PS.Initial;
+        this.ensureRunSomeScheduled();
+        return;
+      } else {
+        // For now the only thing that can make the program keep running
+        // is forkTimeline, so control is a nop
         return;
       }
     }
