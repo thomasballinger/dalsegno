@@ -86,21 +86,23 @@ describe('Environments', function(){
     assert.equal(env3.lookup('c'), 20);
   });
   it('includes keys from all scopes in env', function(){
-    var obj = {'+': function(a, b){return a + b; }};
+    var env = new Environment.fromMultipleMutables([{alabama: 1}, {belgium: 2}]);
     function LibraryScope(){
-      this.abc = 1;
+      this.abc = 3;
     }
-    LibraryScope.prototype = { xyz: 2, constructor: LibraryScope };
-    var env = new Environment(obj, [new LibraryScope()]);
-    assert.equal(env.lookup('+'), obj['+']);
-    assert.equal(env.lookup('abc'), 1);
-    assert.equal(env.lookup('xyz'), 2);
-    assert.throws( () => env.lookup('a') );
+    LibraryScope.prototype = { xyz: 4, constructor: LibraryScope };
+    env.libraryScopes = [new LibraryScope()];
+    assert.equal(env.lookup('alabama'), 1);
+    assert.equal(env.lookup('belgium'), 2);
+    assert.equal(env.lookup('abc'), 3);
+    assert.equal(env.lookup('xyz'), 4);
+    assert.throws( () => env.lookup('c') );
     try {
-      env.lookup('a');
+      env.lookup('c');
     } catch (e) {
       var s = ''+e;
-      assert.include(s, '+');
+      assert.include(s, 'alabama');
+      assert.include(s, 'belgium');
       assert.include(s, 'abc');
       assert.include(s, 'xyz');
     }

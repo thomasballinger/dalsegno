@@ -303,7 +303,7 @@ Environment.prototype.makeEvalNamedFunction = function(body, params, name){
 Environment.prototype.toString = function(){
   var s = '<Environment\n';
   if (this.mutableScope){
-    s += this.runner.scopeCheck.keys(this.mutableScope);
+    s += this.runner.scopeCheck.allKeys(this.mutableScope);
   }
   for (var i = this.libraryScopes.length - 1; i>=0; i--){
     var props = [];

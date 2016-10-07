@@ -107,6 +107,13 @@ ScopeCheck.prototype.mapping = function(scopeId){
   var immutableScope = this.scopes.get(scopeId).get('data');
   return immutableScope.toObject();
 };
+ScopeCheck.prototype.allKeys = function(scopeId){
+  var keys = this.keys(scopeId);
+  if (this.scopes.getIn([scopeId, 'parent'])){
+    keys = [].concat(keys, this.allKeys(this.scopes.getIn([scopeId, 'parent'])));
+  }
+  return keys;
+};
 
 ScopeCheck.prototype.define = function(scopeId, name, value){
   if (!this.scopes.has(scopeId)){ throw Error('Bad scopeId: '+scopeId+' when '+this.scopes.count()+' scopes present: '+Object.keys(this.scopes.toObject())); }
