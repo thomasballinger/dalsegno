@@ -1,0 +1,31 @@
+This lightens up solarized_light so it looks nicer on the about page.
+--- orig.js	2016-10-05 15:19:27.000000000 -0400
++++ ace-builds/src-noconflict/theme-solarized_light.js	2016-10-05 15:19:32.000000000 -0400
+@@ -3,15 +3,15 @@
+ exports.isDark = false;
+ exports.cssClass = "ace-solarized-light";
+ exports.cssText = ".ace-solarized-light .ace_gutter {\
+-background: #fbf1d3;\
++background: #fdf7dd;\
+ color: #333\
+ }\
+ .ace-solarized-light .ace_print-margin {\
+ width: 1px;\
+-background: #e8e8e8\
++background: #ededed\
+ }\
+ .ace-solarized-light {\
+-background-color: #FDF6E3;\
++background-color: #FFFDF0;\
+ color: #586E75\
+ }\
+ .ace-solarized-light .ace_cursor {\
+@@ -31,7 +31,7 @@
+ border: 1px solid rgba(147, 161, 161, 0.50)\
+ }\
+ .ace-solarized-light .ace_marker-layer .ace_active-line {\
+-background: #EEE8D5\
++background: #F4EDDB\
+ }\
+ .ace-solarized-light .ace_gutter-active-line {\
+ background-color : #EDE5C1\
