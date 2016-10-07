@@ -36,7 +36,7 @@ window.breakoutProgram = `(define paddle-y (- height 20))
       (bounce))
   (if (> ball-y height)
     (do
-      (display "restart")
+      (display "Oops! Try again.")
       (set! ball-x 100)
       (set! ball-y 100))))
 
