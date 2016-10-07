@@ -86,6 +86,7 @@ function patchGlobal(name, value, cb){
 
 describe('LazyCanvasCtx', function(){
   it('can be instantiated in node', function(){
+    console.log(LazyCanvasCtx);
     patchGlobal('document', new FakeDocument(), function(){
       new LazyCanvasCtx("doesn't matter", true, false);
     });

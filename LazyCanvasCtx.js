@@ -3,6 +3,9 @@
 if (typeof __webpack_require__ === 'function'){
   // we've been bundled by webpack!
   var Immutable = require('./Immutable.js');
+} else if (typeof window === 'undefined'){
+  // we're in node, apparently unbundled!
+  var Immutable = require('./Immutable.js');
 } else {
   if (typeof window.Immutable === 'undefined'){
     throw Error("Needs Immutable.js");
@@ -259,6 +262,9 @@ LazyCanvasCtx.LazyCanvasCtx = LazyCanvasCtx;
 
 
 if (typeof __webpack_require__ === 'function'){
+  module.exports = LazyCanvasCtx;
+} else if (typeof window === 'undefined'){
+  // we're in node, apparently unbundled!
   module.exports = LazyCanvasCtx;
 } else {
   // fine, global LazyCanvasCtx is the only exported thing
