@@ -5,6 +5,7 @@ var CSS_COLOR_NAMES = ["AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Azure
 var CSS_COLOR_NAMES_LOWERCASE = CSS_COLOR_NAMES.map( s => s.toLowerCase() );
 
 function numToHex(n){
+  n = parseInt(n);
   var s = n.toString(16);
   if (s.length == 1){
     s = '0' + s;
@@ -113,10 +114,20 @@ DrawHelpers.prototype.color = function(r, g, b){
     }
   } else {
     if (r === undefined || g === undefined || b === undefined){
-      throw new Error("not enough arguments to color");
+      throw new Error("not enough arguments for color");
+    }
+    if (r < 0 || r > 255){
+      throw new Error("first argument to color (red)\nshould be between 0 and 255");
+    }
+    if (g < 0 || g > 255){
+      throw new Error("second argument to color (green)\nshould be between 0 and 255");
+    }
+    if (b < 0 || b > 255){
+      throw new Error("third argument to color (blue)\nshould be between 0 and 255");
     }
     color = "#" + numToHex(r) + numToHex(g) + numToHex(b);
   }
+
   this.ctx.fillStyle = color;
   this.ctx.strokeStyle = color;
 };
