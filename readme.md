@@ -150,7 +150,7 @@ The ES5/6 features in the code are limited to those implemented
 in Node without requiring any flags so the tests can be run
 without compiling.
 
-# TODO
+## Todo
 
 There are a lot of directions to take this, I capped it off pretty
 arbitrarily because I wanted to be able to show it to people.
@@ -169,12 +169,12 @@ if you'd like to contribute let me know. Here are a few simple fixes:
 
 * AST highlighting regions are slightly off (one larger on each side)
 * Set focus on mouseover for Dal Segno widget for keyboard events
-* Save current program in localstorage instead of url
+* Save current program in local storage instead of url
 * Save multiple programs at at time
 * Many more, if there's interest I can throw a lot of things up on an issue
   tracker
 
-# About
+## Motivation
 
 I wrote this to play with interpreters and so I could be informed as
 I talked to [Mary Rose Cook](http://maryrosecook.com/) about her
