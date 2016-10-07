@@ -6,6 +6,12 @@ function humanize(e){
   if (/expected newline between expressions/.test(s)){
     return ("Error: more than one expression found on a line." +
             "\n\nMaybe you should split this into two lines?");
+  } else if (/Error: arguments should be symbols, not expressions/.test(s)){
+    return ("Error: in the definition of a function\n" +
+            "in the list of argument names I see an invalid name.");
+  } else if (/Error: this is the template for an error/.test(s)){
+    return ('??\n' +
+            '');
   } else if (/Error: Name/.test(s)){
     var name = s.match(/Error: Name (\S+)/)[1].slice(1, -1);
     var parts = s.match(/[<]Environment\n([\s\S]+)with runner/);
@@ -32,7 +38,6 @@ function humanize(e){
   console.log(e);
   return s;
 }
-
 
 function suggestions(cur, possible){
   var maxDist = 3;
