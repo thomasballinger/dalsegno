@@ -168,7 +168,7 @@ LazyCanvasCtx.prototype.trigger = function(){
   if (this.showFPS){
     var t = new Date().getTime();
     this.renderTimes.push(new Date().getTime());
-    while (this.renderTimes.length > 10){
+    while (this.renderTimes.length > 30){
       this.renderTimes.shift();
     }
   }

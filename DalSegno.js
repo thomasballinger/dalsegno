@@ -419,7 +419,8 @@ DalSegno.prototype.runSome = function(){
           this.playerState = PS.Finished;
         }
         // long-running loop, so use setTimeout to allow other JS to run
-        setTimeout( () => this.runSome(), 0);
+        // setTimeout( () => this.runSome(), 16.0);
+        window.requestAnimationFrame( () => this.runSome() );
       },
       this.DEBUGMODE ? undefined : e => this.onRuntimeOrSyntaxError(e));
   };
@@ -777,7 +778,7 @@ DalSegno.prototype.initGraphics = function(){
   this.effectCanvas.style.backgroundColor = 'transparent';
 
   this.lazyCanvasCtx = new LazyCanvasCtx(this.canvasId, true, false);
-  this.lazyCanvasCtx.drawRewindEffect = ()=>{ this.drawRewindEffect(); }
+  this.lazyCanvasCtx.drawRewindEffect = ()=>{ this.drawRewindEffect(); };
   this.drawHelpers = new DrawHelpers(this.lazyCanvasCtx, document.getElementById(this.canvasId));
 
   this.effectCtx = this.effectCanvas.getContext('2d');
