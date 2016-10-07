@@ -209,6 +209,9 @@ p, li, aside {
   width: 900px;
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
 }
+.stepping-example .editor {
+  opacity: 0.5;
+}
 .simple-example {
   height: 400px;
   width: 900px;

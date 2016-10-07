@@ -7,6 +7,27 @@
   display: flex;
   flex-direction: column;
 }
+.dalsegno-embed > .left-panel > .controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.dalsegno-embed .controls .button-row {
+  display: flex;
+  flex-direction: row;
+  min-height: 30px;
+  justify-content: center;
+}
+.dalsegno-embed .controls > button {
+  width: 250px;
+  height: 60px;
+}
+.dalsegno-embed .controls > input {
+  padding: 10px;
+  height: 30px;
+  width: 80%;
+}
+
 .dalsegno-embed > .canvas-container > canvas {
   position: absolute;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);

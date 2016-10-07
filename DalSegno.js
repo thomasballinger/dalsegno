@@ -18,19 +18,21 @@ var Scrubber = require("./Scrubber.js");
 var humanize = require("./humanize.js");
 
 
-function State(state){ this.state = state; }
+function State(state, msg){ this.state = state; this.msg = msg; }
 State.prototype.toString = function(){ return this.state + ': '+this.msg; };
 // Always use object identity to compare these (===)
 
 
 var PS = {
   Initial: new State('Initial', `mousein to start`),
-  Unfinished: new State('Unfinished', `mousein to resume`),
+  Unfinished: new State('Unfinished', `running, or mousein to resume`),
   Finished: new State('Finished', `click to restart`),
   Error: new State('Error', `No handlers needed, editor onChange has got it`),
   History: new State('History', `viewing old history`),
 
   // going to expand History into these:
+
+  // TODO create a state for mid-animation? 
 
   HistoryKeyframe: new State('PausedAtKeyframe', ``),
   HistoryAtEnd: new State('Unfinished, but paused', ``),
@@ -45,21 +47,19 @@ var EM = {
   SemanticDifference: new State('SemanticDifference', ``),
 };
 
-/* message passing rules:
- *
- *
- *
- */
 
 function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId, initialProgramId, controlsContainerId){
-  //These are the four important state properties
-  this.playerState = PS.Initial;
-  this.runSomeScheduled = false;
+  //The important state properties are
+  //playerState and isActive.
+  //All messages should be able to be dealt with
+  //in any combination of these states.
+
   this.editorMessage = null;
   this.mouseMessage = null;
   this.scrubberMessage = null;
   this.controlsMessage = null;
 
+  this.playerState = PS.Initial;
   Object.defineProperty(this, "isActive", {
     get: () => DalSegno.activeWidget === this,
     set: (x) => {
@@ -72,6 +72,8 @@ function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId
     }
   });
 
+  this.runSomeScheduled = false; // on processing an action, if followup is required
+                                 // ensureRunSomeScheduled should probably be called.
   this.lastProgram = '';  // string of the currently running program's AST
                           // or an empty string if the program doesn't parse
   this.lastCleanupFunction = undefined; // cleans up message over canvas
@@ -244,12 +246,15 @@ DalSegno.prototype.runSome = function(){
    * these actions may change the current playerState
    */
 
+  // Actions a message has requested
   var doUpdate = false;
   var seekTo = false;
   var stepDelta = false;
   var stepToPrevKeyframe = false;
   var stepToNextKeyframe = false;
   var forkTimeline = false;
+
+  this.console.display('runSome PS: '+this.playerState);
 
   // Check Queued Events
   if (this.editorMessage === EM.SyntacticDifference){
@@ -276,6 +281,7 @@ DalSegno.prototype.runSome = function(){
   } else if (this.scrubberMessage !== null){
     console.log('scrubber message received:', this.scrubberMessage);
     this.clearError();
+    this.clearCurSpot();
     this.isActive = true;
     this.playerState = PS.History;  //TODO the action should trigger this instead
     seekTo = this.scrubberMessage;
@@ -475,7 +481,7 @@ DalSegno.prototype.stepHistoryForward = function(n){
   this.playerState = PS.History;
   return this.withStrictCanvas(()=>{
     if (n === undefined){ n = 1; }
-    this.highlightCurSpot(this.runner.getCurrentAST());
+    this.highlightCurSpot(this.runner.getCurrentAST(), n === 1);
     this.drawRewindEffect();
     this.runner.runOneStep(true);
 
@@ -506,7 +512,7 @@ DalSegno.prototype.stepHistoryBackward = function(n){
       this.runner.runOneStep(true);
     }
 
-    this.highlightCurSpot(this.runner.getCurrentAST());
+    this.highlightCurSpot(this.runner.getCurrentAST(), n === 1);
     this.drawRewindEffect();
     var sliderIndex = this.runner.prevKeyframeIndex();
     this.scrubber.setCurrentIndex(sliderIndex);
@@ -591,9 +597,12 @@ DalSegno.prototype.clearError = function(){
     this.badSpot = undefined;
   }
 };
-DalSegno.prototype.highlightCurSpot = function(spot){
+DalSegno.prototype.highlightCurSpot = function(spot, scrollTo){
   if (this.curSpot){
     this.editor.getSession().removeMarker(this.curSpot);
+  }
+  if (scrollTo === undefined){
+    scrollTo = false;
   }
   if (!spot){ return; }
   Range = ace.require("ace/range").Range;
@@ -603,6 +612,14 @@ DalSegno.prototype.highlightCurSpot = function(spot){
     spot.colStart-2,
     spot.lineEnd-1,
     spot.colEnd), "curSpotHighlight");
+  if (scrollTo){
+    this.editor.scrollToLine(spot.lineStart-1, true, true, function(){});
+  }
+};
+DalSegno.prototype.clearCurSpot = function(){
+  if (this.curSpot){
+    this.editor.getSession().removeMarker(this.curSpot);
+  }
 };
 DalSegno.prototype.initEditor = function(){
   this.editor = ace.edit(this.editorId);
@@ -894,29 +911,27 @@ function createEmbed(script){
 }
 
 var CONTROLS_HTML = `
-  <button
-    class="dalsegno-prev-keyframe">|&lt;&lt;</button>
-  <button
-    class="dalsegno-rw-1000">&lt;&lt;</button>
-  <button
-    class="dalsegno-rw-1">&lt;</button>
+  <div class="button-row">
+    <button
+      class="dalsegno-prev-keyframe">|&lt;&lt;</button>
+    <button
+      class="dalsegno-rw-1000">&lt;&lt;</button>
+    <button
+      class="dalsegno-rw-1">&lt;</button>
+    <button id="fw1"
+      title="step forward a single bytecode execution"
+      class="dalsegno-fw-1">&gt;</button>
+    <button
+      title="step forward 1000 bytecode executions"
+      class="dalsegno-fw-1000" >&gt;&gt;</button>
+    <button id="ffkeyframe"
+      title="step through execution until next key frame"
+      class="dalsegno-next-keyframe">&gt;&gt;|</button>
+  </div>
   <input type="range" id="scrubber2"/>
-  <button
-    title="step forward 1000 bytecode executions"
-    class="dalsegno-fw-1000" >&gt;&gt;</button>
-  <button id="fw1"
-    title="step forward a single bytecode execution"
-    class="dalsegno-fw-1">&gt;</button>
-  <button id="ffkeyframe"
-    title="step through execution until next key frame"
-    class="dalsegno-next-keyframe">&gt;&gt;|</button>
-  <br/>
   <button id="fork"
     title="fork the timelines"
-    class="dalsegno-fork-timeline">kill the future</button>
-  <button id="fork"
-    title="advance to the end and continue execution"
-    class="dalsegno-fork-timeline">continue from end</button>
+    class="dalsegno-fork-timeline">kill the future, run from here</button>
     `;
 
 DalSegno.DalSegno = DalSegno;
