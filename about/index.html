@@ -33,7 +33,7 @@ See the effect of code changes instantly
         >
 </script>
 </div>
-<video class="replace-embed" autoplay="" loop="">
+<video class="replace-embed" loop="">
   <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
 </video>
 <p class="instructions">
@@ -70,7 +70,7 @@ ideally making trying out code as quick as tweaking CSS.
         >
 </script>
 </div>
-<video class="replace-embed" autoplay="" loop="">
+<video class="replace-embed" loop="">
   <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
 </video>
 <p class="instructions">
@@ -105,7 +105,7 @@ You can read the <a href="https://github.com/thomasballinger/dalsegno#language">
         >
 </script>
 </div>
-<video class="replace-embed" autoplay="" loop="">
+<video class="replace-embed" loop="">
   <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
 </video>
 
@@ -127,7 +127,7 @@ Try changing <code>fire</code> or <code>fly-loop</code> after taking a shot.
         >
 </script>
 </div>
-<video class="replace-embed" autoplay="" loop="">
+<video class="replace-embed" loop="">
   <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
 </video>
 <p class="instructions">
@@ -155,7 +155,7 @@ Write your own at <a href="http://dalsegno.ballingt.com">dalsegno.ballingt.com</
         >
 </script>
 </div>
-<video class="replace-embed" autoplay="" loop="">
+<video class="replace-embed" loop="">
   <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
 </video>
 <p class="instructions">
@@ -186,6 +186,12 @@ Let me know! I'd love to hear from you at <a href="https://twitter.com/ballingt"
 
 <script>
 DalSegno.findScriptTags();
+
+var videos = Array.prototype.slice.call(document.getElementsByTagName('video'));
+for (var i=0; i<videos.length; i++){
+  videos[i].addEventListener('click', function(e){e.target.play();});
+  videos[i].addEventListener('mouseenter', function(e){e.target.play();});
+}
 </script>
 </body>
 </html>
