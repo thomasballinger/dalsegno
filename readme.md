@@ -14,8 +14,8 @@ It's sort of like Scheme.
 ### Example
 
 <a
-href="http://dalsegno.ballingt.com/?code=;semicolons%20make%20the%20rest%20of%20a%20line%20a%20comment%0A(define%20x%2010)%20%20%20%20%20%20%20%20%20%20%20;var%20x%20=%2010%0A(defn%20recur%20()%20%20%20%20%20%20%20%20%20%20;named%20function%20definitions%20are%20global%0A%20%20(color%20100%20200%20100)%20%20%20;sets%20the%20color%20to%20be%20used%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20;for%20future%20draw%20operations%0A%20%20(fillRect%200%200%20width%20height)%20;this%20is%20the%20canvas%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20;context%20drawing%20operation%0A%20%20(color%200%200%20230)%0A%20%20(drawArc%20x%20100%20111)%20%20%20;queues%20a%20circle%20to%20be%20drawn%0A%20%20(render)%20%20%20%20%20%20%20%20%20%20%20%20%20%20;actually%20paints%20queued%20drawings%0A%20%20(set!%20x%20(+%20x%20.1))%20%20%20%20%20;change%20var%20wherever%20it%20was%20defined%0A%20%20(if%20(%3E%20x%20300)%20%20%20%20%20%20%20%20%20;you%27ve%20got%20if,%20set!,%20define,%20defn,%0A%20%20%20%20%20%20(set!%20x%200))%20%20%20%20%20%20%20;and%20lambda%20-%20that%27s%20it%20for%20special%20forms%0A%20%20(recur))%20%20%20%20%20%20%20%20%20%20%20%20%20%20;no%20loop%20constructs%20-%20you%20have%20to%20recur!%0A(recur)">Try
-it</a>
+href="http://dalsegno.ballingt.com/?code=;semicolons%20make%20the%20rest%20of%20a%20line%20a%20comment%0A(define%20x%2010)%20%20%20%20%20%20%20%20%20%20%20;var%20x%20=%2010%0A(defn%20recur%20()%20%20%20%20%20%20%20%20%20%20;named%20function%20definitions%20are%20global%0A%20%20(color%20100%20200%20100)%20%20%20;sets%20the%20color%20to%20be%20used%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20;for%20future%20draw%20operations%0A%20%20(fillRect%200%200%20width%20height)%20;this%20is%20the%20canvas%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20;context%20drawing%20operation%0A%20%20(color%200%200%20230)%0A%20%20(drawArc%20x%20100%20111)%20%20%20;queues%20a%20circle%20to%20be%20drawn%0A%20%20(render)%20%20%20%20%20%20%20%20%20%20%20%20%20%20;actually%20paints%20queued%20drawings%0A%20%20(set!%20x%20(+%20x%20.1))%20%20%20%20%20;change%20var%20wherever%20it%20was%20defined%0A%20%20(if%20(%3E%20x%20300)%20%20%20%20%20%20%20%20%20;you%27ve%20got%20if,%20set!,%20define,%20defn,%0A%20%20%20%20%20%20(set!%20x%200))%20%20%20%20%20%20%20;and%20lambda%20-%20that%27s%20it%20for%20special%20forms%0A%20%20(recur))%20%20%20%20%20%20%20%20%20%20%20%20%20%20;no%20loop%20constructs%20-%20you%20have%20to%20recur!%0A(recur)">Run
+this program fullscreen</a>
 
     ;semicolons make the rest of a line a comment
     (define x 10)           ;var x = 10
@@ -146,38 +146,11 @@ To run the tests, install mocha and chai and run mocha on the tests:
     npm install chai
     mocha test*
 
-There's currently no build process, which is nice and simple but
-means that embedding requires a long list of script tags.
 The ES5/6 features in the code are limited to those implemented
-in Chrome, Firefox, and Node without requiring any flags.
+in Node without requiring any flags so the tests can be run
+without compiling.
 
-potential todos
-
-* display most recently run named functions and when they were run,
-  and clicking them rewinds state to that time.
-* pause builtin function
-* branches of ifs acting like functions: changing them rewinds
-  back to last time they were changed
-* stepper debugger: buttons and highlighting source
-* REPL for quickly evaluating expressions in the same environment
-* example of JS interop
-* test and document keypress handler (keyPressed key from KeyboardTracker)
-* methods for drawing and loading external assets by url
-* more parse-time errors (function call arity, literal validity
-  currently happen at runtime)
-* vary speed in runner to achieve constant fps
-* "fast" versions of map etc. that are written in JavaScript
-  and execute in one step
-* button to restore source to last parsable state
-* inline documentation viewer
-* prettier error message display
-* Use a better syntax for beginners - something like http://codelauren.com/
-  * `=`, `->` or `<-` for assignment
-  * Lisp 2 (require apply for first element of a form to be dynamically
-    evaluated) for compile-time arity checking
-  * parens after function calls
-
-# Motivation
+# About
 
 I wrote this to play with interpreters and so I could be informed as
 I talked to [Mary Rose Cook](http://maryrosecook.com/) about her
