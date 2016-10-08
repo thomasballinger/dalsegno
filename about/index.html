@@ -24,6 +24,7 @@ See the effect of code changes instantly
 </h2>
 <div class="edit-to-rewind-example">
 <script type="dalsegno"
+        id="edit-to-rewind"
         data-console="true"
         data-editor="true"
         data-canvas-width="400"
@@ -37,8 +38,9 @@ See the effect of code changes instantly
   <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
 </video>
 <p class="instructions">
-Try changing a number. Can you make the ball move faster? (hint: <a href="#" class="lineno-link" data-dalsegno-embed="edit-to-rewind" data-dalsegno-lineno="4">lines 4 and 5</a>)
-  <a href="http://dalsegno.ballingt.com/?code=breakoutProgram">Open fullscreen</a> for more space.
+Try changing a number. Can you make the ball move faster? (try
+ <a href="#" class="lineno-link" data-dalsegno-script-id="edit-to-rewind" data-dalsegno-lineno="4" data-dalsegno-colno="12">lines 4 and 5</a>)
+  For more space, <a href="http://dalsegno.ballingt.com/?code=breakoutProgram">go fullscreen</a>.
 </p>
 
 <p class="emphasis">Dal Segno rewinds back to the last execution of a modified function.</p>
@@ -98,6 +100,7 @@ You can read the <a href="https://github.com/thomasballinger/dalsegno#language">
 <h2 id="golf">Let's play golf</h2>
 <div class="game-example">
 <script type="dalsegno"
+        id="golf-example"
         data-console="true"
         data-speed="1000"
         data-canvas-width="500"
@@ -110,8 +113,13 @@ You can read the <a href="https://github.com/thomasballinger/dalsegno#language">
 </video>
 
 <p class="instructions">
-Try changing <code>fire</code> or <code>fly-loop</code> after taking a shot.
-<a href="http://dalsegno.ballingt.com/?code=golfProgram">Open fullscreen</a> for more space.
+Try changing
+<a href="#" class="lineno-link" data-dalsegno-script-id="golf-example" data-dalsegno-lineno="57" data-dalsegno-colno="15"><code>(fire)</code></a>
+after taking a shot, or
+
+<a href="#" class="lineno-link" data-dalsegno-script-id="golf-example" data-dalsegno-lineno="86" data-dalsegno-colno="26">
+play with terrain generation</a>.
+For more space <a href="http://dalsegno.ballingt.com/?code=golfProgram">go fullscreen</a>.
 </p>
 
 <img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
@@ -120,6 +128,7 @@ Try changing <code>fire</code> or <code>fly-loop</code> after taking a shot.
 <p class="instructions">Use spacebar and the mouse to avoid the hidden asteroids.</p>
 <div class="game-example">
 <script type="dalsegno"
+        id="space-example"
         data-console="true"
         data-speed="500"
         data-canvas-width="500"
@@ -131,7 +140,11 @@ Try changing <code>fire</code> or <code>fly-loop</code> after taking a shot.
   <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
 </video>
 <p class="instructions">
-  Try tweaking the size and shape of the floodlight (line 62) or the shape of the ship.
+  Try tweaking the
+  <a href="#" class="lineno-link" data-dalsegno-script-id="space-example" data-dalsegno-lineno="61" data-dalsegno-colno="25">size</a>
+  and
+  <a href="#" class="lineno-link" data-dalsegno-script-id="space-example" data-dalsegno-lineno="61" data-dalsegno-colno="28">shape</a>
+  of the floodlight.
   <a href="http://dalsegno.ballingt.com/?code=breakoutProgram">Open fullscreen</a> for more space.
 </p>
 
@@ -192,6 +205,35 @@ for (var i=0; i<videos.length; i++){
   videos[i].addEventListener('click', function(e){e.target.play();});
   videos[i].addEventListener('mouseenter', function(e){e.target.play();});
 }
+
+function toLineNo(el, scriptId, lineno, colno){
+  var embeds = DalSegno.widgets.filter(function(w){ return w.scriptId === scriptId });
+  if (embeds.length !== 1){
+    return function(){ return false; };
+  }
+  var embed = embeds[0];
+  lineno = parseInt(lineno);
+  colno = colno === undefined ? undefined : parseInt(colno);
+  return (function(e){
+    embed.editor.resize(true);  // Ace editor bug may require this before nextline
+    embed.editor.scrollToLine(lineno, true, true, function(){});
+    embed.editor.gotoLine(lineno, colno);
+    embed.editor.focus();
+    e.preventDefault();
+    return false;
+  });
+}
+
+var links = Array.prototype.slice.call(document.getElementsByClassName('lineno-link'));
+for (var i=0; i<links.length; i++){
+  var link = links[i];
+  var cb = toLineNo(link,
+                    link.dataset.dalsegnoScriptId,
+                    link.dataset.dalsegnoLineno,
+                    link.dataset.dalsegnoColno);
+  link.addEventListener('click', cb);
+}
+
 </script>
 </body>
 </html>

@@ -1,14 +1,5 @@
 // vim: set ft=scheme:
-window.golfProgram = `(defn start-spot (points)
-  (define index (randint 3 (// (length points) 2)))
-  (define point (get index points))
-  (list (first point) (- (get 1 point) 20)))
-
-(defn collision (x y points r)
-  (define r (closestPointOrLine (list x y) points r))
-  (first r))
-
-(defn paint (points x y draw-mouse-line)
+window.golfProgram = `(defn paint (points x y draw-mouse-line)
       (color "lightblue")
       (fillRect 0 0 10000 10000)
       (color "black")
@@ -85,6 +76,11 @@ window.golfProgram = `(defn start-spot (points)
     (gameloop))
   (gameloop))
 
+(defn start-spot (points)
+  (define index (randint 3 (// (length points) 2)))
+  (define point (get index points))
+  (list (first point) (- (get 1 point) 20)))
+
 (defn terrain (n)
   ; returns points and hole x y
   (define hole-start (- (* 2 (/ width 3)) 12))
@@ -117,6 +113,10 @@ window.golfProgram = `(defn start-spot (points)
       (map gradual-slope (range points-after)))
     (list (list width height))))
   (list points (/ (+ hole-start hole-end) 2) hole-y))
+
+(defn collision (x y points r)
+  (define r (closestPointOrLine (list x y) points r))
+  (first r))
 
 (define ground-below-lookup)
 (defn init-ground-below (points)

@@ -845,7 +845,7 @@ function uniqueId(element){
 function findScriptTags(){
   var tags = Array.prototype.slice.call(document.querySelectorAll('script'));
   var dalSegnoTags = tags.filter((el)=>el.type == 'dalsegno');
-  dalSegnoTags.forEach((el)=>createEmbed(el));
+  var embeds = dalSegnoTags.forEach((el)=>createEmbed(el));
 }
 
 function createEmbed(script){
@@ -909,10 +909,11 @@ function createEmbed(script){
                            window[script.dataset.program] || '(display "program not found")',
                            uniqueId(controlsDiv)
   );
+  embed.scriptId = script.id;
   if (script.dataset.editor === 'read-only'){
     embed.editor.setReadOnly(true);
-    embed.editor
   }
+
   embed.speed = 50;  // how many ticks to run at a time, default is 500
   if (script.dataset.speed){
     embed.speed = parseInt(script.dataset.speed);
@@ -929,8 +930,7 @@ function createEmbed(script){
   };
   embed.onChangeIfValid(embed.initialContent);
   */
-
-
+  return;
 }
 
 var CONTROLS_HTML = `
