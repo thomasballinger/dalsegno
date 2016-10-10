@@ -7,6 +7,7 @@ function MouseTracker(canvasId){
   this.canvas = document.getElementById(canvasId);
   var mouse = this.mouse = {x: 0, y: 0};
   var mousedown = this.mousedown = [false];
+  var lastClick = this.lastClick = [0];
 
   Object.defineProperty(this, '_is_nondeterministic', {
     enumerable: false,
@@ -20,6 +21,7 @@ function MouseTracker(canvasId){
   }, false);
   this.canvas.addEventListener('mousedown', function(e){
     mousedown[0] = true;
+    lastClick[0] = (new Date()).getTime();
   }, false);
   this.canvas.addEventListener('mouseup', function(e){
     mousedown[0] = false;
@@ -42,7 +44,16 @@ MouseTracker.prototype.mousey = function(){
   return this.mouse.y;
 };
 MouseTracker.prototype.clicked = function(){
-  return this.mousedown[0];
+  if (this.mousedown[0]){
+    return true;
+  }
+  // This way even at 20 FPS a click is certain to be picked up
+  var now = (new Date()).getTime();
+  if (now - this.lastClick[0] < 50){
+    this.lastClick[0] = 0;
+    return true;
+  }
+  return false;
 };
 
 MouseTracker.MouseTracker = MouseTracker;
