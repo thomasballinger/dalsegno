@@ -388,7 +388,7 @@ DalSegno.prototype.runSome = function(){
       } else {
         console.log('seeking to', seekTo);
         this.runner.instantSeekToNthKeyframe(seekTo);
-        this.drawRewindEffect();
+        this.drawPauseEffect();
         this.runSomeScheduled = false;
       }
     }
@@ -404,7 +404,7 @@ DalSegno.prototype.runSome = function(){
   this.runSomeScheduled = true;
 
   var run = () => {
-    this.clearRewindEffect();
+    this.clearEffect();
     if (this.highlight){
       this.highlightCurSpot(this.runner.getCurrentAST());
     }
@@ -430,7 +430,9 @@ DalSegno.prototype.runSome = function(){
     this.runner.update(s, (change)=>{
       if (!change){ run(); return; }
       if(this.lazyCanvasCtx){
+        this.drawPlayEffect();
         setTimeout(()=>{
+          this.clearEffect();
           run();
         }, 200);
       } else {
@@ -505,7 +507,7 @@ DalSegno.prototype.stepHistoryForward = function(n){
   return this.withStrictCanvas(()=>{
     if (n === undefined){ n = 1; }
     this.highlightCurSpot(this.runner.getCurrentAST(), n === 1);
-    this.drawRewindEffect();
+    this.drawPauseEffect();
     this.runner.runOneStep(true);
 
     // this means it's a key frame
@@ -536,7 +538,7 @@ DalSegno.prototype.stepHistoryBackward = function(n){
     }
 
     this.highlightCurSpot(this.runner.getCurrentAST(), n === 1);
-    this.drawRewindEffect();
+    this.drawPauseEffect();
     var sliderIndex = this.runner.prevKeyframeIndex();
     this.scrubber.setCurrentIndex(sliderIndex);
     if (n > 1){
@@ -549,7 +551,6 @@ DalSegno.prototype.stepHistoryBackward = function(n){
 
 /** Invoked only by editor change handler */
 DalSegno.prototype.onChange = function(e){
-  console.log('onChange running');
   var s = this.editor.getValue();
   var safelyParses = false;
   try {
@@ -785,24 +786,28 @@ DalSegno.prototype.initGraphics = function(){
   this.effectCtx.clearRect(0, 0, 10000, 10000);
 };
 DalSegno.prototype.drawRewindEffect = function(){
-  console.log("drawing rewind effect...");
-  this.rewindEffectCleared = false;
+  this.effectCleared = false;
   var w = this.effectCanvas.width;
   var h = this.effectCanvas.height;
-  var fills = ['#666', '#eee', '#888', '#bbb'];
-  this.effectCtx.clearRect(0, 0, 10000, 10000);
-  for (var i=0; i<10; i++){
-    this.effectCtx.fillStyle = fills[Math.floor(Math.random()*fills.length)];
-    this.effectCtx.fillRect(0, h/5 + Math.random()*h/12, w, h / 200);
-  }
-  for (var i=0; i<10; i++){
-    this.effectCtx.fillStyle = fills[Math.floor(Math.random()*fills.length)];
-    this.effectCtx.fillRect(0, 3*h/5 + Math.random()*h/12, w, h / 200);
-  }
+  drawRewindLines(this.effectCtx, w, h);
+  drawRewindIcon(this.effectCtx, w, h);
 };
-DalSegno.prototype.clearRewindEffect = function(){
-  if (this.rewindEffectCleared){ return; }
-  this.rewindEffectCleared = true;
+DalSegno.prototype.drawPauseEffect = function(){
+  this.effectCleared = false;
+  var w = this.effectCanvas.width;
+  var h = this.effectCanvas.height;
+  drawRewindLines(this.effectCtx, w, h);
+};
+DalSegno.prototype.drawPlayEffect = function(){
+  this.effectCleared = false;
+  var w = this.effectCanvas.width;
+  var h = this.effectCanvas.height;
+  drawRewindLines(this.effectCtx, w, h);
+  drawPlayIcon(this.effectCtx, w, h);
+};
+DalSegno.prototype.clearEffect = function(){
+  if (this.effectCleared){ return; }
+  this.effectCleared = true;
   this.effectCtx.clearRect(0, 0, 10000, 10000);
 };
 DalSegno.prototype.envBuilder = function(){
@@ -956,6 +961,51 @@ var CONTROLS_HTML = `
     title="fork the timelines"
     class="dalsegno-fork-timeline">kill the future, run from here</button>
     `;
+
+function drawRewindLines(ctx, w, h){
+  var fills = ['#666', '#eee', '#888', '#bbb'];
+  ctx.clearRect(0, 0, 10000, 10000);
+  for (var i=0; i<10; i++){
+    ctx.fillStyle = fills[Math.floor(Math.random()*fills.length)];
+    ctx.fillRect(0, h/5 + Math.random()*h/12, w, h / 200);
+  }
+  for (i=0; i<10; i++){
+    ctx.fillStyle = fills[Math.floor(Math.random()*fills.length)];
+    ctx.fillRect(0, 3*h/5 + Math.random()*h/12, w, h / 200);
+  }
+}
+
+function drawRewindIcon(ctx, w, h){
+  ctx.fillStyle = '#eee';
+  ctx.beginPath();
+  ctx.moveTo(0.3*w, 0.5*h, 0);
+  for (var point of [[0.3, 0.5],
+                     [0.5, 0.3],
+                     [0.5, 0.7],
+                     [0.3, 0.5],
+                     [0.5, 0.5],
+                     [0.7, 0.3],
+                     [0.7, 0.7],
+                     [0.5, 0.5],
+                    ]){
+    ctx.lineTo(point[0]*w, point[1]*h);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+function drawPlayIcon(ctx, w, h){
+  ctx.fillStyle = '#eee';
+  ctx.beginPath();
+  ctx.moveTo(0.4*w, 0.5*h, 0);
+  for (var point of [[0.4, 0.3],
+                     [0.65, 0.5],
+                     [0.4, 0.7],
+                    ]){
+    ctx.lineTo(point[0]*w, point[1]*h);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
 
 DalSegno.DalSegno = DalSegno;
 DalSegno.findScriptTags = findScriptTags;

@@ -113,13 +113,11 @@ Runner.prototype.copy = function(){
 Runner.prototype.restart = function(){
   var bytecode = bcexec.compileProgram(this.ast);
   this.context = new bcexec.Context(bytecode, this.envBuilder());
-  console.log('Restart!');
 };
 /** Updates running program with new source code.
  * If cb is provided, may behave in nonblocking manner to do fancy animations
  * it will be called with whether a rewind animation is necessary. */
 Runner.prototype.update = function(s, cb){
-  console.log('update!');
   var updateIsRewind = true;
   var newAst = parse(s);
   var functionASTs = parse.findFunctions(newAst);
@@ -141,7 +139,6 @@ Runner.prototype.update = function(s, cb){
     // Since no named functions have changed, this must have been a
     // top-level (global scope) AST change. Do a total reset!
     var reset = () => {
-      console.log('Total reset!');
       this.ast = parse(s);
       var bytecode = bcexec.compileProgram(this.ast);
       this.context = new bcexec.Context(bytecode, this.envBuilder());
@@ -515,8 +512,8 @@ Runner.prototype.visualSeek = function(dest, cb, frameChooser, eachStepCallback)
   var min = Math.min(dest, this.counter);
   var max = Math.max(dest, this.counter);
   var toShow = this.keyframeNums.filter(x => min < x && x < max);
-  console.log('found', toShow.length, 'frames to animate between', min, 'and', max);
-  // seems backwards because the code below pops from the end
+  //console.log('found', toShow.length, 'frames to animate between', min, 'and', max);
+  // this only seems backwards because the code below pops from the end
   if (dest > this.counter){
     toShow.reverse();
   }
