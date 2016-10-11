@@ -255,6 +255,9 @@ p, li, aside {
     .replace-embed {
       display: inline !important;
     }
+    #space {
+      display: none !important;
+    }
 }
 
 
