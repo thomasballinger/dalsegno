@@ -133,12 +133,17 @@ e.g. `log` -> `console.log.bind(console)`
 
 # Development
 
-To run the code locally you'll need webpack.
+To run the code locally you'll need webpack and some loaders.
+
+    npm install
+    npm install -g webpack
+
+Once those are installed, run the following:
 
     make
     python3 -m http.server 8000  # or any other static file server
 
-then open localhost:8000 in a webbrowser.
+and open localhost:8000 in a webbrowser.
 
 To run the tests, install mocha and chai and run mocha on the tests:
 
