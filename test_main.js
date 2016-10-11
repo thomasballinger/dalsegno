@@ -252,6 +252,19 @@ describe('when executed from a previous point', function(){
     runner.clearDefnsBeyond(1);
     assert.sameMembers(Object.keys(runner.savesByFunInvoke), ['a']);
   });
+  it('everything gets cleared', function(){
+    var runner = new Runner({});
+    runner.setEnvBuilder(envBuilder);
+    runner.loadUserCode(prog);
+    runner.runOneStep();
+    runner.runOneStep();
+    assert.equal(runner.counterMax, 2);
+    assert.equal(runner.counter, 2);
+    runner.clearBeyond();
+    assert.equal(runner.counterMax, 2);
+    runner.clearBeyond(1);
+    assert.equal(runner.counterMax, 1);
+  });
 });
 
 describe('interactive features', function(){

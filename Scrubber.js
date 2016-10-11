@@ -62,6 +62,9 @@ Scrubber.prototype.onInput = function(e){
 Scrubber.prototype.setCurrentIndex = function(val){
   this.rangeElement.value = val + 1;
 };
+Scrubber.prototype.setCurrentIndexToEnd = function(){
+  this.rangeElement.value = this.rangeElement.max;
+};
 Scrubber.prototype.makeCoverer = function(){
   var c = document.createElement('div');
   c.style.background = '#eef';

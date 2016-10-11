@@ -112,6 +112,7 @@ function DalSegno(editorId, canvasContainerId, errorBarId, consoleId, scrubberId
   if (this.controlsContainerId){
     this.initControls();
   }
+  this.updateControls();
 
   this.runner.registerStateful(this.lazyCanvasCtx);
   this.runner.registerRenderRequester(this.lazyCanvasCtx);
@@ -308,6 +309,7 @@ DalSegno.prototype.runSome = function(){
       //
       //TODO set state once they're finished! Or in their logic.
       //What should playerState be while they're running?
+      this.updateControls();
       if (stepDelta){
         if (stepDelta < 0){
           this.stepHistoryBackward(-1 * stepDelta);
@@ -333,6 +335,15 @@ DalSegno.prototype.runSome = function(){
       if (forkTimeline){
         console.log('fork timeline from end');
         // which is accomplished by just falling through
+      } else if (stepDelta){
+        if (stepDelta < 0){
+          this.stepHistoryBackward(-1 * stepDelta);
+        }
+        return;
+      } else if (stepToPrevKeyframe){
+        this.stepHistoryToPrevKeyframe();
+        this.updateControls();
+        return;
       } else {
         // For now the only thing that can make the program keep running
         // is forkTimeline, so otherise return here.
@@ -342,7 +353,17 @@ DalSegno.prototype.runSome = function(){
       if (forkTimeline){
         console.log('fork timeline from beginning');
         this.playerState = PS.Initial;
+        this.updateControls();
         this.ensureRunSomeScheduled();
+        return;
+      } else if (stepDelta){
+        if (stepDelta > 0){
+          this.stepHistoryForward(stepDelta);
+        }
+        return;
+      } else if (stepToNextKeyframe){
+        this.stepHistoryToNextKeyframe();
+        this.updateControls();
         return;
       } else {
         // For now the only thing that can make the program keep running
@@ -392,6 +413,7 @@ DalSegno.prototype.runSome = function(){
         this.runSomeScheduled = false;
       }
     }
+    this.updateControls();
     return;
   }
 
@@ -418,6 +440,7 @@ DalSegno.prototype.runSome = function(){
         } else {
           this.playerState = PS.Finished;
         }
+        this.updateControls();
         // long-running loop, so use setTimeout to allow other JS to run
         // setTimeout( () => this.runSome(), 16.0);
         window.requestAnimationFrame( () => this.runSome() );
@@ -450,6 +473,7 @@ DalSegno.prototype.forkTimeline = function(){
   this.runner.clearBeyond();
   this.scrubber.dropBeyond(()=>{
     this.playerState = PS.Unfinished;
+    this.updateControls();
     this.go();
   });
 };
@@ -458,6 +482,10 @@ DalSegno.prototype.stepHistoryToNextKeyframe = function(){
   if (dest === null){
     //TODO should go to last playable frame - this isn't
     //even stored anywhere right now I don't think.
+    //HACK: for now, just go to final spot
+    this.playerState = PS.HistoryAtEnd;
+    this.updateControls();
+    return;  // this is actually pretty reasonable behavior, maybe keep it?
     throw Error('Not implemented');
   }
   console.log('current counter:', this.runner.counter);
@@ -468,6 +496,10 @@ DalSegno.prototype.stepHistoryToPrevKeyframe = function(){
   var dest = this.runner.prevKeyframeIndex(this.runner.counter-1);
   if (dest === null){
     //TODO should do a reset
+    // tmp hack for now: put us at the beginning
+    this.playerState = PS.HistoryAtBeginning;
+    this.updateControls();
+    return;
     throw Error('Not implemented');
   }
   console.log('current counter:', this.runner.counter);
@@ -500,7 +532,7 @@ DalSegno.prototype.stepHistoryForward = function(n){
   if (this.runner.atEnd()){
     // one forward from the last step is the special end spot
     this.playerState = PS.HistoryAtEnd;
-    //TODO update slider too, or put that in updateControls
+    this.updateControls();
     return;
   }
   this.playerState = PS.History;
@@ -533,6 +565,12 @@ DalSegno.prototype.stepHistoryBackward = function(n){
 
     // goes one frame at a time
     var togo = this.runner.instantSeekToKeyframeBeforeBack(1);
+    //TODO tmp hack: if magic number, back out
+    if (togo == -42){
+      this.playerState = PS.HistoryAtBeginning;
+      this.updateControls();
+      return;
+    }
     for (var i=0; i < togo; i++){
       this.runner.runOneStep(true);
     }
@@ -545,7 +583,6 @@ DalSegno.prototype.stepHistoryBackward = function(n){
       setTimeout(()=> this.stepHistoryBackward(n-1), 0);
     }
     //TODO check to see if there are no more history frames left!
-    // (needs to be saved somewhere: the last counter ever run)
   });
 };
 
@@ -688,31 +725,77 @@ DalSegno.prototype.initConsole = function(){
   this.console = new Console(this.consoleId);
 };
 DalSegno.prototype.updateControls = function(){
+//TODO I'm not sure all the calls to updateControls are necessary, reason through each of them
   if (this.playerState === this.lastUpdateControlsState){ return; }
+  if (!this.controlsContainerId){ return; }
+
   this.lastUpdateControlsState = this.playerState;
   console.log('current state is', this.playerState);
+
+  var allClasses = [
+    'dalsegno-rw-1',
+    'dalsegno-rw-1000',
+    'dalsegno-fw-1',
+    'dalsegno-fw-1000',
+    'dalsegno-prev-keyframe',
+    'dalsegno-next-keyframe',
+    'dalsegno-fork-timeline',
+    'dalsegno-scrubber'
+  ];
+  var allEnabled = {}; allClasses.forEach((prop)=>{ allEnabled[prop] = true; });
+  var allDisabled = {}; allClasses.forEach((prop)=>{ allDisabled[prop] = false; });
+  //TOM TODO TOMHERE currently working walking through all controls and toggling them as appropriate.
+
+  var forkText = 'run program from here; change the future';
+  var isEnabled = {};
   if (this.playerState === PS.Initial){
-    console.log('should disable steppers and KTF');
+    isEnabled = allDisabled;
   } else if (this.playerState === PS.Unfinished){
-    console.log('should disable stepping forward and KTF');
+    isEnabled = allDisabled;
+    //TODO allow stepping back from here,
+    // and make stepping back pause running then step back
+    isEnabled['dalsegno-scrubber'] = true;
   } else if (this.playerState === PS.Finished){
-    console.log('should disable stepping forward and KTF');
+    isEnabled = allDisabled;
+    isEnabled['dalsegno-rw-1'] = true;
+    isEnabled['dalsegno-rw-1000'] = true;
+    isEnabled['dalsegno-prev-keyframe'] = true;
+    isEnabled['dalsegno-scrubber'] = true;
   } else if (this.playerState === PS.HistoryAtEnd){
-    console.log('should disable stepping forward and KTF');
+    this.scrubber.setCurrentIndexToEnd();
+    isEnabled = allDisabled;
+    isEnabled['dalsegno-rw-1'] = true;
+    isEnabled['dalsegno-rw-1000'] = true;
+    isEnabled['dalsegno-prev-keyframe'] = true;
+    isEnabled['dalsegno-fork-timeline'] = true;
+    isEnabled['dalsegno-scrubber'] = true;
+    forkText = 'continue execution';
   } else if (this.playerState === PS.HistoryAtBeginning){
-    console.log('should disable stepping backwards');
+    isEnabled = allDisabled;
+    isEnabled['dalsegno-fw-1'] = true;
+    isEnabled['dalsegno-fw-1000'] = true;
+    isEnabled['dalsegno-next-keyframe'] = true;
+    isEnabled['dalsegno-fork-timeline'] = true;
+    isEnabled['dalsegno-scrubber'] = true;
   } else if (this.playerState === PS.History){
-    console.log('turn everything on');
+    isEnabled['dalsegno-scrubber'] = true;
+    isEnabled = allEnabled;
   } else if (this.playerState === PS.Error){
-    console.log('Error state, I guess all buttons should be off? I dunno what should happen to buttons.');
+    isEnabled = allDisabled;
   } else {
     throw Error('bad player state');
   }
 
-  //TODO update slider here as well
-
-  //TOMHERE next to do: hook up the buttons! Once they do things it'll be more
-  //fun to disable/enable them as appropriate
+  this.controlsContainer = document.getElementById(this.controlsContainerId);
+  for (var el of Array.prototype.slice.call(this.controlsContainer.getElementsByTagName('*'))){
+    if (allClasses.indexOf(el.className) != -1){
+      var val = isEnabled[el.className];
+      el.disabled = !val;
+    }
+    if (el.className === 'dalsegno-fork-timeline'){
+      el.textContnet = forkText;
+    }
+  }
 };
 DalSegno.prototype.initControls = function(){
   // Look for each control and
@@ -956,7 +1039,7 @@ var CONTROLS_HTML = `
       title="step through execution until next key frame"
       class="dalsegno-next-keyframe">&gt;&gt;|</button>
   </div>
-  <input type="range" id="scrubber2"/>
+  <input type="range" class="dalsegno-scrubber" id="scrubber2"/>
   <button id="fork"
     title="fork the timelines"
     class="dalsegno-fork-timeline">kill the future, run from here</button>

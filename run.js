@@ -86,6 +86,7 @@ Runner.prototype.loadUserCode = function(s){
   var bytecode = bcexec.compileProgram(this.ast);
   this.context = new bcexec.Context(bytecode, this.envBuilder());
   this.counter = 0;
+  this.counterMax = 0;
 };
 //TODO shim for testing
 Runner.prototype.currentEnv = function(){
@@ -150,7 +151,7 @@ Runner.prototype.update = function(s, cb){
         var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 50);
 
         this.visualSeek(0, () => {
-          this.clearKeyframesBeyond();
+          this.clearKeyframesBeyond(-1);
           reset();
           cb(updateIsRewind);
         }, framesample.makeAccelDecelSampler(rewindLength));
@@ -225,9 +226,6 @@ Runner.prototype.update = function(s, cb){
 };
 
 Runner.prototype.clearKeyframesBeyond = function(lastKept){
-  if (lastKept === undefined){
-    lastKept = -1;
-  }
   var newKeyframeStates = {};
   var newKeyframeNums = [];
   for (var t of this.keyframeNums){
@@ -240,9 +238,6 @@ Runner.prototype.clearKeyframesBeyond = function(lastKept){
   this.keyframeNums = newKeyframeNums;
 };
 Runner.prototype.clearDefnsBeyond = function(lastKept){
-  if (lastKept === undefined){
-    lastKept = -1;
-  }
   var newSaves = {};
   for (var funcName of Object.keys(this.savesByFunInvoke)){
     var save = this.savesByFunInvoke[funcName];
@@ -255,16 +250,17 @@ Runner.prototype.clearDefnsBeyond = function(lastKept){
   this.savesByFunInvoke = newSaves;
 };
 Runner.prototype.clearCachedNondetsBeyond = function(lastKept){
-  if (lastKept === undefined){
-    lastKept = -1;
-  }
   for (var t of Object.keys(this.cachedNondetResults)){
     if (parseInt(t) > lastKept){
       delete this.cachedNondetResults[t];
     }
   }
 };
+/** when called with no arg, clears beyond current counter */
 Runner.prototype.clearBeyond = function(n){
+  if (n === undefined){
+    n = this.counter;
+  }
   this.clearKeyframesBeyond(n);
   this.clearDefnsBeyond(n);
   this.clearCachedNondetsBeyond(n);
@@ -496,7 +492,9 @@ Runner.prototype.instantSeekToKeyframeBeforeBack = function(n){
   var dest = this.counter - n;
   var index = this.prevKeyframeIndex(dest);
   if (index === null){
-    //TODO do a reset here
+    //TODO do a reset here without throwing away state
+    // For now, return a magic value to put us in first state
+    return -42;
     throw Error("not implemented");
   }
   var counter = this.keyframeNums[index];
