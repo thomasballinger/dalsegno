@@ -1,7 +1,7 @@
 // vim: set ft=scheme:
 window.spaceLightProgram = `; That headlight looks a little underpowered!
 ; Try changing the last two arguments to draw-black
-; on line 62, or delete that line altogether.
+; on line 61, or delete that line altogether.
 ; Then make more changes to see how the game works!
 ; Language documentation: on GitHub at thomasballinger/dalsegno
 ; in the user-content-language section of the readme

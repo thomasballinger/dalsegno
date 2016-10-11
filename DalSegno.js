@@ -132,8 +132,7 @@ DalSegno.prototype.go = function(){
 };
 DalSegno.prototype.link = function(){
   //TODO links to versions without editors or with a console
-  var base = 'http://dalsegno.ballingt.com/';
-  //var base = './gamelib.html';
+  var base = 'http://dalsegno.ballingt.com/fullscreen/';
   var encoded = encodeURI(this.editor.getValue());
   return base + '?code='+encoded;
 };

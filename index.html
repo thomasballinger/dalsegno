@@ -1,100 +1,237 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>live code reloading</title>
-<link rel="stylesheet" href="dalsegno.css">
-<style type="text/css" media="screen">
-    #editor {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        width: 630px;
-        font-size: 14px;
-    }
-    #canvas-container {
-      position: absolute;
-      top: 0;
-      left: 630px;
-      bottom: 0;
-      right: 0;
-      background-color: #777777;
-    }
-    .is-hidden {
-      display: none;
-    }
-    #errorbar {
-      position: absolute;
-      top: 100;
-      left: 660px;
-      bottom: 100;
-      right: 30;
-      background-color: #ff99cc;
-      text-align: center;
-      font-size: 2em;
-    }
-    .errorHighlight{
-      position:absolute;
-      z-index:20;
-      background-color:#F4B9B7;
-    }
-    body {
-      background-color: #111111
-    }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dal Segno</title>
+<link rel="stylesheet" href="reset.css">
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="embed.css">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto:300" rel="stylesheet">
 </head>
 <body>
-
-<div id="editor" class="is-hidden"></div>
-
-<div id="canvas-container" class="dalsegno-canvas-container">
-  <canvas id="c1"></canvas>
-  <canvas id="c2"></canvas>
-</div>
-<div id="errorbar"></div>
-<script>
-  var canvas = document.getElementById('c1');
-  canvas.width = window.innerWidth - 630;
-  canvas.height = window.innerHeight;
-  var effectCanvas = document.getElementById('c2');
-  effectCanvas.width = window.innerWidth - 630;
-  effectCanvas.height = window.innerHeight;
-</script>
-
+<div class="container">
 <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-
 <script src="bundle.js"></script>
 
+<div class="hero-container">
+<h1 id="hero">Dal Segno</h1>
+<img id="header-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+</div>
+
+
+<h2 id="simple">
+See the effect of code changes instantly
+</h2>
+<div class="edit-to-rewind-example">
+<script type="dalsegno"
+        id="edit-to-rewind"
+        data-console="true"
+        data-editor="true"
+        data-canvas-width="400"
+        data-program="breakoutProgram"
+        data-speed="100"
+        data-theme="solarized_light"
+        >
+</script>
+</div>
+<video class="replace-embed" loop="">
+  <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
+</video>
+<p class="instructions">
+Try changing a number. Can you make the ball move faster? (try
+ <a href="#" class="lineno-link" data-dalsegno-script-id="edit-to-rewind" data-dalsegno-lineno="4" data-dalsegno-colno="12">lines 4 and 5</a>)
+  For more space, <a href="http://dalsegno.ballingt.com/fullscreen/?code=breakoutProgram">go fullscreen</a>.
+</p>
+
+<p class="emphasis">Dal Segno rewinds back to the last execution of a modified function.</p>
+
+<div class="rows">
+<p>
+Each time a function is executed, the state of the program is saved just before the function body begins to run.
+Then on each editor keystroke the ASTs of the new and old programs are diffed and the changed function is identified.
+</p>
+
+<p>
+The program state which was stored before the most recent execution of that function is restored with the old AST of the function swapped out for the new one.
+This eliminates the wait for a program to reach the point where a change in its code would matter,
+ideally making trying out code as quick as tweaking CSS.
+</p>
+</div>
+
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<h2 id="language">Language Overview</h2>
+
+<div class="simple-example">
+<script type="dalsegno"
+        data-console="true"
+        data-speed="1"
+        data-ast-highlight="true"
+        data-canvas-width="300"
+        data-program="simpleProgram"
+        >
+</script>
+</div>
+<video class="replace-embed" loop="">
+  <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
+</video>
+<p class="instructions">
+Try adding a method from the browser window or console, like <code>(alert "hello")</code>.
+<a href="http://dalsegno.ballingt.com/fullscreen/?code=simpleProgram">Open fullscreen</a> for more space.
+</p>
+
+<div class="rows">
+<p>
+The language is pretty Scheme-like, with the addition of a <code>(defn name (arg1 arg2 ...) body)</code> special form that defines global functions.
+These global functions trigger the saving interpreter state with every execution, while lambdas do not.
+Native arrays are immutable, but scopes aren't: variables in namespaces can be rebound with <code>(set! name)</code>.
+</p>
+<p>
+JavaScript interop works via name lookup: after the local and enclosing namespaces are searched for variables that match a name, JavaScript objects are checked for that name. In these examples a canvas context is included in this lookup chain for drawing, along with the JavaScript browser objects <code>window</code>, <code>console</code>, and helper objects for getting mouse position and pressed keys.
+</p>
+</div>
+
+<p class="emphasis">
+You can read the <a href="https://github.com/thomasballinger/dalsegno#language">language documentation</a> in the project readme
+</p>
+
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<h2 id="golf">Let's play golf</h2>
+<div class="game-example">
+<script type="dalsegno"
+        id="golf-example"
+        data-console="true"
+        data-speed="1000"
+        data-canvas-width="500"
+        data-program="golfProgram"
+        >
+</script>
+</div>
+<video class="replace-embed" loop="">
+  <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
+</video>
+
+<p class="instructions">
+Try changing
+<a href="#" class="lineno-link" data-dalsegno-script-id="golf-example" data-dalsegno-lineno="57" data-dalsegno-colno="15"><code>(fire)</code></a>
+after taking a shot, or
+
+<a href="#" class="lineno-link" data-dalsegno-script-id="golf-example" data-dalsegno-lineno="86" data-dalsegno-colno="26">
+play with terrain generation</a>.
+For more space <a href="http://dalsegno.ballingt.com/fullscreen/?code=golfProgram">go fullscreen</a>.
+</p>
+
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<h2 id="space">This game is too hard</h2>
+<p class="instructions">Use spacebar and the mouse to avoid the hidden asteroids.</p>
+<div class="game-example">
+<script type="dalsegno"
+        id="space-example"
+        data-console="true"
+        data-speed="500"
+        data-canvas-width="500"
+        data-program="spaceLightProgram"
+        >
+</script>
+</div>
+<video class="replace-embed" loop="">
+  <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
+</video>
+<p class="instructions">
+  Try tweaking the
+  <a href="#" class="lineno-link" data-dalsegno-script-id="space-example" data-dalsegno-lineno="61" data-dalsegno-colno="25">size</a>
+  and
+  <a href="#" class="lineno-link" data-dalsegno-script-id="space-example" data-dalsegno-lineno="61" data-dalsegno-colno="28">shape</a>
+  of the floodlight.
+  <a href="http://dalsegno.ballingt.com/fullscreen/?code=breakoutProgram">Open fullscreen</a> for more space.
+</p>
+
+
+<p class="emphasis">
+Write your own at <a href="http://dalsegno.ballingt.com/fullscreen">dalsegno.ballingt.com</a>
+</p>
+
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+<h2 id="stepping">Stepping through program execution</h2>
+
+<div class="stepping-example">
+<script type="dalsegno"
+        data-console="true"
+        data-speed="80"
+        data-editor="read-only"
+        data-canvas-width="500"
+        data-step-controls="true"
+        data-program="breakoutProgram"
+        >
+</script>
+</div>
+<video class="replace-embed" loop="">
+  <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
+</video>
+<p class="instructions">
+Start the program then use the slider to scroll through history and step through the code forwards or backwards.
+</p>
+
+<div class="rows">
+<p>
+Dal Segno takes actual snapshots of the program state instead of recording user inputs and rerunning the program deterministically. This second approach is the more sensible way to implement hot-swapping of code, but this method provides faster seeking through history.
+</p>
+<p>
+Want to use Dal Segno for something, fix it, add things to it, or find out more about it?
+Let me know! I'd love to hear from you at <a href="https://twitter.com/ballingt">@ballingt</a> on Twitter or by <a href="mailto:me@ballingt.com">email</a>. Someday soon I'll write a blog post about this, but I won't know what to say unless I get questions.
+</p>
+</div>
+
+<iframe class="gh-button" src="http://ghbtns.com/github-btn.html?user=thomasballinger&repo=dalsegno&type=star&count=true&size=large" frameborder="0" scrolling="0" width="115px" height="30px"></iframe>
+<a href="https://twitter.com/ballingt" class="twitter-follow-button" data-show-count="false">Follow @ballingt</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+<a href="http://ballingt.com">ballingt.com</a>
+
+<img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
+
+
+
+<footer>
+  Segno image by <a href="https://commons.wikimedia.org/wiki/File:SegnoTeken.svg">Johannes Rössel</a>, licenced <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en">CC BY-SA</a>
+</footer>
+
 <script>
-function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(location.search);
-    return results === null ? "" : decodeURIComponent(results[1]);
+DalSegno.findScriptTags();
+
+var videos = Array.prototype.slice.call(document.getElementsByTagName('video'));
+for (var i=0; i<videos.length; i++){
+  videos[i].addEventListener('click', function(e){e.target.play();});
+  videos[i].addEventListener('mouseenter', function(e){e.target.play();});
 }
 
-var codeFromURL = getParameterByName('code');
-if (typeof window[codeFromURL] === 'string'){
-  codeFromURL = window[codeFromURL];
-}
-var embed = new DalSegno('editor', 'canvas-container', 'errorbar', undefined, undefined, codeFromURL || window.spaceLightProgram)
-
-embed.onChangeIfValid = function(){
-  var encoded = encodeURI(embed.editor.getValue());
-  try {
-    history.replaceState({}, "", "?code="+encoded);
-  }catch(e){
-    console.log('failed to change url');
+function toLineNo(el, scriptId, lineno, colno){
+  var embeds = DalSegno.widgets.filter(function(w){ return w.scriptId === scriptId });
+  if (embeds.length !== 1){
+    return function(){ return false; };
   }
-};
+  var embed = embeds[0];
+  lineno = parseInt(lineno);
+  colno = colno === undefined ? undefined : parseInt(colno);
+  return (function(e){
+    embed.editor.resize(true);  // Ace editor bug may require this before nextline
+    embed.editor.scrollToLine(lineno, true, true, function(){});
+    embed.editor.gotoLine(lineno, colno);
+    embed.editor.focus();
+    e.preventDefault();
+    return false;
+  });
+}
 
-// prevents requiring mouseover the first time
-//embed.lastResumeCleanupFunction();
-embed.go();
-
-embed.speed = 1000;  // how many ticks to run at a time, default is 500
-if (getParameterByName('vim')){
-  embed.editor.setKeyboardHandler("ace/keyboard/vim");
+var links = Array.prototype.slice.call(document.getElementsByClassName('lineno-link'));
+for (var i=0; i<links.length; i++){
+  var link = links[i];
+  var cb = toLineNo(link,
+                    link.dataset.dalsegnoScriptId,
+                    link.dataset.dalsegnoLineno,
+                    link.dataset.dalsegnoColno);
+  link.addEventListener('click', cb);
 }
 
 </script>

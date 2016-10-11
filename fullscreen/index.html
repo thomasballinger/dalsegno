@@ -1,0 +1,102 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>live code reloading</title>
+<link rel="stylesheet" href="dalsegno.css">
+<style type="text/css" media="screen">
+    #editor {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 630px;
+        font-size: 14px;
+    }
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 630px;
+      bottom: 0;
+      right: 0;
+      background-color: #777777;
+    }
+    .is-hidden {
+      display: none;
+    }
+    #errorbar {
+      position: absolute;
+      top: 100;
+      left: 660px;
+      bottom: 100;
+      right: 30;
+      background-color: #ff99cc;
+      text-align: center;
+      font-size: 2em;
+    }
+    .errorHighlight{
+      position:absolute;
+      z-index:20;
+      background-color:#F4B9B7;
+    }
+    body {
+      background-color: #111111
+    }
+</style>
+</head>
+<body>
+
+<div id="editor" class="is-hidden"></div>
+
+<div id="canvas-container" class="dalsegno-canvas-container">
+  <canvas id="c1"></canvas>
+  <canvas id="c2"></canvas>
+</div>
+<div id="errorbar"></div>
+<script>
+  var canvas = document.getElementById('c1');
+  canvas.width = window.innerWidth - 630;
+  canvas.height = window.innerHeight;
+  var effectCanvas = document.getElementById('c2');
+  effectCanvas.width = window.innerWidth - 630;
+  effectCanvas.height = window.innerHeight;
+</script>
+
+<script src="../ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+
+<script src="../bundle.js"></script>
+
+<script>
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1]);
+}
+
+var codeFromURL = getParameterByName('code');
+if (typeof window[codeFromURL] === 'string'){
+  codeFromURL = window[codeFromURL];
+}
+var embed = new DalSegno('editor', 'canvas-container', 'errorbar', undefined, undefined, codeFromURL || window.spaceLightProgram)
+
+embed.onChangeIfValid = function(){
+  var encoded = encodeURI(embed.editor.getValue());
+  try {
+    history.replaceState({}, "", "?code="+encoded);
+  }catch(e){
+    console.log('failed to change url');
+  }
+};
+
+// prevents requiring mouseover the first time
+//embed.lastResumeCleanupFunction();
+embed.go();
+
+embed.speed = 1000;  // how many ticks to run at a time, default is 500
+if (getParameterByName('vim')){
+  embed.editor.setKeyboardHandler("ace/keyboard/vim");
+}
+
+</script>
+</body>
+</html>
