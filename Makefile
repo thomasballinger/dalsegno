@@ -11,9 +11,9 @@ ace-build-src-noconflict: ace-builds
 	/ace-builds/src-noconflict/
 Immutable.js:
 	curl https://raw.githubusercontent.com/facebook/immutable-js/master/dist/immutable.min.js > Immutable.js
-lazycanvasbundle.js:
+lazycanvasbundle.js: LazyCanvasCtx.js
 	webpack
-bundle.js:
+bundle.js: src/*.js examples/*.js
 	webpack
 
 index_with_tracking: index.html
