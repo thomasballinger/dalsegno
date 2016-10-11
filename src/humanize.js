@@ -17,13 +17,10 @@ function humanize(e){
     var parts = s.match(/[<]Environment\n([\s\S]+)with runner/);
     var scopes = parts[1].split('\n');
     var names = [].concat.apply([], scopes.map((line)=>line.split(','))).filter((word)=>word.length > 0);
-    console.log('here are the names:');
-    console.log(names);
     var index = 'not found in.*';
     //slurp up all the names in all namespaces and suggest things with small edit distance
     //
     var suggs = suggestions(name, names);
-    console.log('suggestions:', suggs);
     var suggestionString;
     if (suggs.length === 1){
       suggestionString = `\nDid you mean ${suggs[0]}?`;
@@ -35,7 +32,6 @@ function humanize(e){
     }
     return `Error: I don't know what ${name} is.\n` + suggestionString;
   }
-  console.log(e);
   return s;
 }
 
@@ -46,7 +42,6 @@ function suggestions(cur, possible){
     .map(poss => [levenshtein(cur, poss), poss]), poss => poss[0]);
   sortedStuff = possible.slice(0);
   sortedStuff.sort();
-  console.log('alphabetical:', sortedStuff);
 
   return sorted(possible
     .map(poss => [levenshtein(cur, poss), poss])
@@ -85,6 +80,7 @@ function sorted(arr, key){
   return newArr;
 }
 
+//http://stackoverflow.com/a/18514751/398212
 var levenshtein = function(s, t) {
     var d = []; //2d matrix
 
@@ -134,36 +130,6 @@ var levenshtein = function(s, t) {
 
     // Step 7
     return d[n][m];
-}
-function levenshtein2(a, b){
-  if (a.length === 0 || b.length === 0){
-    throw new Error('bad input to levenshtein: "'+a+'", "'+b+'"');
-  }
-  [a, b] = sorted([a, b], x => x.length);
-  console.log(a, b);
-  // now a is shorter than or the same length as b
-
-  var row = range(a.length);
-
-  // fill in the rest
-  for (var i of range(1, b.length+1)){
-    var prev = i;
-    for (var j of range(1, a.length+1)){
-      var val;
-      if (b.charAt(i-1) == a.charAt(j-1)){
-        val = row[j-1]; // match
-      } else {
-        val = Math.min(row[j-1] + 1, // substitution
-                       prev + 1,     // insertion
-                       row[j] + 1);  // deletion
-      }
-      row[j - 1] = prev;
-      prev = val;
-    }
-    row[a.length] = prev;
-  }
-
-  return row[a.length];
 }
 
 humanize.humanize = humanize;
