@@ -30,14 +30,12 @@ var PS = {
   Error: new State('Error', `No handlers needed, editor onChange has got it`),
   History: new State('History', `viewing old history`),
 
-  // going to expand History into these:
+  // TODO create a state for mid-animation?
 
-  // TODO create a state for mid-animation? 
-
-  HistoryKeyframe: new State('PausedAtKeyframe', ``),
+  //HistoryKeyframe: new State('PausedAtKeyframe', ``),
   HistoryAtEnd: new State('Unfinished, but paused', ``),
   HistoryAtBeginning: new State('Initial, but paused', ``),
-  HistoryBetweenKeyframes: new State('stepping between things'),
+  //HistoryBetweenKeyframes: new State('stepping between things'),
 };
 
 // Editor messages
