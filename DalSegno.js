@@ -269,8 +269,9 @@ DalSegno.prototype.runSome = function(){
   } else if (this.mouseMessage){
     if (!this.lastCleanupFunction){
       console.warn('mouse message but no cleanup function');
+    } else {
+      this.lastCleanupFunction();
     }
-    this.lastCleanupFunction();
     this.mouseMessage = null;
     this.isActive = true;
   } else if (this.scrubberMessage !== null){

@@ -21,7 +21,7 @@ DrawHelpers.prototype.drawInverseCircle = function(x, y, r){
   this.ctx.beginPath();
   this.ctx.arc(x, y, r, 0, 2 * Math.PI);
   this.ctx.rect(this.canvas.width, 0, -(this.canvas.width), this.canvas.height);
-  this.ctx.fill();
+  this.ctx.fill('evenodd');
 };
 DrawHelpers.prototype.drawArc = function(x, y, r, start, end){
   if (start === undefined){
