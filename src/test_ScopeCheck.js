@@ -3,7 +3,7 @@ var chai = require('chai');
 var assert = chai.assert;
 
 
-var Immutable = require('./Immutable.js');
+var Immutable = require('../Immutable.js');
 var parse = require('./parse.js');
 var ScopeCheck = require('./ScopeCheck.js').ScopeCheck;
 var bcexec = require('./bcexec.js');

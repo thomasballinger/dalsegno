@@ -1,4 +1,4 @@
-var Immutable = require('./Immutable.js');
+var Immutable = require('../Immutable.js');
 
 function pprint(x){
   if (Immutable.List.isList(x)){

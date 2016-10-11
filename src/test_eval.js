@@ -2,7 +2,7 @@
 var chai = require('chai');
 var assert = chai.assert;
 
-var Immutable = require('./Immutable');
+var Immutable = require('../Immutable');
 var tokenize = require('./parse.js').tokenize;
 var parse = require('./parse.js');
 var jc = parse.justContent;

@@ -4,7 +4,7 @@ var fs = require('fs');
 var chai = require('chai');
 var assert = chai.assert;
 
-var LazyCanvasCtx = require('./LazyCanvasCtx.js').LazyCanvasCtx;
+var LazyCanvasCtx = require('../LazyCanvasCtx.js').LazyCanvasCtx;
 
 function FakeDocument(){
   this.getElementById = function(id){

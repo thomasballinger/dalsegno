@@ -2,7 +2,7 @@
 var chai = require('chai');
 var assert = chai.assert;
 
-var Immutable = require('./Immutable.js');
+var Immutable = require('../Immutable.js');
 var builtins = require('./builtins.js');
 
 function immutableListsEqual(a, b){

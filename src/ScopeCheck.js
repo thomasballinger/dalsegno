@@ -5,7 +5,7 @@
  * Environments will hold a scope ticket to a scope, and
  */
 
-var Immutable = require('./Immutable.js');
+var Immutable = require('../Immutable.js');
 
 function ScopeCheck(nextId, log){
   // start at 1 because 0 would is falsy

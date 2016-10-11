@@ -6,7 +6,7 @@
 
 'use strict';
 
-var Immutable = require('./Immutable');
+var Immutable = require('../Immutable');
 
 var _numObjects = 0;
 function objectId(obj) {

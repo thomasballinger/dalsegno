@@ -1,6 +1,6 @@
 'use strict';
 
-var Immutable = require('./Immutable.js');
+var Immutable = require('../Immutable.js');
 
 function MouseTracker(canvasId){
   var self = this;

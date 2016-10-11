@@ -7,7 +7,7 @@ var Environment = require('./Environment.js');
 var parse = require('./parse');
 var jc = parse.justContent;
 var run = require('./run');
-var Immutable = require('./Immutable');
+var Immutable = require('../Immutable');
 var withConsoleLogIgnored = require('./testutils').withConsoleLogIgnored;
 
 function removeIds(obj){

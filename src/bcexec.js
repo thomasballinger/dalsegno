@@ -10,7 +10,7 @@ var compileFunctionBody = compile.compileFunctionBody;
 var compileProgram = compile.compileProgram;
 var compileInitialization = compile.compileInitialization;
 var BC = compile.BC;
-var Immutable = require('./Immutable.js');
+var Immutable = require('../Immutable.js');
 
 function err(msg, ast){
   var e = Error(msg);

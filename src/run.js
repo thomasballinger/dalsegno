@@ -2,7 +2,7 @@
 
 var parse = require('./parse.js');
 var deepCopy = require('./deepCopy.js');
-var Immutable = require('./Immutable.js');
+var Immutable = require('../Immutable.js');
 var Environment = require('./Environment.js');
 var NamedFunctionPlaceholder = Environment.NamedFunctionPlaceholder;
 var bcexec = require('./bcexec.js');

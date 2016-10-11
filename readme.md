@@ -144,7 +144,7 @@ To run the tests, install mocha and chai and run mocha on the tests:
 
     npm install -g mocha
     npm install chai
-    mocha test*
+    mocha src/test*
 
 The ES5/6 features in the code are limited to those implemented
 in Node without requiring any flags so the tests can be run
@@ -154,25 +154,27 @@ without compiling.
 
 There are a lot of directions to take this, I capped it off pretty
 arbitrarily because I wanted to be able to show it to people.
-The most pressing items:
+Some particularly relevant things to do:
 
-* fix up DalSegno.js to allow editing and stepping in the same embed.
+* Fix up DalSegno.js to allow editing and stepping in the same embed.
   This mostly works, but not all of the state transitions are covered.
-* move all effects to the effect canvas, currently the main lazycanvas
+* Move all effects to the effect canvas, currently the main lazycanvas
   is still doing extra work.
 * An alternate interpreter mode that does not save snapshots.
   This would be nice for publishing programs for use.
 * faster GC and fix memory leaks
 
 I have a lot of smaller fixes I'd like to make,
-if you'd like to contribute let me know. Here are a few simple fixes:
+if you'd like to contribute let me know and I can advise on your PR.
+Here are a few simple fixes:
 
-* AST highlighting regions are slightly off (one larger on each side)
+* AST highlighting regions are slightly off (usually 1 extra character on each side)
 * Set focus on mouseover for Dal Segno widget for keyboard events
 * Save current program in local storage instead of url
-* Save multiple programs at at time
-* Many more, if there's interest I can throw a lot of things up on an issue
-  tracker
+* Keep multiple programs saved at a time
+
+There's lots more, if there's interest I can throw a lot of things up on an issue
+tracker.
 
 ## Motivation
 

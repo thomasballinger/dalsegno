@@ -1,6 +1,6 @@
 'use strict';
 
-var Immutable = require('./Immutable.js');
+var Immutable = require('../Immutable.js');
 var parse = require('./parse.js');
 var ScopeCheck = require('./ScopeCheck.js');
 

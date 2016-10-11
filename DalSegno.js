@@ -3,19 +3,19 @@
 'use strict';
 
 var Immutable = require("./Immutable.js");
-var parse = require("./parse.js");
-var Environment = require("./Environment.js");
-var run = require("./run.js");
-var bcexec = require("./bcexec.js");
-var builtins = require("./builtins.js");
-var MouseTracker = require("./MouseTracker.js");
-var KeyboardTracker = require("./KeyboardTracker.js");
-var stdlibcode = require("./stdlibcode.js");
+var parse = require("./src/parse.js");
+var Environment = require("./src/Environment.js");
+var run = require("./src/run.js");
+var bcexec = require("./src/bcexec.js");
+var builtins = require("./src/builtins.js");
+var MouseTracker = require("./src/MouseTracker.js");
+var KeyboardTracker = require("./src/KeyboardTracker.js");
+var stdlibcode = require("./src/stdlibcode.js");
 var LazyCanvasCtx = require("./LazyCanvasCtx.js");
-var DrawHelpers = require("./DrawHelpers.js");
-var Console = require("./Console.js");
-var Scrubber = require("./Scrubber.js");
-var humanize = require("./humanize.js");
+var DrawHelpers = require("./src/DrawHelpers.js");
+var Console = require("./src/Console.js");
+var Scrubber = require("./src/Scrubber.js");
+var humanize = require("./src/humanize.js");
 
 
 function State(state, msg){ this.state = state; this.msg = msg; }
@@ -793,7 +793,7 @@ DalSegno.prototype.updateControls = function(){
       el.disabled = !val;
     }
     if (el.className === 'dalsegno-fork-timeline'){
-      el.textContnet = forkText;
+      el.textContent = forkText;
     }
   }
 };
