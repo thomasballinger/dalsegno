@@ -213,7 +213,6 @@ DalSegno.prototype.setClickToRestart = function(){
                       'to run it again.'], 'lowerRight');
   var self = this;
   function cleanup(){
-    console.log('calling cleanup function set by setClickToRestart');
     self.effectCanvas.removeEventListener('click', handler);
     ctx.clearRect(0, 0, 10000, 10000);
     self.lastCleanupFunction = undefined;
@@ -257,7 +256,7 @@ DalSegno.prototype.runSome = function(){
 
   // Check Queued Events
   if (this.editorMessage === EM.SyntacticDifference){
-    console.log('difference in editor is only syntactic, nothing special to do');
+    //difference in editor is only syntactic, nothing special to do
     this.editorMessage = null;
     this.isActive = true;
   } else if (this.editorMessage === EM.SemanticDifference){
@@ -278,7 +277,6 @@ DalSegno.prototype.runSome = function(){
     this.mouseMessage = null;
     this.isActive = true;
   } else if (this.scrubberMessage !== null){
-    console.log('scrubber message received:', this.scrubberMessage);
     this.clearError();
     this.clearCurSpot();
     this.isActive = true;
@@ -286,7 +284,6 @@ DalSegno.prototype.runSome = function(){
     seekTo = this.scrubberMessage;
     this.scrubberMessage = null;
   } else if (this.controlsMessage !== null){
-    console.log('got a controls message:', this.controlsMessage);
     var [action, arg] = this.controlsMessage;
     this.controlsMessage = null;
     if (action === 'step back'){
@@ -333,7 +330,6 @@ DalSegno.prototype.runSome = function(){
       }
     } else if (this.playerState === PS.HistoryAtEnd){
       if (forkTimeline){
-        console.log('fork timeline from end');
         // which is accomplished by just falling through
       } else if (stepDelta){
         if (stepDelta < 0){
@@ -351,7 +347,6 @@ DalSegno.prototype.runSome = function(){
       }
     } else if (this.playerState === PS.HistoryAtBeginning){
       if (forkTimeline){
-        console.log('fork timeline from beginning');
         this.playerState = PS.Initial;
         this.updateControls();
         this.ensureRunSomeScheduled();
@@ -401,13 +396,11 @@ DalSegno.prototype.runSome = function(){
   } else if (this.playerState === PS.History){
     if (seekTo !== false){
       if (seekTo === 'first'){
-        console.log('special case beginning');
         this.playerState = PS.HistoryAtBeginning;
       } else if (seekTo === 'last'){
-        console.log('special case end');
         this.playerState = PS.HistoryAtEnd;
       } else {
-        console.log('seeking to', seekTo);
+        //console.log('seeking to', seekTo);
         this.runner.instantSeekToNthKeyframe(seekTo);
         this.drawPauseEffect();
         this.runSomeScheduled = false;
@@ -418,7 +411,7 @@ DalSegno.prototype.runSome = function(){
   }
 
   if (!this.isActive){
-    console.log("Won't reschedule runSome because this widget is inactive!");
+    //Won't reschedule runSome because this widget is inactive
     this.setMouseinToPlay();
     this.runSomeScheduled = false;
     return;
@@ -488,8 +481,6 @@ DalSegno.prototype.stepHistoryToNextKeyframe = function(){
     return;  // this is actually pretty reasonable behavior, maybe keep it?
     throw Error('Not implemented');
   }
-  console.log('current counter:', this.runner.counter);
-  console.log('want to step to', dest, this.runner.keyframeNums[dest]);
   this.stepHistoryTo(this.runner.keyframeNums[dest]);
 };
 DalSegno.prototype.stepHistoryToPrevKeyframe = function(){
@@ -502,8 +493,6 @@ DalSegno.prototype.stepHistoryToPrevKeyframe = function(){
     return;
     throw Error('Not implemented');
   }
-  console.log('current counter:', this.runner.counter);
-  console.log('want to step to', dest, this.runner.keyframeNums[dest]);
   this.stepHistoryTo(this.runner.keyframeNums[dest]);
 };
 DalSegno.prototype.withStrictCanvas = function(cb){
@@ -624,7 +613,7 @@ DalSegno.prototype.sendMessageFromEditor = function(msg){
 DalSegno.prototype.initWindowWatcher = function(){
   if (DalSegno.windowWatcherSet){ return; }
   window.addEventListener('blur', function(){
-    console.log('tab seems inactive!');
+    console.log('tab seems inactive');
     DalSegno.activeWidget = undefined;
   });
   DalSegno.windowWatcherSet = true;
@@ -635,7 +624,6 @@ DalSegno.prototype.onRuntimeOrSyntaxError = function(e){
   //this.errorbar.innerText = ''+e;
   this.errorbar.classList.remove('is-hidden');
   if (e.ast){
-    console.log('Error has ast selection, should highlight');
     Range = ace.require("ace/range").Range;
     //TODO investigate error annotations instead of markers
     if (this.badSpot){
@@ -730,7 +718,6 @@ DalSegno.prototype.updateControls = function(){
   if (!this.controlsContainerId){ return; }
 
   this.lastUpdateControlsState = this.playerState;
-  console.log('current state is', this.playerState);
 
   var allClasses = [
     'dalsegno-rw-1',
@@ -821,7 +808,6 @@ DalSegno.prototype.initControls = function(){
       el.addEventListener('click', ((classname)=>{
         return ()=>{
           this.controlsMessage = inputClasses[classname];
-          console.log('clicked control!');
           this.ensureRunSomeScheduled();
         };
       })(el.className));
