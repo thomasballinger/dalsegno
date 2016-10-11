@@ -15,7 +15,7 @@ It's sort of like Scheme.
 ### Example
 
 <a
-href="http://dalsegno.ballingt.com/fullscreen/?code=spaceLightProgram">Run
+href="http://dalsegno.ballingt.com/fullscreen/?code=simpleProgram">Run
 this program fullscreen</a>
 
     ;semicolons make the rest of a line a comment
