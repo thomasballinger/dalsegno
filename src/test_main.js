@@ -355,6 +355,23 @@ describe('reload bugs:', function(){
     }
   }
 
+  function update(newProg, noConsoleLog, debug){
+    if (noConsoleLog === undefined){ noConsoleLog = true; }
+    if (debug === undefined) { debug = false; }
+
+    runner.debug = undefined;
+    if (debug){
+      runner.debug = newProg;
+    }
+    if (noConsoleLog){
+      withConsoleLogIgnored(() => {
+        runner.update(newProg);
+      });
+    } else {
+      runner.update(newProg);
+    }
+  }
+
   beforeEach(function(){
     scopeObj = undefined;
     lastEnv = undefined;
@@ -368,15 +385,26 @@ describe('reload bugs:', function(){
     });
   });
 
-  it('nonexistant future snapshot problem', function(){
+  //it('nonexistant future snapshot problem', function(){
+  it('testoring a function snapshot that no longer exists', function(){
     var prog = dedent(`
-      (defn f1 () 1)
+      (defn f1 () "abc")
+      (defn f2 () "xyz")
       (stopRunning)
-      (defn f2 () 2)
+      (f1)
+      (stopRunning)
+      (f2)
       (stopRunning)
       1`);
 
     runner.loadUserCode(prog);
+    runUntilStop();
+    runUntilStop();
+    runUntilStop();
+    update(prog.replace('abc', 'cba'));
+    runUntilStop();
+    update(prog.replace('abc', 'cba').replace('xyz', 'zyx'));
+    runUntilStop();
   });
   it('inner defn ok on reload', function(){
     var prog = dedent(`
@@ -392,7 +420,7 @@ describe('reload bugs:', function(){
 
     runner.loadUserCode(prog);
     runUntilStop();
-    runner.update(prog.replace('hello', 'goodbye'));
+    update(prog.replace('hello', 'goodbye'));
     runUntilStop();
   });
   it('updating a tail-called function uses the new code immediately', function(){
@@ -405,14 +433,13 @@ describe('reload bugs:', function(){
         (recur))
       (recur)`);
 
-    runner.update(prog);
-    //runner.debug = prog;
+    update(prog);
 
     runUntilStop();
     assert.equal(scopeObj._timesAssert1Run, 1);
     assert.equal(scopeObj._timesAssert2Run, 0);
 
-    runner.update(prog.replace('assert1', 'assert3'));
+    update(prog.replace('assert1', 'assert3'));
     runUntilStop();
 
     assert.equal(scopeObj._timesAssert1Run, 1);
