@@ -505,6 +505,32 @@ Runner.prototype.instantSeekToKeyframeBeforeBack = function(n){
 };
 Runner.prototype.visualSeek = function(dest, cb, frameChooser, eachStepCallback){
   if (dest > Math.max(Math.max.apply(null, this.keyframeNums), this.counter)){
+    console.warn('indented destination is beyond the knowable future: '+dest);
+    console.warn('As a hack, resetting from beginning. This is a bug.');
+    // I assume this is the situation where the last save of a function
+    // that exists in lost future. This happens when
+    // * f1 is called at t=0
+    // * f2 is called at t=1
+    // * f1 is edited, erasing the future beyond t=0
+    // * f2 is edited, state at t=1 restored but doesn't exist
+    //
+    // Since we don't have a valid snapshot for this function anymore,
+    // as a hack let's reset. 
+    if (cb){
+      setTimeout(() => {
+        var numFrames = this.keyframeNums.length;
+        var rewindLength = 3 + Math.ceil(Math.log10(numFrames + 1) * 50);
+
+        this.visualSeek(0, () => {
+          this.clearKeyframesBeyond(-1);
+          reset();
+          cb(updateIsRewind);
+        }, framesample.makeAccelDecelSampler(rewindLength));
+      }, 0);
+    } else {
+      reset();
+    }
+    return;
     throw Error('destination is beyond the knowable future: '+dest);
   }
   var min = Math.min(dest, this.counter);
