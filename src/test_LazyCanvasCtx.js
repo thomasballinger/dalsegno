@@ -27,7 +27,10 @@ function FakeCanvas(){
   this.width = 20;
   this.height = 10;
 }
+LazyCanvasCtx.ContextPropertiesWithAGetterOrSetter.justGetter = true;
+LazyCanvasCtx.ContextPropertiesWithAGetterOrSetter.justSetter = true;
 function FakeCanvasCtx(){
+
   this.savedFillStyles = [];
   this.runCB = function(cb){
     // If created by a createElement call then it's the test canvas context
@@ -86,7 +89,6 @@ function patchGlobal(name, value, cb){
 
 describe('LazyCanvasCtx', function(){
   it('can be instantiated in node', function(){
-    console.log(LazyCanvasCtx);
     patchGlobal('document', new FakeDocument(), function(){
       new LazyCanvasCtx("doesn't matter", true, false);
     });
@@ -128,6 +130,7 @@ describe('LazyCanvasCtx', function(){
       c.runCB(function(){ callbackRun++; });
       assert.equal(callbackRun, 0);
       // Getters have to happen now, so they call trigger()
+      console.log('hello');
       assert.equal(c.justGetter, 1);
       assert.equal(callbackRun, 1);
 
@@ -137,7 +140,7 @@ describe('LazyCanvasCtx', function(){
       assert.equal(c.ctx.justSetterValue, 1);
     });
   });
-  it('works with ', function(){
+  it('works with', function(){
     patchGlobal('document', new FakeDocument(), function(){
       var c = new LazyCanvasCtx("doesn't matter", true, false);
       var callbackRun = 0;

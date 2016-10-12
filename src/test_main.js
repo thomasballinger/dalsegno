@@ -386,6 +386,7 @@ describe('reload bugs:', function(){
   });
 
   //it('nonexistant future snapshot problem', function(){
+  //TODO look for that visual seek to an unknown future
   it('testoring a function snapshot that no longer exists', function(){
     var prog = dedent(`
       (defn f1 () "abc")

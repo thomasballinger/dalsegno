@@ -258,6 +258,7 @@ LazyCanvasCtx.prototype.drawPlayIcon = function(){
 };
 
 
+LazyCanvasCtx.ContextPropertiesWithAGetterOrSetter = ContextPropertiesWithAGetterOrSetter;
 LazyCanvasCtx.LazyCanvasCtx = LazyCanvasCtx;
 
 
