@@ -332,7 +332,52 @@ describe('interactive features', function(){
   });
 });
 
-describe('reload bugs', function(){
+describe('reload bugs:', function(){
+  var scopeObj;
+  var runner;
+  var lastEnv;
+  function ScopeObj(){
+    this._keepRunning = true;
+    this._timesAssert1Run = 0;
+    this._timesAssert2Run = 0;
+    this._timesAssert3Run = 0;
+  }
+  ScopeObj.prototype.stopRunning = function(){ this._keepRunning = false; };
+  ScopeObj.prototype.assert1 = function(){ this._timesAssert1Run += 1; };
+  ScopeObj.prototype.assert2 = function(){ this._timesAssert2Run += 1; };
+  ScopeObj.prototype.assert3 = function(){ this._timesAssert3Run += 1; };
+  ScopeObj.prototype.thisNeverRuns = function(){ assert.fail("this line shouldn't have run"); };
+
+  function runUntilStop(){
+    scopeObj._keepRunning = true;
+    while (scopeObj._keepRunning){
+      runner.runOneStep();
+    }
+  }
+
+  beforeEach(function(){
+    scopeObj = undefined;
+    lastEnv = undefined;
+    runner = new Runner({});
+
+    runner.setEnvBuilder( runner => {
+      runner.scopeCheck.log = [];
+      scopeObj = new ScopeObj();
+      lastEnv = run.buildEnv([builtins, stdlibcode, {}], [scopeObj], runner);
+      return lastEnv;
+    });
+  });
+
+  it('nonexistant future snapshot problem', function(){
+    var prog = dedent(`
+      (defn f1 () 1)
+      (stopRunning)
+      (defn f2 () 2)
+      (stopRunning)
+      1`);
+
+    runner.loadUserCode(prog);
+  });
   it('inner defn ok on reload', function(){
     var prog = dedent(`
       (defn terrain (n)
@@ -345,35 +390,10 @@ describe('reload bugs', function(){
         (thisNeverRuns))
       (main)`);
 
-    var runner = new Runner({});
-
-    var keepRunning = true;
-    function ScopeObj(){}
-    ScopeObj.prototype.stopRunning = function(){ keepRunning = false; };
-    ScopeObj.prototype.assertion1 = function(){ assert.isTrue(true); };
-    ScopeObj.prototype.thisNeverRuns = function(){ assert.fail("this line shouldn't have run"); };
-
-    var lastEnv;
-    runner.setEnvBuilder( runner => {
-      runner.scopeCheck.log = [];
-      lastEnv = run.buildEnv([builtins, stdlibcode, {}], [new ScopeObj()], runner);
-      return lastEnv;
-    });
-
     runner.loadUserCode(prog);
-
-    while (keepRunning){
-      runner.runOneStep();
-    }
-
-    withConsoleLogIgnored(() => {
-      runner.update(prog.replace('hello', 'goodbye'));
-    });
-
-    keepRunning = true;
-    while (keepRunning){
-      runner.runOneStep();
-    }
+    runUntilStop();
+    runner.update(prog.replace('hello', 'goodbye'));
+    runUntilStop();
   });
   it('updating a tail-called function uses the new code immediately', function(){
     var prog = dedent(`
@@ -385,44 +405,18 @@ describe('reload bugs', function(){
         (recur))
       (recur)`);
 
-    var runner = new Runner({});
-    runner.setEnvBuilder( runner =>
-      run.buildEnv([builtins, stdlibcode, {}], [new ScopeObj()], runner));
-
-    var keepRunning = true;
-    var timesAssert1Run = 0;
-    var timesAssert2Run = 0;
-    var timesAssert3Run = 0;
-    function ScopeObj(){}
-    ScopeObj.prototype.stopRunning = function(){ keepRunning = false; };
-    ScopeObj.prototype.assert1 = function(){ timesAssert1Run += 1; };
-    ScopeObj.prototype.assert2 = function(){ timesAssert2Run += 1; };
-    ScopeObj.prototype.assert3 = function(){ timesAssert3Run += 1; };
-
-    withConsoleLogIgnored(() => {
-      runner.update(prog);
-    });
+    runner.update(prog);
     //runner.debug = prog;
 
-    while (keepRunning){
-      runner.runOneStep();
-    }
-    assert.equal(timesAssert1Run, 1);
-    assert.equal(timesAssert2Run, 0);
+    runUntilStop();
+    assert.equal(scopeObj._timesAssert1Run, 1);
+    assert.equal(scopeObj._timesAssert2Run, 0);
 
-    var newProg = prog.replace('assert1', 'assert3');
-    withConsoleLogIgnored(() => {
-      runner.update(newProg);
-    });
-    //runner.debug = newProg;
-    keepRunning = true;
-    while (keepRunning){
-      runner.runOneStep();
-    }
+    runner.update(prog.replace('assert1', 'assert3'));
+    runUntilStop();
 
-    assert.equal(timesAssert1Run, 1);
-    assert.equal(timesAssert2Run, 0);
-    assert.equal(timesAssert3Run, 1);
+    assert.equal(scopeObj._timesAssert1Run, 1);
+    assert.equal(scopeObj._timesAssert2Run, 0);
+    assert.equal(scopeObj._timesAssert3Run, 1);
   });
 });
-
