@@ -34,11 +34,10 @@ See the effect of code changes instantly
         >
 </script>
 </div>
-<video class="replace-embed" loop="" preload="none">
-  <source src="http://ballingt.com/assets/dalsegnodemo1.mp4" type="video/mp4">
+<video class="replace-embed" loop="" preload="meta" src="http://ballingt.com/assets/dalsegnodemo1.mp4">
 </video>
 <p class="instructions">
-Try changing a number. Can you make the ball move faster? (try
+Try changing a number. Can you make the ball move faster? (
  <a href="#" class="lineno-link" data-dalsegno-script-id="edit-to-rewind" data-dalsegno-lineno="4" data-dalsegno-colno="12">lines 4 and 5</a>)
   For more space, <a href="http://dalsegno.ballingt.com/fullscreen/?code=breakoutProgram">go fullscreen</a>.
 </p>
@@ -105,9 +104,7 @@ You can read the <a href="https://github.com/thomasballinger/dalsegno#language">
         >
 </script>
 </div>
-<video class="replace-embed" loop="" preload="none">
-  <source src="http://ballingt.com/assets/rewindlines.mp4" type="video/mp4">
-</video>
+<video class="replace-embed" loop="" preload="meta" src="http://ballingt.com/assets/rewindlines.mp4"> </video>
 
 <p class="instructions">
 Try changing
@@ -162,9 +159,7 @@ Write your own at <a href="http://dalsegno.ballingt.com/fullscreen">dalsegno.bal
         >
 </script>
 </div>
-<video class="replace-embed" loop="" preload="none">
-  <source src="http://ballingt.com/assets/dalsegnoStep.mp4" type="video/mp4">
-</video>
+<video class="replace-embed" loop="" preload="meta" src="http://ballingt.com/assets/dalsegnoStep.mp4" type="video/mp4"></video>
 <p class="instructions">
 Start the program then use the slider to scroll through history and step through the code forwards or backwards.
 </p>
@@ -227,6 +222,9 @@ for (var i=0; i<links.length; i++){
                     link.dataset.dalsegnoColno);
   link.addEventListener('click', cb);
 }
+
+
+var videoLinks = Array.prototype.slice.call(document.getElementsByClassName('video-link'));
 
 </script>
 </body>
