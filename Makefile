@@ -28,3 +28,7 @@ deploy: bundle.js bundle.js.map ace-builds index_with_tracking fullscreen_with_t
 	rsync fullscreen_with_tracking tom:/home/tomb/dalsegno/fullscreen/index.html
 	rm index_with_tracking
 	rm fullscreen_with_tracking
+
+deployFavicons: favicons.zip
+	scp ./favicons.zip tom:/home/tomb/dalsegno/favicons.zip
+	ssh tom 'cd dalsegno; unzip favicons.zip; rm favicons.zip'
