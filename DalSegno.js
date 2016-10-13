@@ -460,6 +460,8 @@ DalSegno.prototype.runSome = function(){
 
 DalSegno.prototype.forkTimeline = function(){
   //todo do this through message passing instead of invoking directly
+  this.clearError();
+  this.clearCurSpot();
 
   this.runner.clearBeyond();
   this.scrubber.dropBeyond(()=>{
