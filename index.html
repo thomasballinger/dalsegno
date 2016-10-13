@@ -55,11 +55,11 @@ Try <a href="#" class="lineno-link" data-dalsegno-script-id="edit-to-rewind" dat
 <div class="rows">
 <p>
 As this program runs snapshots are saved each time a function is called.
-When changes are made to the code, the program rewinds back to the most recent time the function that was modified was run so the changes become evident immediately.
+When a user makes changes to the code, the program rewinds back to the most recent time the function that was modified was run so the changes are immediately evident.
 </p>
 
 <p>
-Dal Segno means "from the sign," and is used in musical notation (where it is typically abbreviated to D.S.) to instruct a musician to repeat a section of music from an earlier point denoted by a the curly little symbol with two dots shown below.
+Dal Segno means "from the sign," and is used in musical notation (where it is typically abbreviated to D.S.) to instruct a musician to repeat a section of music from an earlier point denoted by the curly little symbol with two dots shown below.
 </p>
 </div>
 
@@ -172,7 +172,7 @@ Start the program then use the slider to scroll through history and step through
 
 <div class="rows">
 <p>
-Dal Segno differs from some other live-reloading systems I've seen in that it rewinds to the most recent invocation of the modified function (a state created by older code) instead of replaying the new code through from the beginning or redefining the code only for future executions, as in a REPL environment.
+Dal Segno differs from other live-reloading systems I've seen in that it rewinds to the most recent invocation of the modified function (a state created by older code) instead of replaying the new code through from the beginning or redefining the code only for future executions, as in a REPL environment.
 This provides the user with the most recent situation in which this new code might have made a difference, at the cost of putting the program in a possibly unreproducible state.
 Dal Segno actually saves copies the execution state instead of replaying the program from an initial state. At the cost of some space and time, this makes seeking to given program execution state faster.
 </p>
