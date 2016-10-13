@@ -37,23 +37,21 @@ See the effect of code changes instantly
 <video class="replace-embed" loop="" preload="meta" src="http://ballingt.com/assets/dalsegnodemo1.mp4">
 </video>
 <p class="instructions">
-Try changing a number. Can you make the ball move faster? (
- <a href="#" class="lineno-link" data-dalsegno-script-id="edit-to-rewind" data-dalsegno-lineno="4" data-dalsegno-colno="12">lines 4 and 5</a>)
-  For more space, <a href="http://dalsegno.ballingt.com/fullscreen/?code=breakoutProgram">go fullscreen</a>.
+Try changing a number. Can you make the ball move faster?
+Try <a href="#" class="lineno-link" data-dalsegno-script-id="edit-to-rewind" data-dalsegno-lineno="4" data-dalsegno-colno="12">lines 4 and 5</a>.
+ For more space, <a href="http://dalsegno.ballingt.com/fullscreen/?code=breakoutProgram">go fullscreen</a>.
 </p>
 
 <p class="emphasis">Dal Segno rewinds back to the last execution of a modified function.</p>
 
 <div class="rows">
 <p>
-Each time a function is executed, the state of the program is saved just before the function body begins to run.
-Then on each editor keystroke the ASTs of the new and old programs are diffed and the changed function is identified.
+As this program runs snapshots are saved each time a function is called.
+When changes are made to the code, the program rewinds back to the most recent time the function that was modified was run so the changes become evident immediately.
 </p>
 
 <p>
-The program state which was stored before the most recent execution of that function is restored with the old AST of the function swapped out for the new one.
-This eliminates the wait for a program to reach the point where a change in its code would matter,
-ideally making trying out code as quick as tweaking CSS.
+Dal Segno means "from the sign," and is used in musical notation (where it is typically abbreviated to D.S.) to instruct a musician to repeat a section of music from an earlier point denoted by a the curly little symbol with two dots shown below.
 </p>
 </div>
 
@@ -78,17 +76,17 @@ Try adding a method from the browser window or console, like <code>(alert "hello
 
 <div class="rows">
 <p>
-The language is pretty Scheme-like, with the addition of a <code>(defn name (arg1 arg2 ...) body)</code> special form that defines global functions.
-These global functions trigger the saving interpreter state with every execution, while lambdas do not.
-Native arrays are immutable, but scopes aren't: variables in namespaces can be rebound with <code>(set! name)</code>.
+The language is a bit like Scheme, with the addition of a <code>(defn name (arg1 arg2 ...) body)</code> special form that defines global functions.
+Calling a global function causes the interpreter state to be saved, while calling a function defined by <code>(lambda (arg1 arg2 ...) body)</code> does not.
+Lists are immutable, but scopes aren't: the values referred to by variables in namespaces can be updated with <code>(set! name)</code>.
 </p>
 <p>
-JavaScript interop works via name lookup: after the local and enclosing namespaces are searched for variables that match a name, JavaScript objects are checked for that name. In these examples a canvas context is included in this lookup chain for drawing, along with the JavaScript browser objects <code>window</code>, <code>console</code>, and helper objects for getting mouse position and pressed keys.
+JavaScript values are accessed via name lookup: after the local and enclosing scopes are searched for a name, the interpreter checks several JavaScript objects for that name. In these examples a canvas context is included in this lookup chain for drawing, along with the JavaScript browser objects <code>window</code> and <code>console</code>, as well as objects with methods for getting mouse position and pressed keys.
 </p>
 </div>
 
 <p class="emphasis">
-You can read the <a href="https://github.com/thomasballinger/dalsegno#language">language documentation</a> in the project readme
+You can read the <a href="https://github.com/thomasballinger/dalsegno#language">language documentation</a> in the readme on GitHub.
 </p>
 
 <img class="spacing-segno" src="segno.svg" alt="Dal Segno sign from music notation"/>
@@ -166,11 +164,14 @@ Start the program then use the slider to scroll through history and step through
 
 <div class="rows">
 <p>
-Dal Segno takes actual snapshots of the program state instead of recording user inputs and rerunning the program deterministically. This second approach is the more sensible way to implement hot-swapping of code, but this method provides faster seeking through history.
+Dal Segno differs from some other live-reloading systems I've seen in that it rewinds only to the most recent invocation of the modified function (a state created by older code) instead of replaying the new code through from the beginning, or redefining the code only for future executions, as in a REPL environment.
+This provides the user with the most recent situation in which this new code might have made a difference, at the cost of putting the program in a possibly unreproducible state.
+Dal Segno actually saves copies the execution state instead of replaying the program from an initial state. At the cost of some space and time, this makes seeking to given program execution state faster.
 </p>
 <p>
 Want to use Dal Segno for something, fix it, add things to it, or find out more about it?
-Let me know! I'd love to hear from you at <a href="https://twitter.com/ballingt">@ballingt</a> on Twitter or by <a href="mailto:me@ballingt.com">email</a>. Someday soon I'll write a blog post about this, but I won't know what to say unless I get questions.
+Let me know! I'd love to hear from you at <a href="https://twitter.com/ballingt">@ballingt</a> on Twitter or by <a href="mailto:me@ballingt.com">email</a>. I'd like to write more about this project and it would be very helpful for me to talk or write more informally about the project before I do.
+Beyond state rewinding, Dal Segno has been a playground for interpreter and live programming interface ideas like friendlier runtime errors, batched drawing operations, and running a program forwards and backwards. Thanks to Mary Rose Cook for great discussions about how to make a programming environment more interactive and discoverable.
 </p>
 </div>
 
@@ -183,7 +184,7 @@ Let me know! I'd love to hear from you at <a href="https://twitter.com/ballingt"
 
 
 <footer>
-  Segno image by <a href="https://commons.wikimedia.org/wiki/File:SegnoTeken.svg">Johannes Rössel</a>, licenced <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en">CC BY-SA</a>
+  Segno image by <a href="https://commons.wikimedia.org/wiki/File:SegnoTeken.svg">Johannes Rössel</a>, licensed <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en">CC BY-SA</a>
 </footer>
 
 <script>

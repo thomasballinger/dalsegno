@@ -158,7 +158,7 @@ without compiling.
 
 ## Todo
 
-There are a lot of directions to take this, I capped it off pretty
+There are a lot of directions this could be taken in, I capped it off pretty
 arbitrarily because I wanted to be able to show it to people.
 Some particularly relevant things to do:
 
