@@ -13,7 +13,7 @@ Immutable.js:
 	curl https://raw.githubusercontent.com/facebook/immutable-js/master/dist/immutable.min.js > Immutable.js
 lazycanvasbundle.js: LazyCanvasCtx.js
 	webpack
-bundle.js: src/*.js examples/*.js
+bundle.js: src/*.js examples/*.js DalSegno.js LazyCanvasCtx.js
 	webpack
 
 index_with_tracking: index.html

@@ -67,7 +67,7 @@ Scrubber.prototype.setCurrentIndexToEnd = function(){
 };
 Scrubber.prototype.makeCoverer = function(){
   var c = document.createElement('div');
-  c.style.background = '#eef';
+  c.style.background = '#F0E0C0';
   var els = window.getComputedStyle(this.rangeElement);
   c.style.position = els.position=='fixed' ? 'fixed':'absolute';
   c.style.zIndex = parseInt(els.zIndex)+1;
