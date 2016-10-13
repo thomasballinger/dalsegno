@@ -12,7 +12,7 @@ window.breakoutProgram = `(define paddle-y (- height 20))
   (color 200 0 100)
   (fillRect (- paddle-x (/ paddle-w 2))
             paddle-y paddle-w 10)
-  (color 40 40 100)
+  (color "darkblue")
   (fillRect (- ball-x 5) (- ball-y 5) 10 10)
   (render))
 
