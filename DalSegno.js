@@ -719,9 +719,9 @@ DalSegno.prototype.updateControls = function(){
 
   var allClasses = [
     'dalsegno-rw-1',
-    'dalsegno-rw-1000',
+    'dalsegno-rw-200',
     'dalsegno-fw-1',
-    'dalsegno-fw-1000',
+    'dalsegno-fw-200',
     'dalsegno-prev-keyframe',
     'dalsegno-next-keyframe',
     'dalsegno-fork-timeline',
@@ -743,14 +743,14 @@ DalSegno.prototype.updateControls = function(){
   } else if (this.playerState === PS.Finished){
     isEnabled = allDisabled;
     isEnabled['dalsegno-rw-1'] = true;
-    isEnabled['dalsegno-rw-1000'] = true;
+    isEnabled['dalsegno-rw-200'] = true;
     isEnabled['dalsegno-prev-keyframe'] = true;
     isEnabled['dalsegno-scrubber'] = true;
   } else if (this.playerState === PS.HistoryAtEnd){
     this.scrubber.setCurrentIndexToEnd();
     isEnabled = allDisabled;
     isEnabled['dalsegno-rw-1'] = true;
-    isEnabled['dalsegno-rw-1000'] = true;
+    isEnabled['dalsegno-rw-200'] = true;
     isEnabled['dalsegno-prev-keyframe'] = true;
     isEnabled['dalsegno-fork-timeline'] = true;
     isEnabled['dalsegno-scrubber'] = true;
@@ -758,7 +758,7 @@ DalSegno.prototype.updateControls = function(){
   } else if (this.playerState === PS.HistoryAtBeginning){
     isEnabled = allDisabled;
     isEnabled['dalsegno-fw-1'] = true;
-    isEnabled['dalsegno-fw-1000'] = true;
+    isEnabled['dalsegno-fw-200'] = true;
     isEnabled['dalsegno-next-keyframe'] = true;
     isEnabled['dalsegno-fork-timeline'] = true;
     isEnabled['dalsegno-scrubber'] = true;
@@ -791,9 +791,9 @@ DalSegno.prototype.initControls = function(){
 
   var inputClasses = {
     'dalsegno-rw-1': ['step back', 1],
-    'dalsegno-rw-1000': ['step back', 1000],
+    'dalsegno-rw-200': ['step back', 200],
     'dalsegno-fw-1': ['step forward', 1],
-    'dalsegno-fw-1000': ['step forward', 1000],
+    'dalsegno-fw-200': ['step forward', 200],
     'dalsegno-prev-keyframe': ['prev keyframe', null],
     'dalsegno-next-keyframe': ['next keyframe', null],
     'dalsegno-fork-timeline': ['fork timeline', null],
@@ -1010,15 +1010,15 @@ var CONTROLS_HTML = `
     <button
       class="dalsegno-prev-keyframe">|&lt;&lt;</button>
     <button
-      class="dalsegno-rw-1000">&lt;&lt;</button>
+      class="dalsegno-rw-200">&lt;&lt;</button>
     <button
       class="dalsegno-rw-1">&lt;</button>
     <button id="fw1"
       title="step forward a single bytecode execution"
       class="dalsegno-fw-1">&gt;</button>
     <button
-      title="step forward 1000 bytecode executions"
-      class="dalsegno-fw-1000" >&gt;&gt;</button>
+      title="step forward 200 bytecode executions"
+      class="dalsegno-fw-200" >&gt;&gt;</button>
     <button id="ffkeyframe"
       title="step through execution until next key frame"
       class="dalsegno-next-keyframe">&gt;&gt;|</button>
