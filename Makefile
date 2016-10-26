@@ -23,7 +23,7 @@ fullscreen_with_tracking: fullscreen/index.html
 	./addGoogleTracking googletracking.html fullscreen/index.html fullscreen_with_tracking
 
 deploy: bundle.js bundle.js.map ace-builds index_with_tracking fullscreen_with_tracking
-	rsync -r --verbose --delete main.css embed.css reset.css about ace-builds fullscreen bundle.js bundle.js.map segno.svg tom:/home/tomb/dalsegno
+	rsync -r --verbose --delete main.css embed.css reset.css about ace-builds fullscreen bundle.js bundle.js.map segno.svg videos.html tom:/home/tomb/dalsegno
 	rsync index_with_tracking tom:/home/tomb/dalsegno/index.html
 	rsync fullscreen_with_tracking tom:/home/tomb/dalsegno/fullscreen/index.html
 	rm index_with_tracking
